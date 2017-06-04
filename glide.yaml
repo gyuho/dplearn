@@ -1,5 +1,10 @@
 package: github.com/gyuho/deephardway
 import:
+- package: github.com/coreos/etcd
+  version: ace1760628bed743cd146a101239dc8c9ad31266
+  subpackages:
+  - clientv3
+  - embed
 - package: github.com/dustin/go-humanize
   version: 259d2a102b871d17f30e3cd9881a642961a1e486
 - package: github.com/golang/glog
