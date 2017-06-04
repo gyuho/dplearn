@@ -1,4 +1,4 @@
-# Last Updated at 2017-06-04 09:52:22.389189809 -0700 PDT
+# Last Updated at 2017-06-04 10:37:51.618220133 -0700 PDT
 # This Dockerfile contains everything needed for development and production use.
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile.gpu
@@ -63,6 +63,7 @@ WORKDIR ${HOME_DIR}
 ENV HOME /root
 
 RUN pip --no-cache-dir install \
+  requests \
   bcolz \
   theano \
   keras==1.2.2

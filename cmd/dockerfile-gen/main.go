@@ -134,6 +134,7 @@ WORKDIR ${HOME_DIR}
 ENV HOME /root
 
 RUN pip --no-cache-dir install \
+  requests \
   bcolz \
   theano \
   keras==1.2.2
