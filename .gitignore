@@ -3,4 +3,5 @@
 /node_modules
 /backend-web-server
 /notebooks/.ipynb_checkpoints
-
+/backend/deep/*.pyc
+/backend/deep/etcd/*.pyc
