@@ -2,3 +2,5 @@
 /.vscode
 /node_modules
 /backend-web-server
+/notebooks/.ipynb_checkpoints
+
