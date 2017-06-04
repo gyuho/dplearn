@@ -5,7 +5,7 @@ steps:
   - --tag
   - gcr.io/deephardway/deephardway:latest-gpu
   - --file
-  - ./dockerfiles/dev-gpu/Dockerfile
+  - ./dockerfiles/gpu/Dockerfile
   - .
 - name: gcr.io/cloud-builders/docker
   args:
@@ -13,7 +13,7 @@ steps:
   - --tag
   - gcr.io/deephardway/deephardway:latest-cpu
   - --file
-  - ./dockerfiles/dev-cpu/Dockerfile
+  - ./dockerfiles/cpu/Dockerfile
   - .
 images:
 - gcr.io/deephardway/deephardway:latest-gpu

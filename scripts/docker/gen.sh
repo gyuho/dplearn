@@ -7,5 +7,5 @@ if ! [[ "$0" =~ "./scripts/docker/gen.sh" ]]; then
 fi
 
 go install -v ./cmd/dockerfile-gen
-dockerfile-gen --config=./dockerfiles/dev-gpu/config.yaml --logtostderr=true
-dockerfile-gen --config=./dockerfiles/dev-cpu/config.yaml --logtostderr=true
+dockerfile-gen --config=./dockerfiles/gpu/config.yaml --logtostderr=true
+dockerfile-gen --config=./dockerfiles/cpu/config.yaml --logtostderr=true

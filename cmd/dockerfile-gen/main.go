@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	configPath := flag.String("config", "dockerfiles/dev-cpu/config.yaml", "Specify config file path.")
+	configPath := flag.String("config", "dockerfiles/cpu/config.yaml", "Specify config file path.")
 	flag.Parse()
 
 	bts, err := ioutil.ReadFile(*configPath)

@@ -1,4 +1,4 @@
-# Last Updated at 2017-06-04 10:37:51.610788367 -0700 PDT
+# Last Updated at 2017-06-04 10:51:21.571693954 -0700 PDT
 # This Dockerfile contains everything needed for development and production use.
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile.gpu
@@ -6,7 +6,7 @@
 
 ##########################
 # Base image to build upon
-FROM gcr.io/tensorflow/tensorflow:1.2.0-rc1-gpu
+FROM gcr.io/tensorflow/tensorflow:1.2.0-rc1
 ##########################
 
 ##########################
@@ -69,7 +69,7 @@ RUN pip --no-cache-dir install \
   keras==1.2.2
 
 RUN echo $'[global]\n\
-device = gpu\n\
+device = cpu\n\
 floatX = float32\n\
 [cuda]\n\
 root = /usr/local/cuda\n'\
@@ -86,10 +86,7 @@ RUN mkdir -p ${HOME}/.keras \
 > ${HOME}/.keras/keras.json \
   && cat ${HOME}/.keras/keras.json
 
-# Tensorflow GPU image already includes https://developer.nvidia.com/cudnn
-# https://github.com/fastai/courses/blob/master/setup/install-gpu.sh
-# RUN ls /usr/local/cuda/lib64/
-# RUN ls /usr/local/cuda/include/
+# Built for CPU, no need to install 'cuda'
 
 # Configure Jupyter
 ADD ./jupyter_notebook_config.py /root/.jupyter/

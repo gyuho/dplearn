@@ -1,6 +1,6 @@
 # https://gcr.io/tensorflow/tensorflow
-device: cpu
-tensorflow-base-image: gcr.io/tensorflow/tensorflow:1.2.0-rc1
+device: gpu
+tensorflow-base-image: gcr.io/tensorflow/tensorflow:1.2.0-rc1-gpu
 
 # https://golang.org/dl/
 go-version: 1.8.3
@@ -13,4 +13,5 @@ nvm-version: 0.33.2
 node-version: 7.10.0
 
 dockerfile-paths:
-- ./dockerfiles/dev-cpu/Dockerfile
+- ./Dockerfile
+- ./dockerfiles/gpu/Dockerfile

@@ -8,5 +8,5 @@ fi
 
 docker build \
   --tag gcr.io/deephardway/deephardway:latest-cpu \
-  --file ./dockerfiles/dev-cpu/Dockerfile \
+  --file ./dockerfiles/cpu/Dockerfile \
   .

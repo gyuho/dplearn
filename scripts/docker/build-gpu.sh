@@ -8,5 +8,5 @@ fi
 
 docker build \
   --tag gcr.io/deephardway/deephardway:latest-gpu \
-  --file ./dockerfiles/dev-gpu/Dockerfile \
+  --file ./dockerfiles/gpu/Dockerfile \
   .
