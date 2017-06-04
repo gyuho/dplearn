@@ -21,7 +21,7 @@ func TestComputeContainerLinux(t *testing.T) { testCompute(t, "container-linux",
 func testCompute(t *testing.T, osType string, skip bool) {
 	testKeyPath := os.Getenv("GCP_TEST_KEY_PATH")
 	if testKeyPath == "" {
-		t.Skip("GCP_TEST_KEY_PATH is not set... so skipping...")
+		t.Skip("GCP_TEST_KEY_PATH is not set; skipping")
 	}
 
 	testKey, err := ioutil.ReadFile(testKeyPath)
@@ -53,20 +53,16 @@ func testCompute(t *testing.T, osType string, skip bool) {
 	instanceName := "gcp-test-" + strings.ToLower(randTxt(3))
 	glog.Infof("starting to create %q", instanceName)
 
-	userData := ""
+	metadataItems := make(map[string]string)
+	metadataItems["gcp-key"] = string(testKey)
+
 	switch osType {
 	case "ubuntu":
-		cpath := "../../scripts/install/ubuntu-startup-gpu.ansible"
-		if !exist(cpath) {
-			glog.Infof("%q does not exist... skipping user data...", cpath)
-			break
-		}
-		var bts []byte
-		bts, err = ioutil.ReadFile(cpath)
-		if err != nil {
-			t.Fatal(err)
-		}
-		userData = string(bts)
+		metadataItems["startup-script"] = `#!/usr/bin/env bash
+set -e
+
+echo "root ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+apt-get -y --allow-unauthenticated install ansible`
 	case "container-linux":
 	}
 
@@ -79,7 +75,7 @@ func testCompute(t *testing.T, osType string, skip bool) {
 		DiskSizeGB:        150,
 		OnHostMaintenance: "TERMINATE",
 		Tags:              []string{"gcp-test-tag"},
-		UserData:          userData,
+		MetadataItems:     metadataItems,
 	}
 	st1, err1 := api.CreateMacine(context.Background(), cfg)
 	if err1 != nil {

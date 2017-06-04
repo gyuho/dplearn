@@ -232,8 +232,11 @@ type InstanceConfig struct {
 	// https://cloud.google.com/compute/docs/instances/setting-instance-scheduling-options
 	OnHostMaintenance string
 
-	UserData string
-	Tags     []string
+	// MetadataItems maps metadata key to its value
+	// (e.g. set Ignition configuration value with key 'user-data' for Container Linux).
+	MetadataItems map[string]string
+
+	Tags []string
 }
 
 const statusPollInterval = 5 * time.Second
@@ -337,18 +340,17 @@ func (c *InstanceConfig) genInstance() (instance compute.Instance) {
 				},
 			},
 		},
-		// http-server, https-server
+		// e.g. http-server,https-server
 		Tags: &compute.Tags{Items: c.Tags},
 	}
-	if c.UserData != "" {
-		instance.Metadata = &compute.Metadata{
-			Items: []*compute.MetadataItems{
-				{
-					Key:   "user-data",
-					Value: &c.UserData,
-				},
-			},
+	if len(c.MetadataItems) != 0 {
+		items := make([]*compute.MetadataItems, 0, len(c.MetadataItems))
+		for k, v := range c.MetadataItems {
+			// make sure to copy as value before passing as reference!
+			copied := v
+			items = append(items, &compute.MetadataItems{Key: k, Value: &copied})
 		}
+		instance.Metadata = &compute.Metadata{Items: items}
 	}
 	return instance
 }

@@ -21,7 +21,7 @@ go test -v -run TestGCS -logtostderr=true
 func TestGCS(t *testing.T) {
 	testKeyPath := os.Getenv("GCP_TEST_KEY_PATH")
 	if testKeyPath == "" {
-		t.Skip("GCP_TEST_KEY_PATH is not set... so skipping...")
+		t.Skip("GCP_TEST_KEY_PATH is not set; skipping")
 	}
 
 	testKey, err := ioutil.ReadFile(testKeyPath)
