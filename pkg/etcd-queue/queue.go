@@ -2,6 +2,7 @@
 package etcdqueue
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -49,11 +50,7 @@ type Queue struct {
 
 	rootCtx    context.Context
 	rootCancel func()
-	buckets    map[string]pair
-}
-
-type pair struct {
-	errc1, errc2 chan error
+	buckets    map[string]chan error
 }
 
 // StartQueue starts a new etcd server.
@@ -122,7 +119,7 @@ func StartQueue(cport, pport int) (*Queue, error) {
 		cli:           cli,
 		rootCtx:       ctx,
 		rootCancel:    cancel,
-		buckets:       make(map[string]pair),
+		buckets:       make(map[string]chan error),
 		watchInterval: time.Second,
 	}, err
 }
@@ -154,13 +151,9 @@ func (qu *Queue) Stop() {
 
 	qu.mu.Lock()
 	qu.rootCancel()
-	for bucket, pair := range qu.buckets {
+	for bucket, errc := range qu.buckets {
 		glog.Infof("stopping bucket %q", bucket)
-		err := <-pair.errc1
-		if err != nil && err != context.Canceled {
-			glog.Warningf("watch error: %v", err)
-		}
-		err = <-pair.errc2
+		err := <-errc
 		if err != nil && err != context.Canceled {
 			glog.Warningf("watch error: %v", err)
 		}
@@ -176,7 +169,7 @@ func (qu *Queue) Stop() {
 }
 
 // Add adds an item to the queue.
-func (qu *Queue) Add(ctx context.Context, it *Item) (clientv3.WatchChan, error) {
+func (qu *Queue) Add(ctx context.Context, it *Item) (<-chan *Item, error) {
 	qu.mu.Lock()
 	defer qu.mu.Unlock()
 
@@ -195,108 +188,249 @@ func (qu *Queue) Add(ctx context.Context, it *Item) (clientv3.WatchChan, error) 
 		if err = qu.put(ctx, path.Join(pfxTODO, it.Bucket), val); err != nil {
 			return nil, err
 		}
-		qu.buckets[it.Bucket] = pair{make(chan error, 1), make(chan error, 1)}
+		qu.buckets[it.Bucket] = make(chan error, 1)
 
-		go qu.feedTODO(qu.rootCtx, it.Bucket, qu.buckets[it.Bucket].errc1)
-		go qu.watchTODO(qu.rootCtx, it.Bucket, qu.buckets[it.Bucket].errc2)
+		go qu.watch(qu.rootCtx, it.Bucket, qu.buckets[it.Bucket])
 	}
 
-	return qu.cli.Watch(ctx, key), nil
+	wch := qu.cli.Watch(ctx, key)
+
+	copied := *it
+	ch := make(chan *Item, 1)
+
+	// assume first event is always 'update' event; ignore delete events afterwards
+	go func() {
+		select {
+		case wresp := <-wch:
+			if len(wresp.Events) != 1 {
+				copied.Error = fmt.Errorf("%q should receive 1 watch event, got %+v", key, wresp.Events)
+				ch <- &copied
+				close(ch)
+				return
+			}
+
+			valBytes := wresp.Events[0].Kv.Value
+			var val Value
+			if err := json.Unmarshal(valBytes, &val); err != nil {
+				copied.Error = fmt.Errorf("cannot parse %s", string(valBytes))
+				ch <- &copied
+				close(ch)
+				return
+			}
+
+			glog.Infof("%q has been updated", key)
+			copied.Value = val
+			ch <- &copied
+			close(ch)
+			return
+
+		case <-ctx.Done():
+			copied.Error = ctx.Err()
+			ch <- &copied
+			close(ch)
+			return
+		}
+	}()
+	return ch, nil
 }
 
-func (qu *Queue) feedTODO(ctx context.Context, bucket string, errc chan error) {
+// watch watches on the queue and schedules the jobs.
+// Point is never miss events, thus one routine must always watch path.Join(pfxTODO, bucket)
+// 1. blocks until TODO job is done, notified via watch events
+// 2. notify the client back with the new results on the key (Key field in Item)
+// 3. delete the DONE key from the queue, and move to pfxCompleted + Key
+// 4. fetch one new job from path.Join(pfxScheduled, bucket)
+// 5. skip if there is no job to schedule
+// 6. write this job to path.Join(pfxTODO, bucket)
+// 7. drain watch events for this wrtie
+// repeat!
+func (qu *Queue) watch(ctx context.Context, bucket string, errc chan error) {
 	defer close(errc)
 
-	todoKey := path.Join(pfxTODO, bucket)
-
 	for {
-		pfx := path.Join(pfxScheduled, bucket)
-		resp, err := qu.cli.Get(ctx, pfx, append(clientv3.WithFirstKey(), clientv3.WithPrefix())...)
+		if err := qu._watch(ctx, bucket); err != nil {
+			if err == context.Canceled {
+				errc <- err
+				return
+			}
+			glog.Warning(err)
+		}
+
+		// below is implemented for failure tolerance; retry logic
+		keyToWatch := path.Join(pfxTODO, bucket)
+		pfxToFetch := path.Join(pfxScheduled, bucket)
+
+		// resetting current TODO job
+		resp, err := qu.cli.Get(ctx, keyToWatch)
 		if err != nil {
 			errc <- err
 			return
 		}
+		if len(resp.Kvs) != 1 {
+			errc <- fmt.Errorf("len(resp.Kvs) expected 1, got %+v", resp.Kvs)
+			return
+		}
+		valBytes := resp.Kvs[0].Value
+		var val Value
+		if err = json.Unmarshal(valBytes, &val); err != nil {
+			errc <- err
+			return
+		}
+		if val.StatusCode == StatusCodeDone {
+			glog.Warningf("watch might have failed after %q is finished", val.Key)
 
-		switch len(resp.Kvs) {
-		case 0:
-			glog.Infof("no job to schedule on the bucket %q", bucket)
-		case 1:
-			// schedule iff previous job is done
-			rresp, err := qu.cli.Get(ctx, todoKey)
-			if err != nil {
-				errc <- fmt.Errorf("feedTODO Get error: %v", err)
-				return
-			}
-			if len(rresp.Kvs) != 1 {
-				errc <- fmt.Errorf("no key-value pairs on %q (%+v)", todoKey, rresp)
-				return
-			}
-			newValBytes := rresp.Kvs[0].Value
-			var newVal Value
-			if err := json.Unmarshal(newValBytes, &newVal); err != nil {
-				errc <- fmt.Errorf("cannot parse value: %q, val: %q (%v)", todoKey, string(newValBytes), err)
-				return
-			}
-			if newVal.StatusCode == StatusCodeScheduled {
-				continue
-			}
-			if _, err := qu.cli.Txn(ctx).
-				If(clientv3.Compare(clientv3.Value(todoKey), "!=", string(resp.Kvs[0].Value))).
-				Then(clientv3.OpPut(todoKey, string(resp.Kvs[0].Value))).
-				Commit(); err != nil {
+			// 2. notify the client back with the new results on the key (ID field in Item)
+			glog.Infof("%q is done", val.Key)
+			if err := qu.put(ctx, val.Key, valBytes); err != nil {
 				errc <- err
 				return
 			}
+
+			// 3. delete the DONE key from the queue, and move to pfxCompleted + Key
+			glog.Infof("%q is deleted", val.Key)
+			if err := qu.delete(ctx, val.Key); err != nil {
+				errc <- err
+				return
+			}
+			cKey := path.Join(pfxCompleted, val.Key)
+			if err := qu.put(ctx, cKey, valBytes); err != nil {
+				errc <- err
+				return
+			}
+			glog.Infof("%q is written", cKey)
+
+			// 4. fetch one new job from path.Join(pfxScheduled, bucket)
+			resp, err := qu.cli.Get(ctx, pfxToFetch, append(clientv3.WithFirstKey(), clientv3.WithPrefix())...)
+			if err != nil {
+				errc <- err
+				return
+			}
+
+			// 5. skip if there is no job to schedule
+			if len(resp.Kvs) == 0 {
+				glog.Infof("no job to schedule on the bucket %q", bucket)
+				continue
+			}
+			if len(resp.Kvs) != 1 {
+				errc <- fmt.Errorf("%q should return only one key-value pair (got %+v)", pfxToFetch, resp.Kvs)
+				return
+			}
+			fetchBytes := resp.Kvs[0].Value
+			var fval Value
+			if err := json.Unmarshal(fetchBytes, &fval); err != nil {
+				errc <- fmt.Errorf("%q has wrong JSON %q", resp.Kvs[0].Key, string(fetchBytes))
+				return
+			}
+			if fval.StatusCode != StatusCodeScheduled {
+				errc <- fmt.Errorf("%q must have status code scheduled, got %d", fval.Key, fval.StatusCode)
+				return
+			}
+
+			// 6. write this job to path.Join(pfxTODO, bucket)
+			glog.Infof("%q is scheduled", string(resp.Kvs[0].Key))
+			if err := qu.put(ctx, keyToWatch, resp.Kvs[0].Value); err != nil {
+				errc <- err
+				return
+			}
+
+			// continue to '_watch'
 		}
 	}
 }
 
-func (qu *Queue) watchTODO(ctx context.Context, bucket string, errc chan error) {
-	defer close(errc)
+func (qu *Queue) _watch(ctx context.Context, bucket string) error {
+	keyToWatch := path.Join(pfxTODO, bucket)
+	pfxToFetch := path.Join(pfxScheduled, bucket)
 
-	todoKey := path.Join(pfxTODO, bucket)
-
-	wch := qu.cli.Watch(ctx, todoKey)
-	glog.Infof("watching %q", todoKey)
+	wch := qu.cli.Watch(ctx, keyToWatch)
+	glog.Infof("watching %q", keyToWatch)
 
 	for {
+		// 1. blocks until TODO job is done, notified via watch events
 		select {
 		case wresp := <-wch:
 			if len(wresp.Events) != 1 {
-				errc <- fmt.Errorf("no watch events on %q (%+v, %v)", todoKey, wresp, wresp.Err())
-				return
+				return fmt.Errorf("no watch events on %q (%+v, %v)", keyToWatch, wresp, wresp.Err())
 			}
-			newValBytes := wresp.Events[0].Kv.Value
-			var newVal Value
-			if err := json.Unmarshal(newValBytes, &newVal); err != nil {
-				errc <- fmt.Errorf("cannot parse value: %q, val: %q (%v)", todoKey, string(newValBytes), err)
-				return
+			valBytes := wresp.Events[0].Kv.Value
+			var val Value
+			if err := json.Unmarshal(valBytes, &val); err != nil {
+				return fmt.Errorf("%q returned wrong value %q (%v)", keyToWatch, string(valBytes), err)
 			}
-			if newVal.StatusCode == StatusCodeScheduled {
-				glog.Infof("%q scheduled in %q", bucket, newVal.Key)
+			if val.StatusCode != StatusCodeDone {
+				return fmt.Errorf("wrong status code %d (expected %d)", val.StatusCode, StatusCodeDone)
+			}
+
+			// 2. notify the client back with the new results on the key (ID field in Item)
+			glog.Infof("%q is done", val.Key)
+			if err := qu.put(ctx, val.Key, valBytes); err != nil {
+				return err
+			}
+
+			// 3. delete the DONE key from the queue, and move to pfxCompleted + Key
+			glog.Infof("%q is deleted", val.Key)
+			if err := qu.delete(ctx, val.Key); err != nil {
+				return err
+			}
+			cKey := path.Join(pfxCompleted, val.Key)
+			if err := qu.put(ctx, cKey, valBytes); err != nil {
+				return err
+			}
+			glog.Infof("%q is written", cKey)
+
+			// 4. fetch one new job from path.Join(pfxScheduled, bucket)
+			resp, err := qu.cli.Get(ctx, pfxToFetch, append(clientv3.WithFirstKey(), clientv3.WithPrefix())...)
+			if err != nil {
+				return err
+			}
+
+			// 5. skip if there is no job to schedule
+			if len(resp.Kvs) == 0 {
+				glog.Infof("no job to schedule on the bucket %q", bucket)
 				continue
 			}
-			if newVal.StatusCode != StatusCodeDone {
-				errc <- fmt.Errorf("wrong status code %d", newVal.StatusCode)
-				return
+			if len(resp.Kvs) != 1 {
+				return fmt.Errorf("%q should return only one key-value pair (got %+v)", pfxToFetch, resp.Kvs)
 			}
-			if err := qu.put(ctx, newVal.Key, newValBytes); err != nil {
-				errc <- err
-				return
+			fetchBytes := resp.Kvs[0].Value
+			var fval Value
+			if err := json.Unmarshal(fetchBytes, &fval); err != nil {
+				return fmt.Errorf("%q has wrong JSON %q", resp.Kvs[0].Key, string(fetchBytes))
 			}
-			if err := qu.put(ctx, strings.Replace(newVal.Key, pfxScheduled, pfxCompleted, 1), newValBytes); err != nil {
-				errc <- err
-				return
+			if fval.StatusCode != StatusCodeScheduled {
+				return fmt.Errorf("%q must have status code scheduled, got %d", fval.Key, fval.StatusCode)
 			}
-			if _, err := qu.cli.Delete(ctx, newVal.Key); err != nil {
-				errc <- err
-				return
+
+			// 6. write this job to path.Join(pfxTODO, bucket)
+			glog.Infof("%q is scheduled", string(resp.Kvs[0].Key))
+			if err := qu.put(ctx, keyToWatch, resp.Kvs[0].Value); err != nil {
+				return err
 			}
-			glog.Infof("%q is done", newVal.Key)
+
+			// 7. drain watch events for this wrtie
+			select {
+			case wresp = <-wch:
+				if len(wresp.Events) != 1 {
+					return fmt.Errorf("no watch events on %q after schedule (%+v, %v)", keyToWatch, wresp, wresp.Err())
+				}
+				valBytes := wresp.Events[0].Kv.Value
+				var val Value
+				if err := json.Unmarshal(valBytes, &val); err != nil {
+					return fmt.Errorf("%q returned wrong value %q (%v)", keyToWatch, string(valBytes), err)
+				}
+				if val.StatusCode != StatusCodeScheduled {
+					return fmt.Errorf("wrong status code %d (expected %d)", val.StatusCode, StatusCodeScheduled)
+				}
+				if !bytes.Equal(resp.Kvs[0].Value, valBytes) {
+					return fmt.Errorf("scheduled value expected %q, got %q", string(resp.Kvs[0].Value), string(valBytes))
+				}
+
+			case <-ctx.Done():
+				return ctx.Err()
+			}
 
 		case <-ctx.Done():
-			errc <- ctx.Err()
-			return
+			return ctx.Err()
 		}
 	}
 }
@@ -365,6 +499,9 @@ type Item struct {
 
 	// Value is the data to be stored in etcd.
 	Value Value
+
+	// Error contains any error.
+	Error error
 }
 
 // CreateItem creates an item, generating an ID.

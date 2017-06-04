@@ -7,7 +7,6 @@ import (
 	"path"
 	"reflect"
 	"sort"
-	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -153,20 +152,17 @@ func TestQueue(t *testing.T) {
 
 	// expects events from wch1
 	select {
-	case wresp := <-wch1:
-		v := wresp.Events[0].Kv.Value
-		var val Value
-		if err = json.Unmarshal(v, &val); err != nil {
-			t.Fatal(err)
+	case iresp := <-wch1:
+		if !reflect.DeepEqual(item1.Value, iresp.Value) {
+			t.Fatalf("item1.Value from watch expected %+v, got %+v", item1.Value, iresp.Value)
 		}
-		if !reflect.DeepEqual(item1.Value, val) {
-			t.Fatalf("item1.Value from watch expected %+v, got %+v", item1.Value, val)
-		}
-		gresp, err := cli.Get(context.Background(), strings.Replace(val.Key, pfxScheduled, pfxCompleted, 1))
+		time.Sleep(2 * time.Second) // wait for writes on completed bucket
+		gresp, err := cli.Get(context.Background(), path.Join(pfxCompleted, iresp.Key))
 		if err != nil {
 			t.Fatal(err)
 		}
-		v = gresp.Kvs[0].Value
+		v := gresp.Kvs[0].Value
+		var val Value
 		if err = json.Unmarshal(v, &val); err != nil {
 			t.Fatal(err)
 		}
@@ -190,20 +186,17 @@ func TestQueue(t *testing.T) {
 
 	// expects events from wch2
 	select {
-	case wresp := <-wch2:
-		v := wresp.Events[0].Kv.Value
-		var val Value
-		if err = json.Unmarshal(v, &val); err != nil {
-			t.Fatal(err)
+	case iresp := <-wch2:
+		if !reflect.DeepEqual(item2.Value, iresp.Value) {
+			t.Fatalf("item2.Value from watch expected %+v, got %+v", item2.Value, iresp.Value)
 		}
-		if !reflect.DeepEqual(item2.Value, val) {
-			t.Fatalf("item2.Value from watch expected %+v, got %+v", item2.Value, val)
-		}
-		gresp, err := cli.Get(context.Background(), strings.Replace(val.Key, pfxScheduled, pfxCompleted, 1))
+		time.Sleep(2 * time.Second) // wait for writes on completed bucket
+		gresp, err := cli.Get(context.Background(), path.Join(pfxCompleted, iresp.Key))
 		if err != nil {
 			t.Fatal(err)
 		}
-		v = gresp.Kvs[0].Value
+		v := gresp.Kvs[0].Value
+		var val Value
 		if err = json.Unmarshal(v, &val); err != nil {
 			t.Fatal(err)
 		}
