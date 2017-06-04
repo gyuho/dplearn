@@ -1,10 +1,12 @@
-## deep
+## deephardway
 
 [![Build Status](https://img.shields.io/travis/gyuho/deephardway.svg?style=flat-square)](https://travis-ci.org/gyuho/deephardway)
 [![Build Status](https://semaphoreci.com/api/v1/gyuho/deephardway/branches/master/shields_badge.svg)](https://semaphoreci.com/gyuho/deephardway)
 [![Godoc](http://img.shields.io/badge/go-documentation-blue.svg?style=flat-square)](https://godoc.org/github.com/gyuho/deephardwayhardway)
 
-### What is `deep`?
+### What is `deephardway`?
+
+Learn Deep Learning The Hard Way.
 
 It is a set of small projects on [Deep Learning](https://en.wikipedia.org/wiki/Deep_learning).
 
