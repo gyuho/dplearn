@@ -112,14 +112,14 @@ TimeoutStartSec=0
 LimitNOFILE=40000
 
 ExecStartPre=/usr/bin/docker login -u oauth2accesstoken -p "$(/usr/bin/gcloud auth application-default print-access-token)" https://gcr.io
-ExecStartPre=/usr/bin/docker pull gcr.io/deephardway/github-gyuho-deephardway:latest-gpu
+ExecStartPre=/usr/bin/docker pull gcr.io/deephardway/deephardway:latest-gpu
 
 ExecStart=/usr/bin/nvidia-docker run \
   --rm \
   -p 8888:8888 \
   --name ipython-gpu \
   --ulimit nofile=262144:262144 \
-  gcr.io/deephardway/github-gyuho-deephardway:latest-gpu \
+  gcr.io/deephardway/deephardway:latest-gpu \
   /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && PASSWORD='' ./run_jupyter.sh -y --allow-root"
 
 ExecStop=/usr/bin/docker rm --force ipython-gpu
@@ -142,14 +142,14 @@ TimeoutStartSec=0
 LimitNOFILE=40000
 
 ExecStartPre=/usr/bin/docker login -u oauth2accesstoken -p "$(/usr/bin/gcloud auth application-default print-access-token)" https://gcr.io
-ExecStartPre=/usr/bin/docker pull gcr.io/deephardway/github-gyuho-deephardway:latest-gpu
+ExecStartPre=/usr/bin/docker pull gcr.io/deephardway/deephardway:latest-gpu
 
 ExecStart=/usr/bin/nvidia-docker run \
   --rm \
   -p 4200:4200 \
   --name deephardway-gpu \
   --ulimit nofile=262144:262144 \
-  gcr.io/deephardway/github-gyuho-deephardway:latest-gpu \
+  gcr.io/deephardway/deephardway:latest-gpu \
   /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && ./scripts/deephardway-gpu.sh"
 
 ExecStop=/usr/bin/docker rm --force deephardway-gpu

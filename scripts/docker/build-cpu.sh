@@ -7,6 +7,6 @@ if ! [[ "$0" =~ "./scripts/docker/build-cpu.sh" ]]; then
 fi
 
 docker build \
-  --tag gcr.io/deephardway/github-gyuho-deephardway:latest-cpu \
+  --tag gcr.io/deephardway/deephardway:latest-cpu \
   --file ./dockerfiles/dev-cpu/Dockerfile \
   .
