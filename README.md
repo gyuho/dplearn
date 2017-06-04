@@ -12,14 +12,14 @@ It is a set of small projects on [Deep Learning](https://en.wikipedia.org/wiki/D
 
 ### System Overview
 
-- `frontend` implements user-facing UI on web browsers, sends user requests to `backend`.
-- `backend/web` schedules user requests on the queue service.
-- `backend/deep` fetches the list of jobs, process, and the writes results back to the queue.
-- `backend/web` gets notified with [watch API](https://godoc.org/github.com/coreos/etcd/clientv3#Watcher) when the job is done, and returns results back to users.
+- [`frontend`](https://github.com/gyuho/deephardway/tree/master/frontend) implements user-facing UI, sends user requests to [`backend/*`](https://github.com/gyuho/deephardway/tree/master/backend).
+- [`backend/web`](https://github.com/gyuho/deephardway/tree/master/backend/web) schedules user requests on the queue service.
+- [`backend/deep`](https://github.com/gyuho/deephardway/tree/master/backend/deep) fetches the list of jobs, process, and the writes results back to the queue.
+- [`backend/web`](https://github.com/gyuho/deephardway/tree/master/backend/web) gets notified with [watch API](https://godoc.org/github.com/coreos/etcd/clientv3#Watcher) when the job is done, and returns results back to users.
 
 Notes:
 
-- `pkg/etcd-queue` implements the queue service with single-node [etcd](https://github.com/coreos/etcd) cluster.
+- [`pkg/etcd-queue`](https://github.com/gyuho/deephardway/tree/master/pkg/etcd-queue) implements the queue service with single-node [etcd](https://github.com/coreos/etcd) cluster.
 - It's a **single node** cluster, with no fault tolerance.
 - In production, I would deploy separate 5-node etcd cluster.
 - For Tensorflow, I would deploy [Tensorflow/serving](https://tensorflow.github.io/serving/).
