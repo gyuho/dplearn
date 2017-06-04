@@ -1,0 +1,9 @@
+{
+  "ref": "refs/heads/master",
+  "url": "https://api.github.com/repos/fastai/courses/git/refs/heads/master",
+  "object": {
+    "sha": "84b917d84c737a08a53cc4fb0a3de65e4724082c",
+    "type": "commit",
+    "url": "https://api.github.com/repos/fastai/courses/git/commits/84b917d84c737a08a53cc4fb0a3de65e4724082c"
+  }
+}

@@ -7,6 +7,7 @@ if ! [[ "$0" =~ "./scripts/dep/tensorflow.sh" ]]; then
 fi
 
 rm -rf ./tensorflow
+mkdir -p ./notebooks
 
 echo "Downloading 'tensorflow'"
 git clone https://github.com/tensorflow/tensorflow.git --branch master

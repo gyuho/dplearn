@@ -7,6 +7,7 @@ if ! [[ "$0" =~ "./scripts/dep/fastai-courses.sh" ]]; then
 fi
 
 rm -rf ./courses
+mkdir -p ./notebooks
 
 echo "Downloading 'fastai/courses'"
 git clone https://github.com/fastai/courses.git --branch master
