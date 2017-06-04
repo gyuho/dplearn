@@ -28,11 +28,11 @@ func NewCompute(ctx context.Context, scope string, key []byte) (*Compute, error)
 	// key must be JSON-format as {"project_id":...}
 	credMap := make(map[string]string)
 	if err := json.Unmarshal(key, &credMap); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("key has wrong format %q (%v)", string(key), err)
 	}
 	project, ok := credMap["project_id"]
 	if !ok {
-		return nil, fmt.Errorf("key has no project_id")
+		return nil, fmt.Errorf("key has no project_id %q", string(key))
 	}
 	jwt, err := google.JWTConfigFromJSON(key, scope)
 	if err != nil {
