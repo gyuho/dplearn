@@ -180,6 +180,20 @@ RUN rm -rf ${GOROOT} \
 ##########################
 
 ##########################
+# Install etcd
+ENV ETCD_GIT_PATH github.com/coreos/etcd
+
+RUN mkdir -p ${GOPATH}/src/github.com/coreos \
+  && git clone https://github.com/coreos/etcd --branch master ${GOPATH}/src/${ETCD_GIT_PATH}
+
+WORKDIR ${GOPATH}/src/${ETCD_GIT_PATH}
+
+RUN git reset --hard HEAD \
+  && ./build \
+  && cp ./bin/* /
+##########################
+
+##########################
 # Clone source code, dependencies
 RUN mkdir -p ${GOPATH}/src/github.com/gyuho/deephardway
 ADD . ${GOPATH}/src/github.com/gyuho/deephardway
@@ -253,6 +267,8 @@ RUN cat /etc/lsb-release >> /container-version.txt \
   && echo yarn: $(yarn --version 2>&1) >> /container-version.txt \
   && echo node: $(node --version 2>&1) >> /container-version.txt \
   && echo NPM: $(/usr/local/nvm/versions/node/v{{.NodeVersion}}/bin/npm --version 2>&1) >> /container-version.txt \
+  && echo etcd: $(/etcd --version 2>&1) >> /container-version.txt \
+  && echo etcdctl: $(ETCDCTL_API=3 /etcdctl version 2>&1) >> /container-version.txt \
   && cat ${GOPATH}/src/github.com/gyuho/deephardway/git-tensorflow.json >> /container-version.txt \
   && cat ${GOPATH}/src/github.com/gyuho/deephardway/git-fastai-courses.json >> /container-version.txt \
   && cat /container-version.txt

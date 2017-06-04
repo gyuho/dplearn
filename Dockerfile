@@ -1,4 +1,4 @@
-# Last Updated at 2017-06-03 21:50:33.357773473 -0700 PDT
+# Last Updated at 2017-06-04 09:52:22.381473662 -0700 PDT
 # This Dockerfile contains everything needed for development and production use.
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile.gpu
@@ -112,6 +112,20 @@ RUN rm -rf ${GOROOT} \
 ##########################
 
 ##########################
+# Install etcd
+ENV ETCD_GIT_PATH github.com/coreos/etcd
+
+RUN mkdir -p ${GOPATH}/src/github.com/coreos \
+  && git clone https://github.com/coreos/etcd --branch master ${GOPATH}/src/${ETCD_GIT_PATH}
+
+WORKDIR ${GOPATH}/src/${ETCD_GIT_PATH}
+
+RUN git reset --hard HEAD \
+  && ./build \
+  && cp ./bin/* /
+##########################
+
+##########################
 # Clone source code, dependencies
 RUN mkdir -p ${GOPATH}/src/github.com/gyuho/deephardway
 ADD . ${GOPATH}/src/github.com/gyuho/deephardway
@@ -185,6 +199,8 @@ RUN cat /etc/lsb-release >> /container-version.txt \
   && echo yarn: $(yarn --version 2>&1) >> /container-version.txt \
   && echo node: $(node --version 2>&1) >> /container-version.txt \
   && echo NPM: $(/usr/local/nvm/versions/node/v7.10.0/bin/npm --version 2>&1) >> /container-version.txt \
+  && echo etcd: $(/etcd --version 2>&1) >> /container-version.txt \
+  && echo etcdctl: $(ETCDCTL_API=3 /etcdctl version 2>&1) >> /container-version.txt \
   && cat ${GOPATH}/src/github.com/gyuho/deephardway/git-tensorflow.json >> /container-version.txt \
   && cat ${GOPATH}/src/github.com/gyuho/deephardway/git-fastai-courses.json >> /container-version.txt \
   && cat /container-version.txt
