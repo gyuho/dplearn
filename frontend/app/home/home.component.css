@@ -1,0 +1,178 @@
+html {
+    box-sizing: border-box
+}
+
+.home-group {
+    padding: 5px;
+}
+
+.home-button {
+    color: white;
+    font-family: 'Roboto', sans-serif;
+    font-size: 15px;
+    padding-right: 7px;
+    padding-left: 7px;
+}
+
+.home-play-button {
+    color: black;
+    font-family: 'Roboto', sans-serif;
+    font-size: 15px;
+    padding-right: 7px;
+    padding-left: 7px;
+    text-decoration: none !important;
+}
+
+.home-link-main {
+    color: dodgerblue;
+    text-decoration: none !important;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 15px;
+}
+
+
+/*Reference https://www.tensorflow.org*/
+
+*,
+*::after,
+*::before {
+    box-sizing: inherit
+}
+
+button.button,
+a.button {
+    -webkit-transition: all 0.5s ease;
+    -moz-transition: all 0.5s ease;
+    transition: all 0.5s ease
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box
+}
+
+a {
+    text-decoration: none
+}
+
+body {
+    font-family: 'Roboto', Helvetica, sans-serif;
+    font-weight: 300;
+    color: #000
+}
+
+h2 {
+    font-size: 1.5rem;
+    font-weight: 400;
+    line-height: 2.125rem
+}
+
+.block+.block {
+    margin-top: 50px
+}
+
+@media screen and (min-width: 768px) {
+    .block.half {
+        margin-top: 0
+    }
+}
+
+@media screen and (min-width: 768px) {
+    .block-copy.half {
+        float: left;
+        display: block;
+        margin-right: 4.34783%;
+        width: 47.82609%
+    }
+    .block-copy.half:last-child {
+        margin-right: 0
+    }
+}
+
+.block-copy p {
+    margin-top: 30px;
+    line-height: 1.75rem;
+    color: #000
+}
+
+@media screen and (min-width: 768px) {
+    section.more-about .inner {
+        display: table;
+        max-width: 1100px
+    }
+}
+
+@media screen and (min-width: 768px) {
+    section.more-about .inner .block-copy {
+        float: left;
+        display: block;
+        margin-right: 4.34783%;
+        width: 47.82609%;
+        padding-right: 35px
+    }
+    section.more-about .inner .block-copy:last-child {
+        margin-right: 0
+    }
+}
+
+
+@media screen and (min-width: 768px) {
+    .block-graphic {
+        float: left;
+        display: block;
+        margin-right: 4.34783%;
+        width: 47.82609%
+    }
+    .block-graphic:last-child {
+        margin-right: 0
+    }
+}
+
+.aspect-ratio-16-9 {
+    position: relative;
+    width: 100%;
+    height: 0;
+    padding-bottom: 56.25%
+}
+
+#video {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0
+}
+
+.inner {
+    max-width: 1170px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0 15px
+}
+
+.inner::after {
+    clear: both;
+    content: "";
+    display: table
+}
+
+@media screen and (min-width: 768px) {
+    .inner {
+        padding: 0 30px
+    }
+}
+
+section {
+    padding: 60px 0
+}
+
+@media screen and (min-width: 768px) {
+    section {
+        padding: 75px 0
+    }
+}
+
+section.about {
+    padding: 60px 0 90px
+}

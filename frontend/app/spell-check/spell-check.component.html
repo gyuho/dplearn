@@ -1,0 +1,33 @@
+<div class="spell-check-group">
+    <section class="more-about">
+        <div class="inner">
+            <div class="block block-copy half">
+                <br>
+                <p>
+                    Spell-checks using <a href="https://www.tensorflow.org" target="_blank" class="spell-check-link-main">Tensorflow</a>.
+                    Type a word, and hit "Run" button.
+                </p>
+                <br>
+                <md-card class="text-card">
+                    <md-card-header>
+                        <md-card-title>Text To Summarize</md-card-title>
+                    </md-card-header>
+                    <md-card-content>
+                        <input type="text" style="min-width: 250px;" class="form-control" placeholder="Word..." [(ngModel)]="inputValue" />
+                        <!--<textarea type="text" style="min-width: 250px;" class="form-control" placeholder="Texts..." rows="15" [(ngModel)]="inputValue"></textarea>-->
+                    </md-card-content>
+                    <md-card-actions>
+                        <button md-button color="primary" class="spell-check-button" (click)="processRequest();">Run</button>
+                    </md-card-actions>
+                </md-card>
+            </div>
+            <div class="block block-copy half">
+                <b>Results</b>
+                <p>
+                    {{spellCheckResult}}
+                </p>
+            </div>
+        </div>
+    </section>
+    <router-outlet></router-outlet>
+</div>

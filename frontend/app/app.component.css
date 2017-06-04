@@ -1,0 +1,4 @@
+md-toolbar a {
+    /*select all <a> elements inside <md-toolbar> elements*/
+    color: white;
+}
