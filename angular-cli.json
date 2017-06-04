@@ -1,7 +1,7 @@
 {
     "project": {
         "version": "1.0.0-beta.11-webpack.8",
-        "name": "app-deep"
+        "name": "app-deephardway"
     },
     "apps": [{
         "root": "frontend",
@@ -18,7 +18,7 @@
         "mobile": false,
         "styles": [
             "styles.css",
-            "app-deep-theme.scss"
+            "app-deephardway-theme.scss"
         ],
         "scripts": [],
         "environmentSource": "environments/environment.ts",

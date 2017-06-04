@@ -16,12 +16,12 @@ fi
 
 gcloud config set project deephardway
 
-gcloud beta compute instances create deep \
+gcloud beta compute instances create deephardway \
   --custom-cpu=8 --custom-memory=30 --zone us-west1-b \
   --image-family=ubuntu-1604-lts --image-project=ubuntu-os-cloud \
   --boot-disk-size=150 --boot-disk-type="pd-ssd" \
   --network default \
-  --tags=deep,http-server,https-server \
+  --tags=deephardway,http-server,https-server \
   --maintenance-policy=TERMINATE --restart-on-failure \
   --accelerator type=nvidia-tesla-k80,count=1 \
   --metadata-from-file gcp-key=${GCP_KEY_PATH},startup-script=./scripts/gcp/ubuntu-gpu.ansible.sh

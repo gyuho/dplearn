@@ -27,4 +27,4 @@ Notes:
 
 Root [`Dockerfile`](./Dockerfile) contains *everything* needed for
 development, built upon https://gcr.io/tensorflow/tensorflow. Container
-registry can be found at https://gcr.io/deephardway/github-deep.
+registry can be found at https://gcr.io/deephardway/github-gyuho-deephardway.

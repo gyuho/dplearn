@@ -6,7 +6,7 @@ if ! [[ "$0" =~ "./scripts/docker/push-cpu.sh" ]]; then
   exit 255
 fi
 
-gcloud docker -- push gcr.io/deephardway/github-deep:latest-cpu
+gcloud docker -- push gcr.io/deephardway/github-gyuho-deephardway:latest-cpu
 
 <<COMMENT
 gcloud docker -- login -u _json_key -p "$(cat ${HOME}/gcp-key-deephardway.json)" https://gcr.io

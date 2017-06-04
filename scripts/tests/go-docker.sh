@@ -12,17 +12,17 @@ fi
 
 docker run --rm \
   --volume=`pwd`:/gopath/src/github.com/gyuho/deephardway \
-  gcr.io/deephardway/github-deep:latest \
+  gcr.io/deephardway/github-gyuho-deephardway:latest \
   ./scripts/tests/go.sh
 
 <<COMMENT
 docker run --rm \
   --volume=`pwd`:/gopath/src/github.com/gyuho/deephardway \
-  gcr.io/deephardway/github-deep:latest \
+  gcr.io/deephardway/github-gyuho-deephardway:latest \
   pwd
 
 docker run --rm \
   --volume=`pwd`:/gopath/src/github.com/gyuho/deephardway \
-  gcr.io/deephardway/github-deep:latest \
+  gcr.io/deephardway/github-gyuho-deephardway:latest \
   ls
 COMMENT

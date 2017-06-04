@@ -1,4 +1,11 @@
 
+<<COMMENT
+edit "Networking"->"VPC networks"->"default"->"Firewall rules"->"Add firewall rules"
+Target tags: deephardway
+Source IP ranges: 0.0.0.0/0
+Protocols and ports: tcp:4200; tcp:8888;
+COMMENT
+
 GCP_KEY_PATH=/etc/gcp-key-deephardway.json ./scripts/gcp/create-instance.sh
 
 gcloud compute ssh --zone=us-west1-b deep
@@ -12,12 +19,12 @@ cat /etc/gcp-key-deephardway.json
 
 sudo systemctl cat nvidia-docker.service
 sudo systemctl cat ipython-gpu.service
-sudo systemctl cat deep-gpu.service
+sudo systemctl cat deephardway-gpu.service
 
 
 sudo journalctl -u nvidia-docker.service -l --no-pager|less
 sudo journalctl -u ipython-gpu.service -l --no-pager|less
-sudo journalctl -u deep-gpu.service -l --no-pager|less
+sudo journalctl -u deephardway-gpu.service -l --no-pager|less
 
 
 sudo systemctl stop nvidia-docker.service
@@ -28,8 +35,8 @@ sudo systemctl stop ipython-gpu.service
 sudo systemctl disable ipython-gpu.service
 
 
-sudo systemctl stop deep-gpu.service
-sudo systemctl disable deep-gpu.service
+sudo systemctl stop deephardway-gpu.service
+sudo systemctl disable deephardway-gpu.service
 
 
 
@@ -54,17 +61,17 @@ sudo systemctl disable ipython-gpu.service
 
 
 sudo systemctl daemon-reload
-sudo systemctl enable deep-gpu.service
-sudo systemctl start deep-gpu.service
-sudo systemctl cat deep-gpu.service
-sudo systemd-analyze verify /etc/systemd/system/deep-gpu.service
+sudo systemctl enable deephardway-gpu.service
+sudo systemctl start deephardway-gpu.service
+sudo systemctl cat deephardway-gpu.service
+sudo systemd-analyze verify /etc/systemd/system/deephardway-gpu.service
 
-sudo systemctl status deep-gpu.service -l --no-pager
-sudo journalctl -u deep-gpu.service -l --no-pager|less
-sudo journalctl -f -u deep-gpu.service
+sudo systemctl status deephardway-gpu.service -l --no-pager
+sudo journalctl -u deephardway-gpu.service -l --no-pager|less
+sudo journalctl -f -u deephardway-gpu.service
 
-sudo systemctl stop deep-gpu.service
-sudo systemctl disable deep-gpu.service
+sudo systemctl stop deephardway-gpu.service
+sudo systemctl disable deephardway-gpu.service
 
 
 

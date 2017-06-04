@@ -112,14 +112,14 @@ TimeoutStartSec=0
 LimitNOFILE=40000
 
 ExecStartPre=/usr/bin/docker login -u oauth2accesstoken -p "$(/usr/bin/gcloud auth application-default print-access-token)" https://gcr.io
-ExecStartPre=/usr/bin/docker pull gcr.io/deephardway/github-deep:latest-gpu
+ExecStartPre=/usr/bin/docker pull gcr.io/deephardway/github-gyuho-deephardway:latest-gpu
 
 ExecStart=/usr/bin/nvidia-docker run \
   --rm \
   -p 8888:8888 \
   --name ipython-gpu \
   --ulimit nofile=262144:262144 \
-  gcr.io/deephardway/github-deep:latest-gpu \
+  gcr.io/deephardway/github-gyuho-deephardway:latest-gpu \
   /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && PASSWORD='' ./run_jupyter.sh -y --allow-root"
 
 ExecStop=/usr/bin/docker rm --force ipython-gpu
@@ -130,7 +130,7 @@ EOF
 cat /tmp/ipython-gpu.service
 mv -f /tmp/ipython-gpu.service /etc/systemd/system/ipython-gpu.service
 
-cat > /tmp/deep-gpu.service <<EOF
+cat > /tmp/deephardway-gpu.service <<EOF
 [Unit]
 Description=deep GPU development service
 Documentation=https://github.com/gyuho/deephardway
@@ -142,28 +142,28 @@ TimeoutStartSec=0
 LimitNOFILE=40000
 
 ExecStartPre=/usr/bin/docker login -u oauth2accesstoken -p "$(/usr/bin/gcloud auth application-default print-access-token)" https://gcr.io
-ExecStartPre=/usr/bin/docker pull gcr.io/deephardway/github-deep:latest-gpu
+ExecStartPre=/usr/bin/docker pull gcr.io/deephardway/github-gyuho-deephardway:latest-gpu
 
 ExecStart=/usr/bin/nvidia-docker run \
   --rm \
   -p 4200:4200 \
-  --name deep-gpu \
+  --name deephardway-gpu \
   --ulimit nofile=262144:262144 \
-  gcr.io/deephardway/github-deep:latest-gpu \
-  /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && ./scripts/deep-gpu.sh"
+  gcr.io/deephardway/github-gyuho-deephardway:latest-gpu \
+  /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && ./scripts/deephardway-gpu.sh"
 
-ExecStop=/usr/bin/docker rm --force deep-gpu
+ExecStop=/usr/bin/docker rm --force deephardway-gpu
 
 [Install]
 WantedBy=multi-user.target
 EOF
-cat /tmp/deep-gpu.service
-mv -f /tmp/deep-gpu.service /etc/systemd/system/deep-gpu.service
+cat /tmp/deephardway-gpu.service
+mv -f /tmp/deephardway-gpu.service /etc/systemd/system/deephardway-gpu.service
 
 systemctl daemon-reload
 
 systemctl enable ipython-gpu.service
 systemctl start ipython-gpu.service
 
-systemctl enable deep-gpu.service
-systemctl start deep-gpu.service
+systemctl enable deephardway-gpu.service
+systemctl start deephardway-gpu.service

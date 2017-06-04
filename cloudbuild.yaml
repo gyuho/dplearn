@@ -3,7 +3,7 @@ steps:
   args:
   - build
   - --tag
-  - gcr.io/deephardway/github-deep:latest-gpu
+  - gcr.io/deephardway/github-gyuho-deephardway:latest-gpu
   - --file
   - ./dockerfiles/dev-gpu/Dockerfile
   - .
@@ -11,12 +11,12 @@ steps:
   args:
   - build
   - --tag
-  - gcr.io/deephardway/github-deep:latest-cpu
+  - gcr.io/deephardway/github-gyuho-deephardway:latest-cpu
   - --file
   - ./dockerfiles/dev-cpu/Dockerfile
   - .
 images:
-- gcr.io/deephardway/github-deep:latest-gpu
-- gcr.io/deephardway/github-deep:latest-cpu
+- gcr.io/deephardway/github-gyuho-deephardway:latest-gpu
+- gcr.io/deephardway/github-gyuho-deephardway:latest-cpu
 
 # TODO: configure timeouts
