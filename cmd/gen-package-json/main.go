@@ -3,36 +3,13 @@ package main
 import (
 	"bytes"
 	"flag"
-	"io/ioutil"
-	"net/http"
 	"os"
-	"strings"
 	"text/template"
 	"time"
 
 	"github.com/golang/glog"
+	"github.com/gyuho/deephardway/pkg/gcp"
 )
-
-func getGCPPublicIP() (string, error) {
-	const endpoint = "http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip"
-	// curl -L http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip -H 'Metadata-Flavor:Google'
-	req, err := http.NewRequest("GET", endpoint, nil)
-	if err != nil {
-		return "", err
-	}
-	req.Header = map[string][]string{
-		"Metadata-Flavor": []string{"Google"},
-	}
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return "", err
-	}
-	bts, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-	return strings.TrimSpace(string(bts)), nil
-}
 
 func main() {
 	configPath := flag.String("config", "package.json", "Specify config file path.")
@@ -51,20 +28,20 @@ func main() {
 		HostProd:     "0.0.0.0",
 		HostProdPort: 4200,
 	}
+
 	for i := 0; i < 3; i++ {
 		// inspect metadata to get public IP
-		host, err := getGCPPublicIP()
+		host, err := gcp.GetComputeMetadata("instance/network-interfaces/0/access-configs/0/external-ip")
 		if err != nil {
 			glog.Warning(err)
 			time.Sleep(300 * time.Millisecond)
 			continue
 		}
-		cfg.HostProd = host
-		glog.Infof("use public host IP %q", host)
+		// TODO
+		// cfg.HostProd = host
+		glog.Infof("found public host IP %q", host)
 		break
 	}
-	// TODO
-	cfg.HostProd = "0.0.0.0"
 
 	buf := new(bytes.Buffer)
 	tp := template.Must(template.New("tmplPackageJSON").Parse(tmplPackageJSON))
