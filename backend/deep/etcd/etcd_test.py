@@ -13,6 +13,8 @@ import threading
 import unittest
 from etcd import put
 from etcd import get
+from etcd import watch
+
 
 class ETCD(threading.Thread):
     """
@@ -48,10 +50,17 @@ class ETCD(threading.Thread):
         """
         self.process.kill()
 
+
 class TestETCDMethods(unittest.TestCase):
     """
     etcd testing methods
     """
+    def watch_routine(self):
+        """
+        test watch API
+        """
+        self.assertEqual(watch('http://localhost:2379', 'foo'), 'bar')
+
     def test_etcd(self):
         """
         etcd test function
@@ -72,9 +81,19 @@ class TestETCDMethods(unittest.TestCase):
         print('Sleeping...')
         time.sleep(5)
 
+        print('Launching watch requests...')
+        watch_thread = threading.Thread(target=self.watch_routine)
+        watch_thread.setDaemon(True)
+        watch_thread.start()
+
+        time.sleep(3)
+
         print('Launching client requests...')
         print(put('http://localhost:2379', 'foo', 'bar'))
         self.assertEqual(get('http://localhost:2379', 'foo'), 'bar')
+
+        print('Waing for watch...')
+        watch_thread.join()
 
         print('Killing etcd...')
         etcd_proc.kill()
@@ -85,6 +104,7 @@ class TestETCDMethods(unittest.TestCase):
         print('Removing etcd data directory...')
         shutil.rmtree('etcd-test-data')
         print('Done!')
+
 
 if __name__ == '__main__':
     unittest.main()
