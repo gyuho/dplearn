@@ -6,5 +6,5 @@ if ! [[ "$0" =~ "./scripts/gen-package-json.sh" ]]; then
   exit 255
 fi
 
-go install -v ./cmd/package-gen
-package-gen --config package.json --logtostderr
+go install -v ./cmd/gen-package-json
+gen-package-json --config package.json --logtostderr

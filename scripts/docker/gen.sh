@@ -6,6 +6,6 @@ if ! [[ "$0" =~ "./scripts/docker/gen.sh" ]]; then
     exit 255
 fi
 
-go install -v ./cmd/dockerfile-gen
-dockerfile-gen --config=./dockerfiles/gpu/config.yaml --logtostderr=true
-dockerfile-gen --config=./dockerfiles/cpu/config.yaml --logtostderr=true
+go install -v ./cmd/gen-dockerfiles
+gen-dockerfiles --config=./dockerfiles/gpu/config.yaml --logtostderr=true
+gen-dockerfiles --config=./dockerfiles/cpu/config.yaml --logtostderr=true

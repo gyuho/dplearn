@@ -38,7 +38,16 @@ func main() {
 	configPath := flag.String("config", "package.json", "Specify config file path.")
 	flag.Parse()
 
-	cfg := configuration{Host: "0.0.0.0"}
+	// TODO: angular-cli does not work with public IP, so need to use 0.0.0.0
+	// https://github.com/angular/angular-cli/issues/2587#issuecomment-252586913
+	// but webpack prod mode does not work with 0.0.0.0
+	// so just use without prod mode
+	// https://github.com/webpack/webpack-dev-server/issues/882
+	cfg := configuration{
+		NgServeStartCommand:     "ng serve --prod",
+		NgServeStartProdCommand: "ng serve",
+		Host: "0.0.0.0",
+	}
 
 	// inspect metadata to get public IP
 	for i := 0; i < 3; i++ {
@@ -52,6 +61,9 @@ func main() {
 		glog.Infof("use public host IP %q", host)
 		break
 	}
+
+	// TODO
+	cfg.Host = "0.0.0.0"
 
 	buf := new(bytes.Buffer)
 	tp := template.Must(template.New("tmplPackageJSON").Parse(tmplPackageJSON))
@@ -67,7 +79,9 @@ func main() {
 }
 
 type configuration struct {
-	Host string
+	NgServeStartCommand     string
+	NgServeStartProdCommand string
+	Host                    string
 }
 
 const tmplPackageJSON = `{
@@ -76,8 +90,8 @@ const tmplPackageJSON = `{
     "license": "Apache-2.0",
     "angular-cli": {},
     "scripts": {
-        "start": "ng serve --prod --host 0.0.0.0 --proxy-config proxy.config.json",
-        "start-prod": "ng serve --prod --host {{.Host}} --proxy-config proxy.config.json",
+        "start": "{{.NgServeStartCommand}} --port 4200 --host 0.0.0.0 --proxy-config proxy.config.json",
+        "start-prod": "{{.NgServeStartProdCommand}} --port 4200 --host {{.Host}} --proxy-config proxy.config.json",
         "lint": "tslint \"frontend/**/*.ts\"",
         "test": "ng test",
         "pree2e": "webdriver-manager update",

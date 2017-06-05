@@ -7,7 +7,7 @@ if ! [[ "$0" =~ "./scripts/prod/deephardway-cpu.sh" ]]; then
 fi
 
 # rewrite package.json
-./package-gen -config package.json -logtostderr=true
+./gen-package-json -config package.json -logtostderr=true
 
 ./backend-web-server -logtostderr=true &
 yarn start-prod &
