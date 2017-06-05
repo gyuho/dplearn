@@ -8,9 +8,9 @@ fi
 
 # -P
 # -p hostPort:containerPort
+# -p 80:80
 # -p 2200:2200
 # -p 4200:4200
-# -p 80:80
 docker run \
   --rm \
   -it \

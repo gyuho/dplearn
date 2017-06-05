@@ -8,11 +8,12 @@ fi
 
 # -P
 # -p hostPort:containerPort
-# -p 4200:4200
 # -p 80:80
+# -p 4200:4200
 docker run \
   --rm \
   -it \
+  -p 80:80 \
   -p 4200:4200 \
   gcr.io/deephardway/deephardway:latest-gpu \
   /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && ./scripts/run/deephardway-gpu.sh"
