@@ -2,6 +2,7 @@
 /.vscode
 /node_modules
 /backend-web-server
+/package-gen
 /notebooks/.ipynb_checkpoints
 /backend/deep/*.pyc
 /backend/deep/etcd/*.pyc

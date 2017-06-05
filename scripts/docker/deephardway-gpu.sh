@@ -15,4 +15,4 @@ docker run \
   -it \
   -p 4200:4200 \
   gcr.io/deephardway/deephardway:latest-gpu \
-  /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && ./scripts/deephardway-gpu.sh"
+  /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && ./scripts/prod/deephardway-gpu.sh"

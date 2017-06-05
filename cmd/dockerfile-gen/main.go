@@ -202,9 +202,10 @@ RUN ln -s /gopath/src/github.com/gyuho/deephardway /git-deep
 ##########################
 
 ##########################
-# Compile backend
+# Compile backend and other utilities
 WORKDIR ${GOPATH}/src/github.com/gyuho/deephardway
-RUN go build -o ./backend-web-server -v ./cmd/backend-web-server
+RUN go build -o ./backend-web-server -v ./cmd/backend-web-server \
+  && go build -o ./package-gen -v ./cmd/package-gen
 ##########################
 
 ##########################
