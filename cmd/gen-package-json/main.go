@@ -7,6 +7,8 @@ import (
 	"text/template"
 	"time"
 
+	"strings"
+
 	"github.com/golang/glog"
 	"github.com/gyuho/deephardway/pkg/gcp"
 )
@@ -31,7 +33,7 @@ func main() {
 
 	for i := 0; i < 3; i++ {
 		// inspect metadata to get public IP
-		host, err := gcp.GetComputeMetadata("instance/network-interfaces/0/access-configs/0/external-ip")
+		bts, err := gcp.GetComputeMetadata("instance/network-interfaces/0/access-configs/0/external-ip")
 		if err != nil {
 			glog.Warning(err)
 			time.Sleep(300 * time.Millisecond)
@@ -39,7 +41,7 @@ func main() {
 		}
 		// TODO
 		// cfg.HostProd = host
-		glog.Infof("found public host IP %q", host)
+		glog.Infof("found public host IP %q", strings.TrimSpace(string(bts)))
 		break
 	}
 
