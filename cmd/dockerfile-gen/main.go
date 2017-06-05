@@ -137,22 +137,20 @@ RUN pip --no-cache-dir install \
   requests \
   bcolz \
   theano \
-  keras==1.2.2
-
-RUN echo $'[global]\n\
+  keras==1.2.2 \
+  && echo $'[global]\n\
 device = {{.Device}}\n\
 floatX = float32\n\
 [cuda]\n\
 root = /usr/local/cuda\n'\
 > ${HOME}/.theanorc \
-  && cat ${HOME}/.theanorc
-
-RUN mkdir -p ${HOME}/.keras \
+  && cat ${HOME}/.theanorc \
+  && mkdir -p ${HOME}/.keras \
   && echo $'{\n\
-    "image_dim_ordering": "th",\n\
-    "epsilon": 1e-07,\n\
-    "floatx": "float32",\n\
-    "backend": "theano"\n\
+  "image_dim_ordering": "th",\n\
+  "epsilon": 1e-07,\n\
+  "floatx": "float32",\n\
+  "backend": "theano"\n\
 }\n'\
 > ${HOME}/.keras/keras.json \
   && cat ${HOME}/.keras/keras.json
