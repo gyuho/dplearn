@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+set -e
 
 <<COMMENT
 edit "Networking"->"VPC networks"->"default"->"Firewall rules"->"Add firewall rules"
@@ -8,7 +10,7 @@ COMMENT
 
 GCP_KEY_PATH=/etc/gcp-key-deephardway.json ./scripts/gcp/create-instance.sh
 
-gcloud compute ssh --zone=us-west1-b deep
+gcloud compute ssh --zone=us-west1-b deephardway
 
 curl -L http://metadata.google.internal/computeMetadata/v1/instance/attributes/gcp-key -H 'Metadata-Flavor:Google'
 
