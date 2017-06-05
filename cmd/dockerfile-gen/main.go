@@ -185,9 +185,8 @@ RUN rm -rf ${GOROOT} \
 ENV ETCD_GIT_PATH github.com/coreos/etcd
 
 RUN mkdir -p ${GOPATH}/src/github.com/coreos \
-  && git clone https://github.com/coreos/etcd --branch master ${GOPATH}/src/${ETCD_GIT_PATH}
-
-RUN pushd ${GOPATH}/src/${ETCD_GIT_PATH} \
+  && git clone https://github.com/coreos/etcd --branch master ${GOPATH}/src/${ETCD_GIT_PATH} \
+  && pushd ${GOPATH}/src/${ETCD_GIT_PATH} \
   && git reset --hard HEAD \
   && ./build \
   && cp ./bin/* / \
@@ -213,10 +212,9 @@ RUN go build -o ./backend-web-server -v ./cmd/backend-web-server
 ##########################
 # Install Angular, NodeJS for frontend
 # 'node' needs to be in $PATH for 'yarn start' command
-WORKDIR ${GOPATH}/src/github.com/gyuho/deephardway
-
 ENV NVM_DIR /usr/local/nvm
-RUN curl https://raw.githubusercontent.com/creationix/nvm/v{{.NVMVersion}}/install.sh | /bin/bash \
+RUN pushd ${GOPATH}/src/github.com/gyuho/deephardway \
+  && curl https://raw.githubusercontent.com/creationix/nvm/v{{.NVMVersion}}/install.sh | /bin/bash \
   && echo "Running nvm scripts..." \
   && source $NVM_DIR/nvm.sh \
   && nvm ls-remote \
@@ -228,7 +226,8 @@ RUN curl https://raw.githubusercontent.com/creationix/nvm/v{{.NVMVersion}}/insta
   && yarn install \
   && npm rebuild node-sass \
   && npm install \
-  && cp /usr/local/nvm/versions/node/v{{.NodeVersion}}/bin/node /usr/bin/node
+  && cp /usr/local/nvm/versions/node/v{{.NodeVersion}}/bin/node /usr/bin/node \
+  && popd
 ##########################
 
 ##########################

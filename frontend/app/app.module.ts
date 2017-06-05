@@ -3,6 +3,8 @@ import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { HttpModule, JsonpModule } from '@angular/http';
 
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+
 import {
   MdButtonModule,
   MdToolbarModule,
@@ -20,6 +22,8 @@ import { routing, routedComponents } from './app.routing';
 
     HttpModule,
     JsonpModule,
+
+    BrowserAnimationsModule,
 
     MdButtonModule,
     MdToolbarModule,
