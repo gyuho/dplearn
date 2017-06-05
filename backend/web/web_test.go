@@ -6,8 +6,7 @@ import (
 )
 
 /*
-https://godoc.org/github.com/golang/glog
-go test -v -logtostderr=true
+go test -v -run TestServer -logtostderr=true
 */
 
 func TestServer(t *testing.T) {
