@@ -198,14 +198,11 @@ RUN mkdir -p ${GOPATH}/src/github.com/gyuho/deephardway
 ADD . ${GOPATH}/src/github.com/gyuho/deephardway
 
 # Symlinks to notebooks notebooks
-RUN ln -s /gopath/src/github.com/gyuho/deephardway /git-deep
-##########################
-
-##########################
-# Compile backend and other utilities
-WORKDIR ${GOPATH}/src/github.com/gyuho/deephardway
-RUN go build -o ./backend-web-server -v ./cmd/backend-web-server \
-  && go build -o ./gen-package-json -v ./cmd/gen-package-json
+RUN ln -s /gopath/src/github.com/gyuho/deephardway /git-deep \
+  && pushd ${GOPATH}/src/github.com/gyuho/deephardway \
+  && go build -o ./backend-web-server -v ./cmd/backend-web-server \
+  && go build -o ./gen-package-json -v ./cmd/gen-package-json \
+  && popd
 ##########################
 
 ##########################
