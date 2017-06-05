@@ -1,4 +1,4 @@
-# Last Updated at 2017-06-04 10:56:21.499628598 -0700 PDT
+# Last Updated at 2017-06-04 18:45:40.881239686 -0700 PDT
 # This Dockerfile contains everything needed for development and production use.
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile.gpu
@@ -116,11 +116,12 @@ ENV ETCD_GIT_PATH github.com/coreos/etcd
 RUN mkdir -p ${GOPATH}/src/github.com/coreos \
   && git clone https://github.com/coreos/etcd --branch master ${GOPATH}/src/${ETCD_GIT_PATH}
 
-WORKDIR ${GOPATH}/src/${ETCD_GIT_PATH}
-
-RUN git reset --hard HEAD \
+RUN pushd ${GOPATH}/src/${ETCD_GIT_PATH} \
+  && git reset --hard HEAD \
   && ./build \
-  && cp ./bin/* /
+  && cp ./bin/* / \
+  && popd \
+  && rm -rf ${GOPATH}/src/${ETCD_GIT_PATH}
 ##########################
 
 ##########################
