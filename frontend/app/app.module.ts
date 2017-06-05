@@ -3,7 +3,12 @@ import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { HttpModule, JsonpModule } from '@angular/http';
 
-import { MdButtonModule, MdToolbarModule, MdCardModule } from '@angular/material';
+import {
+  MdButtonModule,
+  MdToolbarModule,
+  MdCardModule,
+  MdMenuModule,
+} from '@angular/material';
 
 import { AppComponent } from './app.component';
 import { routing, routedComponents } from './app.routing';
@@ -19,6 +24,7 @@ import { routing, routedComponents } from './app.routing';
     MdButtonModule,
     MdToolbarModule,
     MdCardModule,
+    MdMenuModule,
 
     routing,
   ],
