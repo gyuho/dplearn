@@ -267,6 +267,7 @@ RUN cat /etc/lsb-release >> /container-version.txt \
   && echo yarn: $(yarn --version 2>&1) >> /container-version.txt \
   && echo node: $(node --version 2>&1) >> /container-version.txt \
   && echo NPM: $(/usr/local/nvm/versions/node/v{{.NodeVersion}}/bin/npm --version 2>&1) >> /container-version.txt \
+  && echo Angular-CLI: $(${GOPATH}/src/github.com/gyuho/deephardway/node_modules/.bin/ng --version 2>&1) >> /container-version.txt \
   && echo etcd: $(/etcd --version 2>&1) >> /container-version.txt \
   && echo etcdctl: $(ETCDCTL_API=3 /etcdctl version 2>&1) >> /container-version.txt \
   && cat ${GOPATH}/src/github.com/gyuho/deephardway/git-tensorflow.json >> /container-version.txt \

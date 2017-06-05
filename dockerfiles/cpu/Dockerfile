@@ -1,4 +1,4 @@
-# Last Updated at 2017-06-04 21:02:00.248786153 -0700 PDT
+# Last Updated at 2017-06-04 21:07:06.169971272 -0700 PDT
 # This Dockerfile contains everything needed for development and production use.
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile.gpu
@@ -196,6 +196,7 @@ RUN cat /etc/lsb-release >> /container-version.txt \
   && echo yarn: $(yarn --version 2>&1) >> /container-version.txt \
   && echo node: $(node --version 2>&1) >> /container-version.txt \
   && echo NPM: $(/usr/local/nvm/versions/node/v7.10.0/bin/npm --version 2>&1) >> /container-version.txt \
+  && echo Angular-CLI: $(${GOPATH}/src/github.com/gyuho/deephardway/node_modules/.bin/ng --version 2>&1) >> /container-version.txt \
   && echo etcd: $(/etcd --version 2>&1) >> /container-version.txt \
   && echo etcdctl: $(ETCDCTL_API=3 /etcdctl version 2>&1) >> /container-version.txt \
   && cat ${GOPATH}/src/github.com/gyuho/deephardway/git-tensorflow.json >> /container-version.txt \
