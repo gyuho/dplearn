@@ -4,8 +4,8 @@
     "license": "Apache-2.0",
     "angular-cli": {},
     "scripts": {
-        "start": "ng serve --prod --port 4200 --host 0.0.0.0 --proxy-config proxy.config.json",
-        "start-prod": "ng serve --port 4200 --host 0.0.0.0 --proxy-config proxy.config.json",
+        "start": "ng serve --port 4200 --host 0.0.0.0 --proxy-config proxy.config.json",
+        "start-prod": "ng serve --prod --port 4200 --host 0.0.0.0 --disable-host-check --proxy-config proxy.config.json",
         "lint": "tslint \"frontend/**/*.ts\"",
         "test": "ng test",
         "pree2e": "webdriver-manager update",
@@ -31,7 +31,7 @@
         "zone.js": "0.8.11"
     },
     "devDependencies": {
-        "@angular/cli": "1.0.6",
+        "@angular/cli": "1.2.0-beta.0",
         "@types/angular": "^1.5.16",
         "@types/angular-animate": "^1.5.5",
         "@types/angular-cookies": "^1.4.2",

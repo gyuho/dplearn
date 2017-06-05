@@ -44,26 +44,27 @@ func main() {
 	// so just use without prod mode
 	// https://github.com/webpack/webpack-dev-server/issues/882
 	cfg := configuration{
-		NgServeStartCommand:     "ng serve --prod",
-		NgServeStartProdCommand: "ng serve",
-		Host: "0.0.0.0",
+		NgCommandServeStart:     "ng serve",
+		NgCommandServeStartProd: "ng serve --prod",
+		Host:         "0.0.0.0",
+		HostPort:     4200,
+		HostProd:     "0.0.0.0",
+		HostProdPort: 4200,
 	}
-
-	// inspect metadata to get public IP
 	for i := 0; i < 3; i++ {
+		// inspect metadata to get public IP
 		host, err := getGCPPublicIP()
 		if err != nil {
 			glog.Warning(err)
 			time.Sleep(300 * time.Millisecond)
 			continue
 		}
-		cfg.Host = host
+		cfg.HostProd = host
 		glog.Infof("use public host IP %q", host)
 		break
 	}
-
 	// TODO
-	cfg.Host = "0.0.0.0"
+	cfg.HostProd = "0.0.0.0"
 
 	buf := new(bytes.Buffer)
 	tp := template.Must(template.New("tmplPackageJSON").Parse(tmplPackageJSON))
@@ -79,9 +80,12 @@ func main() {
 }
 
 type configuration struct {
-	NgServeStartCommand     string
-	NgServeStartProdCommand string
+	NgCommandServeStart     string
+	NgCommandServeStartProd string
 	Host                    string
+	HostPort                int
+	HostProd                string
+	HostProdPort            int
 }
 
 const tmplPackageJSON = `{
@@ -90,8 +94,8 @@ const tmplPackageJSON = `{
     "license": "Apache-2.0",
     "angular-cli": {},
     "scripts": {
-        "start": "{{.NgServeStartCommand}} --port 4200 --host 0.0.0.0 --proxy-config proxy.config.json",
-        "start-prod": "{{.NgServeStartProdCommand}} --port 4200 --host {{.Host}} --proxy-config proxy.config.json",
+        "start": "{{.NgCommandServeStart}} --port {{.HostPort}} --host {{.Host}} --proxy-config proxy.config.json",
+        "start-prod": "{{.NgCommandServeStartProd}} --port {{.HostProdPort}} --host {{.HostProd}} --disable-host-check --proxy-config proxy.config.json",
         "lint": "tslint \"frontend/**/*.ts\"",
         "test": "ng test",
         "pree2e": "webdriver-manager update",
@@ -117,7 +121,7 @@ const tmplPackageJSON = `{
         "zone.js": "0.8.11"
     },
     "devDependencies": {
-        "@angular/cli": "1.0.6",
+        "@angular/cli": "1.2.0-beta.0",
         "@types/angular": "^1.5.16",
         "@types/angular-animate": "^1.5.5",
         "@types/angular-cookies": "^1.4.2",
