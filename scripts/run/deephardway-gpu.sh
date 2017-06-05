@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-if ! [[ "$0" =~ "./scripts/prod/deephardway-gpu.sh" ]]; then
+if ! [[ "$0" =~ "./scripts/run/deephardway-gpu.sh" ]]; then
   echo "must be run from repository root"
   exit 255
 fi

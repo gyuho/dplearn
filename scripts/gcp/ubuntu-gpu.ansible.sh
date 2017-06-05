@@ -150,7 +150,7 @@ ExecStart=/usr/bin/nvidia-docker run \
   --name deephardway-gpu \
   --ulimit nofile=262144:262144 \
   gcr.io/deephardway/deephardway:latest-gpu \
-  /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && ./scripts/prod/deephardway-gpu.sh"
+  /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && ./scripts/run/deephardway-gpu.sh"
 
 ExecStop=/usr/bin/docker rm --force deephardway-gpu
 
