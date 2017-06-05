@@ -16,7 +16,7 @@ func GetComputeMetadata(key string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	req.Header = map[string][]string{"Metadata-Flavor": []string{"Google"}}
+	req.Header = map[string][]string{"Metadata-Flavor": {"Google"}}
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
