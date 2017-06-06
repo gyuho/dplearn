@@ -7,23 +7,23 @@ import (
 	"time"
 )
 
-// CatsAndDogsRequest defines 'cats-and-dogs' requests.
-type CatsAndDogsRequest struct {
+// MNISTRequest defines 'mnist' requests.
+type MNISTRequest struct {
 	URL     int    `json:"url"`
 	RawData string `json:"raw-data"`
 }
 
-// CatsAndDogsResponse is the response from server.
-type CatsAndDogsResponse struct {
+// MNISTResponse is the response from server.
+type MNISTResponse struct {
 	Result string `json:"result"`
 }
 
-func catsAndDogsHandler(ctx context.Context, w http.ResponseWriter, req *http.Request) error {
+func mnistHandler(ctx context.Context, w http.ResponseWriter, req *http.Request) error {
 	switch req.Method {
 	case http.MethodPost:
-		cresp := CatsAndDogsResponse{Result: ""}
+		cresp := MNISTResponse{Result: ""}
 
-		creq := CatsAndDogsRequest{}
+		creq := MNISTRequest{}
 		if err := json.NewDecoder(req.Body).Decode(&creq); err != nil {
 			cresp.Result = err.Error()
 			return json.NewEncoder(w).Encode(cresp)

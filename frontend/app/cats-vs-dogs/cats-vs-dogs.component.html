@@ -1,0 +1,69 @@
+<div class="cats-vs-dogs-group">
+    <section class="more-about">
+        <div class="inner">
+            <div class="block block-copy half">
+                <br>
+                <br>
+                <md-card class="text-card">
+                    <md-card-header>
+                        <md-card-title>Word Prediction I</md-card-title>
+                        <md-card-subtitle>spell check, word suggest, etc.</md-card-subtitle>
+                    </md-card-header>
+                    <md-card-content>
+                        The Shiba Inu is the smallest of the six original and distinct spitz breeds of dog from Japan. A small, agile dog that copes
+                        very well with mountainous terrain, the Shiba Inu was originally bred for hunting.
+                        <p></p>
+                        <md-input-container class="input-full-width">
+                            <input mdInput type="text" #inputText maxlength="30" placeholder="Type any words..." [(ngModel)]="inputValueI">
+                            <md-hint align="end">{{inputText.value.length}} / 30</md-hint>
+                        </md-input-container>
+                    </md-card-content>
+                    <md-card-actions>
+                        <button md-button color="primary" class="cats-vs-dogs-button" (click)="processRequestI();">Run</button>
+                    </md-card-actions>
+                </md-card>
+            </div>
+            <div class="block block-copy half">
+                <b>Results</b>
+                <p>
+                    <md-progress-spinner *ngIf="catsVsDogsIInProgress" [color]="spinnerColorI" [mode]="spinnerModeI" [value]="spinnerValueI">
+                    </md-progress-spinner>
+                    {{catsVsDogsResultI}}
+                </p>
+            </div>
+        </div>
+        <div class="inner">
+            <div class="block block-copy half">
+                <br>
+                <br>
+                <md-card class="text-card">
+                    <md-card-header>
+                        <md-card-title>Word Prediction II</md-card-title>
+                        <md-card-subtitle>spell check, word suggest, etc.</md-card-subtitle>
+                    </md-card-header>
+                    <md-card-content>
+                        The Shiba Inu is the smallest of the six original and distinct spitz breeds of dog from Japan. A small, agile dog that copes
+                        very well with mountainous terrain, the Shiba Inu was originally bred for hunting.
+                        <p></p>
+                        <md-input-container class="input-full-width">
+                            <textarea mdInput type="text" #inputText maxlength="200" mdAutosizeMinRows="5" placeholder="Type texts..." [(ngModel)]="inputValueII"></textarea>
+                            <md-hint align="end">{{inputText.value.length}} / 200</md-hint>
+                        </md-input-container>
+                    </md-card-content>
+                    <md-card-actions>
+                        <button md-button color="primary" class="cats-vs-dogs-button" (click)="processRequestII();">Run</button>
+                    </md-card-actions>
+                </md-card>
+            </div>
+            <div class="block block-copy half">
+                <b>Results</b>
+                <p>
+                    <md-progress-spinner *ngIf="catsVsDogsIIInProgress" [color]="spinnerColorII" [mode]="spinnerModeII" [value]="spinnerValueII">
+                    </md-progress-spinner>
+                    {{catsVsDogsResultII}}
+                </p>
+            </div>
+        </div>
+    </section>
+    <router-outlet></router-outlet>
+</div>

@@ -3,7 +3,11 @@
         "target": "http://0.0.0.0:2200",
         "secure": "false"
     },
-    "/cats-and-dogs-request": {
+    "/cats-vs-dogs-request": {
+        "target": "http://0.0.0.0:2200",
+        "secure": "false"
+    },
+    "/mnist-request": {
         "target": "http://0.0.0.0:2200",
         "secure": "false"
     }

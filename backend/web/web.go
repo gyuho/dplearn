@@ -40,9 +40,13 @@ func StartServer(webPort, queuePort int) (*Server, error) {
 		ctx:     rootCtx,
 		handler: ContextHandlerFunc(wordPredictHandler),
 	})
-	mux.Handle("/cats-and-dogs-request", &ContextAdapter{
+	mux.Handle("/cats-vs-dogs-request", &ContextAdapter{
 		ctx:     rootCtx,
-		handler: ContextHandlerFunc(catsAndDogsHandler),
+		handler: ContextHandlerFunc(catsVsDogsHandler),
+	})
+	mux.Handle("/mnist-request", &ContextAdapter{
+		ctx:     rootCtx,
+		handler: ContextHandlerFunc(mnistHandler),
 	})
 
 	addrURL := url.URL{Scheme: "http", Host: fmt.Sprintf("localhost:%d", webPort)}

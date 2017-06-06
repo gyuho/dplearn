@@ -1,9 +1,10 @@
 <md-toolbar color="primary">
     <a routerLink="/home"><button md-button>Home</button></a>
     <a routerLink="/word-predict"><button md-button>Word Predict</button></a>
+    <a routerLink="/cats-vs-dogs"><button md-button>Cats vs. Dogs</button></a>
     <button md-button [mdMenuTriggerFor]="menu">More</button>
     <md-menu #menu="mdMenu">
-        <a routerLink="/word-predict"><button md-menu-item>Word Predict</button></a>
+        <a href="https://github.com/gyuho/deephardway/tree/master/notebooks" target="_blank"><button md-menu-item>Practice Notebooks</button></a>
     </md-menu>
     <a href="https://github.com/gyuho/deephardway" target="_blank"><button md-button>Code</button></a>
 </md-toolbar>
