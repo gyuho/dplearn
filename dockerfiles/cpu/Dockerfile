@@ -1,4 +1,4 @@
-# Last Updated at 2017-06-05 14:50:16.034044594 -0700 PDT
+# Last Updated at 2017-06-05 17:25:07.29815403 -0700 PDT
 # This Dockerfile contains everything needed for development and production use.
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile.gpu
@@ -33,13 +33,13 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
   curl \
   wget \
   git \
-  nginx \
   libcupti-dev \
   rsync \
   python \
   python-pip \
   python-dev \
   python3-pip \
+  nginx \
   && echo "root ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers \
   && apt-get -y clean \
   && rm -rf /var/lib/apt/lists/* \
@@ -50,6 +50,10 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
   && apt-get -y upgrade \
   && apt-get -y autoremove \
   && apt-get -y autoclean
+
+# Configure reverse proxy
+RUN mkdir -p /etc/nginx/sites-available/
+ADD nginx.conf /etc/nginx/sites-available/default
 ##########################
 
 ##########################

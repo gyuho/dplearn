@@ -69,7 +69,7 @@ type configuration struct {
 
 const tmplPackageJSON = `{
     "name": "app-deephardway",
-    "version": "0.9.0",
+    "version": "0.9.5",
     "license": "Apache-2.0",
     "angular-cli": {},
     "scripts": {

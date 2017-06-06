@@ -104,13 +104,13 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
   curl \
   wget \
   git \
-  nginx \
   libcupti-dev \
   rsync \
   python \
   python-pip \
   python-dev \
   python3-pip \
+  nginx \
   && echo "root ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers \
   && apt-get -y clean \
   && rm -rf /var/lib/apt/lists/* \
@@ -121,6 +121,10 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
   && apt-get -y upgrade \
   && apt-get -y autoremove \
   && apt-get -y autoclean
+
+# Configure reverse proxy
+RUN mkdir -p /etc/nginx/sites-available/
+ADD nginx.conf /etc/nginx/sites-available/default
 ##########################
 
 ##########################
