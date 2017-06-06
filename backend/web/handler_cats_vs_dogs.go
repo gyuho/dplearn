@@ -22,17 +22,17 @@ type CatsVsDogsResponse struct {
 func catsVsDogsHandler(ctx context.Context, w http.ResponseWriter, req *http.Request) error {
 	switch req.Method {
 	case http.MethodPost:
-		cresp := CatsVsDogsResponse{Result: ""}
+		resp := CatsVsDogsResponse{Result: ""}
 
-		creq := CatsVsDogsRequest{}
-		if err := json.NewDecoder(req.Body).Decode(&creq); err != nil {
+		rreq := CatsVsDogsRequest{}
+		if err := json.NewDecoder(req.Body).Decode(&rreq); err != nil {
 			resp.Result = fmt.Sprintf("JSON parse error %q at %s", err.Error(), time.Now().String()[:29])
-			return json.NewEncoder(w).Encode(cresp)
+			return json.NewEncoder(w).Encode(resp)
 		}
 		defer req.Body.Close()
 
-		cresp.Result = fmt.Sprintf("Received %+v at %s", creq, time.Now().String()[:29])
-		if err := json.NewEncoder(w).Encode(cresp); err != nil {
+		resp.Result = fmt.Sprintf("Received %+v at %s", rreq, time.Now().String()[:29])
+		if err := json.NewEncoder(w).Encode(resp); err != nil {
 			return err
 		}
 
