@@ -1,4 +1,4 @@
-# Last Updated at 2017-06-05 17:25:07.283195972 -0700 PDT
+# Last Updated at 2017-06-05 17:48:22.721161384 -0700 PDT
 # This Dockerfile contains everything needed for development and production use.
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile.gpu
@@ -137,6 +137,7 @@ ADD . ${GOPATH}/src/github.com/gyuho/deephardway
 RUN ln -s /gopath/src/github.com/gyuho/deephardway /git-deep \
   && pushd ${GOPATH}/src/github.com/gyuho/deephardway \
   && go build -o ./backend-web-server -v ./cmd/backend-web-server \
+  && go build -o ./gen-nginx-conf -v ./cmd/gen-nginx-conf \
   && go build -o ./gen-package-json -v ./cmd/gen-package-json \
   && popd
 ##########################

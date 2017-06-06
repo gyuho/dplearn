@@ -4,24 +4,19 @@ import (
 	"bytes"
 	"flag"
 	"os"
+	"strings"
 	"text/template"
 	"time"
 
-	"strings"
+	"github.com/gyuho/deephardway/pkg/gcp"
 
 	"github.com/golang/glog"
-	"github.com/gyuho/deephardway/pkg/gcp"
 )
 
 func main() {
-	configPath := flag.String("config", "package.json", "Specify config file path.")
+	outputPath := flag.String("output", "package.json", "Specify package.json output file path.")
 	flag.Parse()
 
-	// TODO: angular-cli does not work with public IP, so need to use 0.0.0.0
-	// https://github.com/angular/angular-cli/issues/2587#issuecomment-252586913
-	// but webpack prod mode does not work with 0.0.0.0
-	// so just use without prod mode
-	// https://github.com/webpack/webpack-dev-server/issues/882
 	cfg := configuration{
 		NgCommandServeStart:     "ng serve",
 		NgCommandServeStartProd: "ng serve --prod",
@@ -39,9 +34,12 @@ func main() {
 			time.Sleep(300 * time.Millisecond)
 			continue
 		}
-		// TODO
-		// cfg.HostProd = host
-		glog.Infof("found public host IP %q", strings.TrimSpace(string(bts)))
+		ip := strings.TrimSpace(string(bts))
+		glog.Infof("found public host IP %q", ip)
+
+		// TODO: angular-cli does not work with public IP, so need to use 0.0.0.0
+		// https://github.com/angular/angular-cli/issues/2587#issuecomment-252586913
+		// https://github.com/webpack/webpack-dev-server/issues/882
 		break
 	}
 
@@ -52,10 +50,10 @@ func main() {
 	}
 	txt := buf.String()
 
-	if err := toFile(txt, *configPath); err != nil {
+	if err := toFile(txt, *outputPath); err != nil {
 		glog.Fatal(err)
 	}
-	glog.Infof("wrote %q", *configPath)
+	glog.Infof("wrote %q", *outputPath)
 }
 
 type configuration struct {
@@ -148,31 +146,4 @@ func toFile(txt, fpath string) error {
 		glog.Fatal(err)
 	}
 	return nil
-}
-
-// exist returns true if the file or directory exists.
-func exist(fpath string) bool {
-	st, err := os.Stat(fpath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return false
-		}
-	}
-	if st.IsDir() {
-		return true
-	}
-	if _, err := os.Stat(fpath); err != nil {
-		if os.IsNotExist(err) {
-			return false
-		}
-	}
-	return true
-}
-
-func nowPST() time.Time {
-	tzone, err := time.LoadLocation("America/Los_Angeles")
-	if err != nil {
-		return time.Now()
-	}
-	return time.Now().In(tzone)
 }

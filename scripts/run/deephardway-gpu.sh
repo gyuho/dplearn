@@ -6,8 +6,11 @@ if ! [[ "$0" =~ "./scripts/run/deephardway-gpu.sh" ]]; then
   exit 255
 fi
 
-# rewrite package.json
-./gen-package-json -config package.json -logtostderr=true
+./gen-package-json -output package.json -logtostderr=true
+cat package.json
+
+./gen-nginx-conf -output nginx.conf -logtostderr=true
+cat nginx.conf
 
 ./backend-web-server -logtostderr=true &
 yarn start-prod &
