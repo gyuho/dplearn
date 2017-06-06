@@ -12,11 +12,14 @@ func init() {
 	flag.Parse()
 }
 
-const webPort = 2200
+const (
+	webPort   = 2200
+	queuePort = 22000
+)
 
 func main() {
 	glog.Info("starting web server")
-	srv, err := web.StartServer(webPort)
+	srv, err := web.StartServer(webPort, queuePort)
 	if err != nil {
 		glog.Fatal(err)
 	}
