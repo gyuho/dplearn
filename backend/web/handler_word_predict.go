@@ -26,7 +26,7 @@ func wordPredictHandler(ctx context.Context, w http.ResponseWriter, req *http.Re
 
 		rreq := WordPredictRequest{}
 		if err := json.NewDecoder(req.Body).Decode(&rreq); err != nil {
-			resp.Result = err.Error()
+			resp.Result = fmt.Sprintf("JSON parse error %q at %s", err.Error(), time.Now().String()[:29])
 			return json.NewEncoder(w).Encode(resp)
 		}
 		defer req.Body.Close()

@@ -10,7 +10,7 @@ import (
 
 // CatsVsDogsRequest defines 'cats-vs-dogs' requests.
 type CatsVsDogsRequest struct {
-	URL     int    `json:"url"`
+	URL     string `json:"url"`
 	RawData string `json:"rawdata"`
 }
 
@@ -26,7 +26,7 @@ func catsVsDogsHandler(ctx context.Context, w http.ResponseWriter, req *http.Req
 
 		creq := CatsVsDogsRequest{}
 		if err := json.NewDecoder(req.Body).Decode(&creq); err != nil {
-			cresp.Result = err.Error()
+			resp.Result = fmt.Sprintf("JSON parse error %q at %s", err.Error(), time.Now().String()[:29])
 			return json.NewEncoder(w).Encode(cresp)
 		}
 		defer req.Body.Close()
