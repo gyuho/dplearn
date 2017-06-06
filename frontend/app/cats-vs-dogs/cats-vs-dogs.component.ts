@@ -103,7 +103,7 @@ export class CatsVsDogsComponent {
       () => this.processCatsVsDogsResponse(catsVsDogsResponseFromSubscribe), // on-complete
     );
     this.snackBar.open('Predicting correct words...', 'Requested!', {
-      duration: 2000,
+      duration: 5000,
     });
     this.catsVsDogsInProgress = true;
     this.spinnerMode = 'indeterminate';

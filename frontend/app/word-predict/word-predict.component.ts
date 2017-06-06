@@ -125,7 +125,7 @@ export class WordPredictComponent {
       () => this.processWordPredictResponseI(wordPredictResponseFromSubscribe), // on-complete
     );
     this.snackBar.open('Predicting correct words...', 'Requested!', {
-      duration: 2000,
+      duration: 5000,
     });
     this.wordPredictInProgressI = true;
     this.spinnerModeI = 'indeterminate';
@@ -140,7 +140,7 @@ export class WordPredictComponent {
       () => this.processWordPredictResponseII(wordPredictResponseFromSubscribe), // on-complete
     );
     this.snackBar.open('Predicting next words...', 'Requested!', {
-      duration: 2000,
+      duration: 5000,
     });
     this.wordPredictInProgressII = true;
     this.spinnerModeII = 'indeterminate';

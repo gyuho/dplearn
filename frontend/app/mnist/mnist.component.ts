@@ -102,7 +102,7 @@ export class MNISTComponent {
       () => this.processMNISTResponse(mnistResponseFromSubscribe), // on-complete
     );
     this.snackBar.open('Predicting correct words...', 'Requested!', {
-      duration: 2000,
+      duration: 5000,
     });
     this.mnistInProgress = true;
     this.spinnerMode = 'indeterminate';
