@@ -24,6 +24,10 @@ html {
   width: 100%;
 }
 
+.spinner-margin {
+  margin: 0 10px;
+}
+
 /*Reference https://www.tensorflow.org*/
 
 *,

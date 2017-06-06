@@ -1,12 +1,9 @@
 import {
   Component,
-  Injectable,
   OnInit,
   AfterContentInit,
   AfterViewChecked,
   AfterViewInit,
-  ElementRef,
-  ViewChild,
   OnDestroy,
 } from '@angular/core';
 
@@ -20,6 +17,10 @@ import {
 import {
   Observable,
 } from 'rxjs/Rx';
+
+import {
+  MdSnackBar,
+} from '@angular/material';
 
 export class WordPredictRequest {
   type: number;
@@ -56,9 +57,17 @@ export class WordPredictComponent implements OnInit, AfterContentInit, AfterView
   wordPredictResultI: string;
   wordPredictResultII: string;
 
-  // @ViewChild('autosize') autosize;
+  wordPredictIInProgress = false;
+  spinnerColorI = 'primary';
+  spinnerModeI = 'determinate';
+  spinnerValueI = 0;
 
-  constructor(private http: Http) {
+  wordPredictIIInProgress = false;
+  spinnerColorII = 'primary';
+  spinnerModeII = 'determinate';
+  spinnerValueII = 0;
+
+  constructor(private http: Http, public snackBar: MdSnackBar) {
     this.inputValueI = '';
     this.inputValueII = '';
     this.wordPredictResponseError = '';
@@ -68,9 +77,7 @@ export class WordPredictComponent implements OnInit, AfterContentInit, AfterView
 
   ngOnInit(): void {}
   ngAfterContentInit() {}
-  ngAfterViewInit() {
-    // this.autosize.resizeToFitContent();
-  }
+  ngAfterViewInit() {}
   ngAfterViewChecked() {}
 
   // user leaves the template
@@ -82,10 +89,12 @@ export class WordPredictComponent implements OnInit, AfterContentInit, AfterView
   processWordPredictResponseI(resp: WordPredictResponse) {
     this.wordPredictResponse = resp;
     this.wordPredictResultI = resp.result;
+    this.wordPredictIInProgress = false;
   }
   processWordPredictResponseII(resp: WordPredictResponse) {
     this.wordPredictResponse = resp;
     this.wordPredictResultII = resp.result;
+    this.wordPredictIIInProgress = false;
   }
 
   processHTTPResponseClient(res: Response) {
@@ -104,10 +113,8 @@ export class WordPredictComponent implements OnInit, AfterContentInit, AfterView
 
   postRequest(wordPredictRequest: WordPredictRequest): Observable<WordPredictResponse> {
     let body = JSON.stringify(wordPredictRequest);
-    let headers = new Headers({'Content-Type': 'application/json'});
-    let options = new RequestOptions({headers: headers});
-
-    // this.wordPredictResult = 'Requested "' + wordPredictRequest.text + '"';
+    let headers = new Headers({'Content-Type' : 'application/json'});
+    let options = new RequestOptions({headers : headers});
 
     // this returns without waiting for POST response
     let obser = this.http.post(this.wordPredictRequestEndpoint, body, options)
@@ -125,6 +132,11 @@ export class WordPredictComponent implements OnInit, AfterContentInit, AfterView
       error => this.wordPredictResponseError = <any>error,
       () => this.processWordPredictResponseI(wordPredictResponseFromSubscribe), // on-complete
     );
+    this.snackBar.open('Predicting correct words...', 'Requested!', {
+      duration: 2000,
+    });
+    this.wordPredictIInProgress = true;
+    this.spinnerModeI = 'indeterminate';
   }
   processRequestII() {
     let val = this.inputValueII;
@@ -135,5 +147,10 @@ export class WordPredictComponent implements OnInit, AfterContentInit, AfterView
       error => this.wordPredictResponseError = <any>error,
       () => this.processWordPredictResponseII(wordPredictResponseFromSubscribe), // on-complete
     );
+    this.snackBar.open('Predicting next words...', 'Requested!', {
+      duration: 2000,
+    });
+    this.wordPredictIIInProgress = true;
+    this.spinnerModeII = 'indeterminate';
   }
 }

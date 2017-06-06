@@ -11,6 +11,8 @@ import {
   MdCardModule,
   MdMenuModule,
   MdInputModule,
+  MdSnackBarModule,
+  MdProgressSpinnerModule,
 } from '@angular/material';
 
 import { AppComponent } from './app.component';
@@ -31,6 +33,8 @@ import { routing, routedComponents } from './app.routing';
     MdCardModule,
     MdMenuModule,
     MdInputModule,
+    MdSnackBarModule,
+    MdProgressSpinnerModule,
 
     routing,
   ],
