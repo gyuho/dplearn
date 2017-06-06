@@ -3,6 +3,7 @@ package web
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 )
@@ -10,7 +11,7 @@ import (
 // CatsVsDogsRequest defines 'cats-vs-dogs' requests.
 type CatsVsDogsRequest struct {
 	URL     int    `json:"url"`
-	RawData string `json:"raw-data"`
+	RawData string `json:"rawdata"`
 }
 
 // CatsVsDogsResponse is the response from server.
@@ -30,7 +31,7 @@ func catsVsDogsHandler(ctx context.Context, w http.ResponseWriter, req *http.Req
 		}
 		defer req.Body.Close()
 
-		cresp.Result = "Response at " + time.Now().String()[:29]
+		cresp.Result = fmt.Sprintf("Received %+v at %s", creq, time.Now().String()[:29])
 		if err := json.NewEncoder(w).Encode(cresp); err != nil {
 			return err
 		}
@@ -38,5 +39,6 @@ func catsVsDogsHandler(ctx context.Context, w http.ResponseWriter, req *http.Req
 	default:
 		http.Error(w, "Method Not Allowed", 405)
 	}
+
 	return nil
 }

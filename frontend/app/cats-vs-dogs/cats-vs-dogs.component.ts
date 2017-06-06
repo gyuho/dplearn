@@ -18,14 +18,14 @@ import {
 } from '@angular/material';
 
 export class CatsVsDogsRequest {
-  type: number;
-  text: string;
+  url: string;
+  rawdata: string;
   constructor(
-    tp: number,
-    txt: string,
+    url: string,
+    d: string,
   ) {
-    this.type = tp;
-    this.text = txt;
+    this.url = url;
+    this.rawdata = d;
   }
 }
 
@@ -95,7 +95,7 @@ export class CatsVsDogsComponent {
 
   processRequest() {
     let val = this.inputValue;
-    let catsVsDogsRequest = new CatsVsDogsRequest(1, val);
+    let catsVsDogsRequest = new CatsVsDogsRequest('http://aaa.com', val);
     let catsVsDogsResponseFromSubscribe: CatsVsDogsResponse;
     this.postRequest(catsVsDogsRequest).subscribe(
       catsVsDogsResponse => catsVsDogsResponseFromSubscribe = catsVsDogsResponse,

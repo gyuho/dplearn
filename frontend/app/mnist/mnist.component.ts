@@ -18,14 +18,14 @@ import {
 } from '@angular/material';
 
 export class MNISTRequest {
-  type: number;
-  text: string;
+  url: string;
+  rawdata: string;
   constructor(
-    tp: number,
-    txt: string,
+    url: string,
+    d: string,
   ) {
-    this.type = tp;
-    this.text = txt;
+    this.url = url;
+    this.rawdata = d;
   }
 }
 
@@ -94,7 +94,7 @@ export class MNISTComponent {
 
   processRequest() {
     let val = this.inputValue;
-    let mnistRequest = new MNISTRequest(1, val);
+    let mnistRequest = new MNISTRequest('http://aaa.com', val);
     let mnistResponseFromSubscribe: MNISTResponse;
     this.postRequest(mnistRequest).subscribe(
       mnistResponse => mnistResponseFromSubscribe = mnistResponse,
