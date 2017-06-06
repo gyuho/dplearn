@@ -20,10 +20,18 @@ func main() {
 	cfg := configuration{
 		NgCommandServeStart:     "ng serve",
 		NgCommandServeStartProd: "ng serve --prod",
+
+		// 0.0.0.0 means "all IPv4 addresses on the local machine".
+		// If a host has two IP addresses, 192.168.1.1 and 10.1.2.1,
+		// and a server running on the host listens on 0.0.0.0,
+		// it will be reachable at both of those IPs
+		// (Source https://en.wikipedia.org/wiki/0.0.0.0).
 		Host:         "0.0.0.0",
 		HostPort:     4200,
 		HostProd:     "0.0.0.0",
 		HostProdPort: 4200,
+
+		ProxyConfigJSONPath: "proxy.config.json",
 	}
 
 	for i := 0; i < 3; i++ {
@@ -63,6 +71,7 @@ type configuration struct {
 	HostPort                int
 	HostProd                string
 	HostProdPort            int
+	ProxyConfigJSONPath     string
 }
 
 const tmplPackageJSON = `{
@@ -71,7 +80,7 @@ const tmplPackageJSON = `{
     "license": "Apache-2.0",
     "angular-cli": {},
     "scripts": {
-        "start": "{{.NgCommandServeStart}} --port {{.HostPort}} --host {{.Host}} --proxy-config proxy.config.json",
+        "start": "{{.NgCommandServeStart}} --port {{.HostPort}} --host {{.Host}} --proxy-config {{.ProxyConfigJSONPath}}",
         "start-prod": "{{.NgCommandServeStartProd}} --port {{.HostProdPort}} --host {{.HostProd}} --disable-host-check --proxy-config proxy.config.json",
         "lint": "tslint \"frontend/**/*.ts\"",
         "test": "ng test",
@@ -101,7 +110,7 @@ const tmplPackageJSON = `{
         "@angular/cli": "1.2.0-beta.0",
         "@types/angular": "1.6.18",
         "@types/angular-animate": "1.5.6",
-        "@types/angular-cookies": "^1.4.2",
+        "@types/angular-cookies": "1.4.3",
         "@types/angular-mocks": "1.5.9",
         "@types/angular-resource": "1.5.8",
         "@types/angular-route": "1.3.3",
