@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/golang/glog"
+	etcdqueue "github.com/gyuho/deephardway/pkg/etcd-queue"
 )
 
 // Server warps http.Server.
@@ -20,12 +21,18 @@ type Server struct {
 	rootCancel func()
 	addrURL    url.URL
 	httpServer *http.Server
+	qu         *etcdqueue.Queue
 
 	donec chan struct{}
 }
 
 // StartServer starts a backend webserver with stoppable listener.
-func StartServer(port int) (*Server, error) {
+func StartServer(webPort, queuePort int) (*Server, error) {
+	qu, err := etcdqueue.StartQueue(queuePort, queuePort+1)
+	if err != nil {
+		return nil, err
+	}
+
 	rootCtx, rootCancel := context.WithCancel(context.Background())
 
 	mux := http.NewServeMux()
@@ -34,12 +41,13 @@ func StartServer(port int) (*Server, error) {
 		handler: ContextHandlerFunc(spellCheckHandler),
 	})
 
-	addrURL := url.URL{Scheme: "http", Host: fmt.Sprintf("localhost:%d", port)}
+	addrURL := url.URL{Scheme: "http", Host: fmt.Sprintf("localhost:%d", webPort)}
 	srv := &Server{
 		rootCtx:    rootCtx,
 		rootCancel: rootCancel,
 		addrURL:    addrURL,
 		httpServer: &http.Server{Addr: addrURL.Host, Handler: mux},
+		qu:         qu,
 		donec:      make(chan struct{}),
 	}
 
@@ -71,6 +79,8 @@ func (srv *Server) Stop() error {
 	glog.Infof("stopping server %q", srv.addrURL.String())
 
 	srv.mu.Lock()
+	srv.qu.Stop()
+
 	if srv.httpServer == nil {
 		srv.mu.Unlock()
 		glog.Infof("already stopped %q", srv.addrURL.String())
@@ -80,7 +90,7 @@ func (srv *Server) Stop() error {
 	ctx, cancel := context.WithTimeout(srv.rootCtx, 5*time.Second)
 	err := srv.httpServer.Shutdown(ctx)
 	cancel()
-	if err != nil {
+	if err != nil && err != context.DeadlineExceeded {
 		return err
 	}
 

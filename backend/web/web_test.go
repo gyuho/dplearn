@@ -10,13 +10,16 @@ go test -v -run TestServer -logtostderr=true
 */
 
 func TestServer(t *testing.T) {
-	srv, err := StartServer(0)
+	srv, err := StartServer(0, 5555)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	time.Sleep(3 * time.Second)
-	srv.Stop()
+
+	if err = srv.Stop(); err != nil {
+		t.Fatal(err)
+	}
 
 	select {
 	case <-srv.StopNotify():
