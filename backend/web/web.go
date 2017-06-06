@@ -10,8 +10,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/golang/glog"
 	etcdqueue "github.com/gyuho/deephardway/pkg/etcd-queue"
+
+	"github.com/golang/glog"
 )
 
 // Server warps http.Server.
@@ -38,7 +39,7 @@ func StartServer(webPort, queuePort int) (*Server, error) {
 	mux := http.NewServeMux()
 	mux.Handle("/client-request", &ContextAdapter{
 		ctx:     rootCtx,
-		handler: ContextHandlerFunc(spellCheckHandler),
+		handler: ContextHandlerFunc(wordPredictHandler),
 	})
 
 	addrURL := url.URL{Scheme: "http", Host: fmt.Sprintf("localhost:%d", webPort)}
@@ -106,23 +107,24 @@ func (srv *Server) StopNotify() <-chan struct{} {
 	return srv.donec
 }
 
-// SpellCheckRequest defines client requests.
-type SpellCheckRequest struct {
+// WordPredictRequest defines client requests.
+type WordPredictRequest struct {
+	Type int    `json:"type"`
 	Text string `json:"text"`
 }
 
-// SpellCheckResponse is the response from server.
-type SpellCheckResponse struct {
+// WordPredictResponse is the response from server.
+type WordPredictResponse struct {
 	Text   string `json:"text"`
 	Result string `json:"result"`
 }
 
-func spellCheckHandler(ctx context.Context, w http.ResponseWriter, req *http.Request) error {
+func wordPredictHandler(ctx context.Context, w http.ResponseWriter, req *http.Request) error {
 	switch req.Method {
 	case http.MethodPost:
-		cresp := SpellCheckResponse{Text: "", Result: ""}
+		cresp := WordPredictResponse{Text: "", Result: ""}
 
-		creq := SpellCheckRequest{}
+		creq := WordPredictRequest{}
 		if err := json.NewDecoder(req.Body).Decode(&creq); err != nil {
 			cresp.Text = ""
 			cresp.Result = err.Error()

@@ -2,24 +2,27 @@ html {
     box-sizing: border-box
 }
 
-.spell-check-group {
+.word-predict-group {
     padding: 5px;
 }
 
-.spell-check-button {
+.word-predict-button {
     font-family: 'Roboto', sans-serif;
     font-size: 15px;
     padding-right: 7px;
     padding-left: 7px;
 }
 
-.spell-check-link-main {
+.word-predict-link-main {
     color: dodgerblue;
     text-decoration: none !important;
     font-family: 'Open Sans', sans-serif;
     font-size: 15px;
 }
 
+.input-full-width {
+  width: 100%;
+}
 
 /*Reference https://www.tensorflow.org*/
 
