@@ -10,7 +10,8 @@
                         <md-card-subtitle>spell check, word suggest, etc.</md-card-subtitle>
                     </md-card-header>
                     <md-card-content>
-                        The Shiba Inu is the smallest of the six original and distinct spitz breeds of dog from Japan. A small, agile dog that copes very well with mountainous terrain, the Shiba Inu was originally bred for hunting.
+                        The Shiba Inu is the smallest of the six original and distinct spitz breeds of dog from Japan. A small, agile dog that copes
+                        very well with mountainous terrain, the Shiba Inu was originally bred for hunting.
                         <p></p>
                         <md-input-container class="input-full-width">
                             <input mdInput type="text" #inputText maxlength="30" placeholder="Type any words..." [(ngModel)]="inputValueI">
@@ -25,11 +26,7 @@
             <div class="block block-copy half">
                 <b>Results</b>
                 <p>
-                    <md-progress-spinner
-                        *ngIf="wordPredictIInProgress"
-                        [color]="spinnerColorI"
-                        [mode]="spinnerModeI"
-                        [value]="spinnerValueI">
+                    <md-progress-spinner *ngIf="wordPredictIInProgress" [color]="spinnerColorI" [mode]="spinnerModeI" [value]="spinnerValueI">
                     </md-progress-spinner>
                     {{wordPredictResultI}}
                 </p>
@@ -45,7 +42,8 @@
                         <md-card-subtitle>spell check, word suggest, etc.</md-card-subtitle>
                     </md-card-header>
                     <md-card-content>
-                        The Shiba Inu is the smallest of the six original and distinct spitz breeds of dog from Japan. A small, agile dog that copes very well with mountainous terrain, the Shiba Inu was originally bred for hunting.
+                        The Shiba Inu is the smallest of the six original and distinct spitz breeds of dog from Japan. A small, agile dog that copes
+                        very well with mountainous terrain, the Shiba Inu was originally bred for hunting.
                         <p></p>
                         <md-input-container class="input-full-width">
                             <textarea mdInput type="text" #inputText maxlength="200" mdAutosizeMinRows="5" placeholder="Type texts..." [(ngModel)]="inputValueII"></textarea>
@@ -60,11 +58,7 @@
             <div class="block block-copy half">
                 <b>Results</b>
                 <p>
-                    <md-progress-spinner
-                        *ngIf="wordPredictIIInProgress"
-                        [color]="spinnerColorII"
-                        [mode]="spinnerModeII"
-                        [value]="spinnerValueII">
+                    <md-progress-spinner *ngIf="wordPredictIIInProgress" [color]="spinnerColorII" [mode]="spinnerModeII" [value]="spinnerValueII">
                     </md-progress-spinner>
                     {{wordPredictResultII}}
                 </p>

@@ -2,7 +2,6 @@ package web
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -37,9 +36,13 @@ func StartServer(webPort, queuePort int) (*Server, error) {
 	rootCtx, rootCancel := context.WithCancel(context.Background())
 
 	mux := http.NewServeMux()
-	mux.Handle("/client-request", &ContextAdapter{
+	mux.Handle("/word-predict-request", &ContextAdapter{
 		ctx:     rootCtx,
 		handler: ContextHandlerFunc(wordPredictHandler),
+	})
+	mux.Handle("/cats-and-dogs-request", &ContextAdapter{
+		ctx:     rootCtx,
+		handler: ContextHandlerFunc(catsAndDogsHandler),
 	})
 
 	addrURL := url.URL{Scheme: "http", Host: fmt.Sprintf("localhost:%d", webPort)}
@@ -105,41 +108,4 @@ func (srv *Server) Stop() error {
 // StopNotify returns receive-only stop channel to notify the server has stopped.
 func (srv *Server) StopNotify() <-chan struct{} {
 	return srv.donec
-}
-
-// WordPredictRequest defines client requests.
-type WordPredictRequest struct {
-	Type int    `json:"type"`
-	Text string `json:"text"`
-}
-
-// WordPredictResponse is the response from server.
-type WordPredictResponse struct {
-	Text   string `json:"text"`
-	Result string `json:"result"`
-}
-
-func wordPredictHandler(ctx context.Context, w http.ResponseWriter, req *http.Request) error {
-	switch req.Method {
-	case http.MethodPost:
-		cresp := WordPredictResponse{Text: "", Result: ""}
-
-		creq := WordPredictRequest{}
-		if err := json.NewDecoder(req.Body).Decode(&creq); err != nil {
-			cresp.Text = ""
-			cresp.Result = err.Error()
-			return json.NewEncoder(w).Encode(cresp)
-		}
-		defer req.Body.Close()
-
-		cresp.Text = creq.Text
-		cresp.Result = "Response at " + time.Now().String()[:29]
-		if err := json.NewEncoder(w).Encode(cresp); err != nil {
-			return err
-		}
-
-	default:
-		http.Error(w, "Method Not Allowed", 405)
-	}
-	return nil
 }

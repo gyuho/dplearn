@@ -35,7 +35,6 @@ export class WordPredictRequest {
 }
 
 export class WordPredictResponse {
-  text: string;
   result: string;
 }
 
@@ -46,7 +45,7 @@ export class WordPredictResponse {
 })
 export class WordPredictComponent implements OnInit, AfterContentInit, AfterViewInit, AfterViewChecked, OnDestroy {
   mode = 'Observable';
-  private wordPredictRequestEndpoint = 'client-request';
+  private wordPredictRequestEndpoint = 'word-predict-request';
 
   inputValueI: string;
   inputValueII: string;

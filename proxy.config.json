@@ -1,5 +1,9 @@
 {
-    "/client-request": {
+    "/word-predict-request": {
+        "target": "http://0.0.0.0:2200",
+        "secure": "false"
+    },
+    "/cats-and-dogs-request": {
         "target": "http://0.0.0.0:2200",
         "secure": "false"
     }
