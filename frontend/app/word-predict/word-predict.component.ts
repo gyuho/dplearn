@@ -1,10 +1,5 @@
 import {
   Component,
-  OnInit,
-  AfterContentInit,
-  AfterViewChecked,
-  AfterViewInit,
-  OnDestroy,
 } from '@angular/core';
 
 import {
@@ -43,7 +38,7 @@ export class WordPredictResponse {
   templateUrl: 'word-predict.component.html',
   styleUrls: ['word-predict.component.css'],
 })
-export class WordPredictComponent implements OnInit, AfterContentInit, AfterViewInit, AfterViewChecked, OnDestroy {
+export class WordPredictComponent {
   mode = 'Observable';
   private wordPredictRequestEndpoint = 'word-predict-request';
 
@@ -56,12 +51,12 @@ export class WordPredictComponent implements OnInit, AfterContentInit, AfterView
   wordPredictResultI: string;
   wordPredictResultII: string;
 
-  wordPredictIInProgress = false;
+  wordPredictInProgressI = false;
   spinnerColorI = 'primary';
   spinnerModeI = 'determinate';
   spinnerValueI = 0;
 
-  wordPredictIIInProgress = false;
+  wordPredictInProgressII = false;
   spinnerColorII = 'primary';
   spinnerModeII = 'determinate';
   spinnerValueII = 0;
@@ -70,30 +65,28 @@ export class WordPredictComponent implements OnInit, AfterContentInit, AfterView
     this.inputValueI = '';
     this.inputValueII = '';
     this.wordPredictResponseError = '';
-    this.wordPredictResultI = 'Nothing to show...';
-    this.wordPredictResultII = 'Nothing to show...';
+    this.wordPredictResultI = 'No results to show yet...';
+    this.wordPredictResultII = 'No results to show yet...';
   }
 
-  ngOnInit(): void {}
-  ngAfterContentInit() {}
-  ngAfterViewInit() {}
-  ngAfterViewChecked() {}
-
-  // user leaves the template
-  ngOnDestroy() {
-    console.log('Disconnected from cluster (user left the page)!');
-    return;
-  }
+  // ngOnInit(): void {}
+  // ngAfterContentInit() {}
+  // ngAfterViewInit() {}
+  // ngAfterViewChecked() {}
+  // ngOnDestroy() {
+  //   console.log('Disconnected from cluster (user left the page)!');
+  //   return;
+  // }
 
   processWordPredictResponseI(resp: WordPredictResponse) {
     this.wordPredictResponse = resp;
     this.wordPredictResultI = resp.result;
-    this.wordPredictIInProgress = false;
+    this.wordPredictInProgressI = false;
   }
   processWordPredictResponseII(resp: WordPredictResponse) {
     this.wordPredictResponse = resp;
     this.wordPredictResultII = resp.result;
-    this.wordPredictIIInProgress = false;
+    this.wordPredictInProgressII = false;
   }
 
   processHTTPResponseClient(res: Response) {
@@ -134,7 +127,7 @@ export class WordPredictComponent implements OnInit, AfterContentInit, AfterView
     this.snackBar.open('Predicting correct words...', 'Requested!', {
       duration: 2000,
     });
-    this.wordPredictIInProgress = true;
+    this.wordPredictInProgressI = true;
     this.spinnerModeI = 'indeterminate';
   }
   processRequestII() {
@@ -149,7 +142,7 @@ export class WordPredictComponent implements OnInit, AfterContentInit, AfterView
     this.snackBar.open('Predicting next words...', 'Requested!', {
       duration: 2000,
     });
-    this.wordPredictIIInProgress = true;
+    this.wordPredictInProgressII = true;
     this.spinnerModeII = 'indeterminate';
   }
 }

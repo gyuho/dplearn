@@ -1,10 +1,5 @@
 import {
   Component,
-  OnInit,
-  AfterContentInit,
-  AfterViewChecked,
-  AfterViewInit,
-  OnDestroy,
 } from '@angular/core';
 
 import {
@@ -43,57 +38,33 @@ export class CatsVsDogsResponse {
   templateUrl: 'cats-vs-dogs.component.html',
   styleUrls: ['cats-vs-dogs.component.css'],
 })
-export class CatsVsDogsComponent implements OnInit, AfterContentInit, AfterViewInit, AfterViewChecked, OnDestroy {
+export class CatsVsDogsComponent {
   mode = 'Observable';
   private catsVsDogsRequestEndpoint = 'cats-vs-dogs-request';
 
-  inputValueI: string;
-  inputValueII: string;
+  inputValue: string;
 
   catsVsDogsResponse: CatsVsDogsResponse;
   catsVsDogsResponseError: string;
 
+  catsVsDogsResult: string;
   catsVsDogsResultI: string;
-  catsVsDogsResultII: string;
 
-  catsVsDogsIInProgress = false;
-  spinnerColorI = 'primary';
-  spinnerModeI = 'determinate';
-  spinnerValueI = 0;
-
-  catsVsDogsIIInProgress = false;
-  spinnerColorII = 'primary';
-  spinnerModeII = 'determinate';
-  spinnerValueII = 0;
+  catsVsDogsInProgress = false;
+  spinnerColor = 'primary';
+  spinnerMode = 'determinate';
+  spinnerValue = 0;
 
   constructor(private http: Http, public snackBar: MdSnackBar) {
-    this.inputValueI = '';
-    this.inputValueII = '';
+    this.inputValue = '';
     this.catsVsDogsResponseError = '';
-    this.catsVsDogsResultI = 'Nothing to show...';
-    this.catsVsDogsResultII = 'Nothing to show...';
+    this.catsVsDogsResult = 'No results to show yet...';
   }
 
-  ngOnInit(): void {}
-  ngAfterContentInit() {}
-  ngAfterViewInit() {}
-  ngAfterViewChecked() {}
-
-  // user leaves the template
-  ngOnDestroy() {
-    console.log('Disconnected from cluster (user left the page)!');
-    return;
-  }
-
-  processCatsVsDogsResponseI(resp: CatsVsDogsResponse) {
+  processCatsVsDogsResponse(resp: CatsVsDogsResponse) {
     this.catsVsDogsResponse = resp;
-    this.catsVsDogsResultI = resp.result;
-    this.catsVsDogsIInProgress = false;
-  }
-  processCatsVsDogsResponseII(resp: CatsVsDogsResponse) {
-    this.catsVsDogsResponse = resp;
-    this.catsVsDogsResultII = resp.result;
-    this.catsVsDogsIIInProgress = false;
+    this.catsVsDogsResult = resp.result;
+    this.catsVsDogsInProgress = false;
   }
 
   processHTTPResponseClient(res: Response) {
@@ -122,34 +93,19 @@ export class CatsVsDogsComponent implements OnInit, AfterContentInit, AfterViewI
     return obser;
   }
 
-  processRequestI() {
-    let val = this.inputValueI;
+  processRequest() {
+    let val = this.inputValue;
     let catsVsDogsRequest = new CatsVsDogsRequest(1, val);
     let catsVsDogsResponseFromSubscribe: CatsVsDogsResponse;
     this.postRequest(catsVsDogsRequest).subscribe(
       catsVsDogsResponse => catsVsDogsResponseFromSubscribe = catsVsDogsResponse,
       error => this.catsVsDogsResponseError = <any>error,
-      () => this.processCatsVsDogsResponseI(catsVsDogsResponseFromSubscribe), // on-complete
+      () => this.processCatsVsDogsResponse(catsVsDogsResponseFromSubscribe), // on-complete
     );
     this.snackBar.open('Predicting correct words...', 'Requested!', {
       duration: 2000,
     });
-    this.catsVsDogsIInProgress = true;
-    this.spinnerModeI = 'indeterminate';
-  }
-  processRequestII() {
-    let val = this.inputValueII;
-    let catsVsDogsRequest = new CatsVsDogsRequest(2, val);
-    let catsVsDogsResponseFromSubscribe: CatsVsDogsResponse;
-    this.postRequest(catsVsDogsRequest).subscribe(
-      catsVsDogsResponse => catsVsDogsResponseFromSubscribe = catsVsDogsResponse,
-      error => this.catsVsDogsResponseError = <any>error,
-      () => this.processCatsVsDogsResponseII(catsVsDogsResponseFromSubscribe), // on-complete
-    );
-    this.snackBar.open('Predicting next words...', 'Requested!', {
-      duration: 2000,
-    });
-    this.catsVsDogsIIInProgress = true;
-    this.spinnerModeII = 'indeterminate';
+    this.catsVsDogsInProgress = true;
+    this.spinnerMode = 'indeterminate';
   }
 }

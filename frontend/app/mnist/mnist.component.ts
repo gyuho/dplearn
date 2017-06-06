@@ -1,10 +1,5 @@
 import {
   Component,
-  OnInit,
-  AfterContentInit,
-  AfterViewChecked,
-  AfterViewInit,
-  OnDestroy,
 } from '@angular/core';
 
 import {
@@ -43,57 +38,32 @@ export class MNISTResponse {
   templateUrl: 'mnist.component.html',
   styleUrls: ['mnist.component.css'],
 })
-export class MNISTComponent implements OnInit, AfterContentInit, AfterViewInit, AfterViewChecked, OnDestroy {
+export class MNISTComponent {
   mode = 'Observable';
   private mnistRequestEndpoint = 'mnist-request';
 
-  inputValueI: string;
-  inputValueII: string;
+  inputValue: string;
 
   mnistResponse: MNISTResponse;
   mnistResponseError: string;
 
-  mnistResultI: string;
-  mnistResultII: string;
+  mnistResult: string;
 
-  mnistIInProgress = false;
-  spinnerColorI = 'primary';
-  spinnerModeI = 'determinate';
-  spinnerValueI = 0;
-
-  mnistIIInProgress = false;
-  spinnerColorII = 'primary';
-  spinnerModeII = 'determinate';
-  spinnerValueII = 0;
+  mnistInProgress = false;
+  spinnerColor = 'primary';
+  spinnerMode = 'determinate';
+  spinnerValue = 0;
 
   constructor(private http: Http, public snackBar: MdSnackBar) {
-    this.inputValueI = '';
-    this.inputValueII = '';
+    this.inputValue = '';
     this.mnistResponseError = '';
-    this.mnistResultI = 'Nothing to show...';
-    this.mnistResultII = 'Nothing to show...';
+    this.mnistResult = 'No results to show yet...';
   }
 
-  ngOnInit(): void {}
-  ngAfterContentInit() {}
-  ngAfterViewInit() {}
-  ngAfterViewChecked() {}
-
-  // user leaves the template
-  ngOnDestroy() {
-    console.log('Disconnected from cluster (user left the page)!');
-    return;
-  }
-
-  processMNISTResponseI(resp: MNISTResponse) {
+  processMNISTResponse(resp: MNISTResponse) {
     this.mnistResponse = resp;
-    this.mnistResultI = resp.result;
-    this.mnistIInProgress = false;
-  }
-  processMNISTResponseII(resp: MNISTResponse) {
-    this.mnistResponse = resp;
-    this.mnistResultII = resp.result;
-    this.mnistIIInProgress = false;
+    this.mnistResult = resp.result;
+    this.mnistInProgress = false;
   }
 
   processHTTPResponseClient(res: Response) {
@@ -122,34 +92,19 @@ export class MNISTComponent implements OnInit, AfterContentInit, AfterViewInit, 
     return obser;
   }
 
-  processRequestI() {
-    let val = this.inputValueI;
+  processRequest() {
+    let val = this.inputValue;
     let mnistRequest = new MNISTRequest(1, val);
     let mnistResponseFromSubscribe: MNISTResponse;
     this.postRequest(mnistRequest).subscribe(
       mnistResponse => mnistResponseFromSubscribe = mnistResponse,
       error => this.mnistResponseError = <any>error,
-      () => this.processMNISTResponseI(mnistResponseFromSubscribe), // on-complete
+      () => this.processMNISTResponse(mnistResponseFromSubscribe), // on-complete
     );
     this.snackBar.open('Predicting correct words...', 'Requested!', {
       duration: 2000,
     });
-    this.mnistIInProgress = true;
-    this.spinnerModeI = 'indeterminate';
-  }
-  processRequestII() {
-    let val = this.inputValueII;
-    let mnistRequest = new MNISTRequest(2, val);
-    let mnistResponseFromSubscribe: MNISTResponse;
-    this.postRequest(mnistRequest).subscribe(
-      mnistResponse => mnistResponseFromSubscribe = mnistResponse,
-      error => this.mnistResponseError = <any>error,
-      () => this.processMNISTResponseII(mnistResponseFromSubscribe), // on-complete
-    );
-    this.snackBar.open('Predicting next words...', 'Requested!', {
-      duration: 2000,
-    });
-    this.mnistIIInProgress = true;
-    this.spinnerModeII = 'indeterminate';
+    this.mnistInProgress = true;
+    this.spinnerMode = 'indeterminate';
   }
 }
