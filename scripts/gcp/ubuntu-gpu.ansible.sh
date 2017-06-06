@@ -33,7 +33,6 @@ cat > /etc/ansible-install.yml <<EOF
     - curl
     - wget
     - git
-    - nginx
     - libcupti-dev
     - rsync
     - python
@@ -160,6 +159,35 @@ EOF
 cat /tmp/deephardway-gpu.service
 mv -f /tmp/deephardway-gpu.service /etc/systemd/system/deephardway-gpu.service
 
+cat > /tmp/reverse-proxy.service <<EOF
+[Unit]
+Description=deephardway reverse proxy
+Documentation=https://github.com/gyuho/deephardway
+
+[Service]
+Restart=always
+RestartSec=5s
+TimeoutStartSec=0
+LimitNOFILE=40000
+
+ExecStartPre=/usr/bin/docker pull quay.io/coreos/etcdlabs:latest
+
+ExecStart=/usr/bin/docker run \
+  --rm \
+  --net=host \
+  --name reverse-proxy \
+  --ulimit nofile=262144:262144 \
+  gcr.io/deephardway/deephardway:latest-gpu \
+  /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && ./scripts/run/reverse-proxy.sh"
+
+ExecStop=/usr/bin/docker rm --force reverse-proxy
+
+[Install]
+WantedBy=multi-user.target
+EOF
+cat /tmp/reverse-proxy.service
+mv -f /tmp/reverse-proxy.service /etc/systemd/system/reverse-proxy.service
+
 systemctl daemon-reload
 
 systemctl enable ipython-gpu.service
@@ -167,3 +195,6 @@ systemctl start ipython-gpu.service
 
 systemctl enable deephardway-gpu.service
 systemctl start deephardway-gpu.service
+
+systemctl enable reverse-proxy.service
+systemctl start reverse-proxy.service
