@@ -23,5 +23,7 @@ export const routing = RouterModule.forRoot(appRoutes);
 export const routedComponents = [
     HomeComponent,
     WordPredictComponent,
+    CatsVsDogsComponent,
+    MNISTComponent,
     NotFoundComponent,
 ];
