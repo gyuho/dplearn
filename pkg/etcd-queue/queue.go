@@ -179,10 +179,11 @@ func (qu *queue) Stop() {
 
 func (qu *queue) Add(ctx context.Context, it *Item) (<-chan *Item, error) {
 	key := it.Key
-	val, err := json.Marshal(it)
+	v, err := json.Marshal(it)
 	if err != nil {
 		return nil, err
 	}
+	val := string(v)
 
 	qu.mu.Lock()
 	defer qu.mu.Unlock()
@@ -222,7 +223,7 @@ func (qu *queue) Add(ctx context.Context, it *Item) (<-chan *Item, error) {
 				if wresp.Events[0].Type == mvccpb.DELETE {
 					glog.Infof("%q has been deleted, thus completed", key)
 					if wresp.Events[0].PrevKv != nil {
-						item.Value = wresp.Events[0].PrevKv.Value
+						item.Value = string(wresp.Events[0].PrevKv.Value)
 					}
 					ch <- &item
 					close(ch)
@@ -278,10 +279,10 @@ func (qu *queue) watchWorker(ctx context.Context, bucket string) error {
 			if len(wresp.Events) != 1 {
 				return fmt.Errorf("no watch events on %q (%+v, %v)", keyToWatch, wresp, wresp.Err())
 			}
-			valBytes := wresp.Events[0].Kv.Value
+			v := wresp.Events[0].Kv.Value
 			var item Item
-			if err := json.Unmarshal(valBytes, &item); err != nil {
-				return fmt.Errorf("%q returned wrong JSON value %q (%v)", keyToWatch, string(valBytes), err)
+			if err := json.Unmarshal([]byte(v), &item); err != nil {
+				return fmt.Errorf("%q returned wrong JSON value %q (%v)", keyToWatch, string(v), err)
 			}
 			if item.Progress < maxProgress {
 				glog.Infof("%q is in progress %d / %d (continue)", item.Key, item.Progress, maxProgress)
@@ -290,7 +291,7 @@ func (qu *queue) watchWorker(ctx context.Context, bucket string) error {
 
 			// 2. notify the client back with the new results on the key (ID field in Item)
 			glog.Infof("%q is done", item.Key)
-			if err := qu.put(ctx, item.Key, valBytes); err != nil {
+			if err := qu.put(ctx, item.Key, string(v)); err != nil {
 				return err
 			}
 
@@ -300,7 +301,7 @@ func (qu *queue) watchWorker(ctx context.Context, bucket string) error {
 				return err
 			}
 			cKey := path.Join(pfxCompleted, item.Key)
-			if err := qu.put(ctx, cKey, valBytes); err != nil {
+			if err := qu.put(ctx, cKey, string(v)); err != nil {
 				return err
 			}
 			glog.Infof("%q is written", cKey)
@@ -319,10 +320,10 @@ func (qu *queue) watchWorker(ctx context.Context, bucket string) error {
 			if len(resp.Kvs) != 1 {
 				return fmt.Errorf("%q should return only one key-value pair (got %+v)", pfxToFetch, resp.Kvs)
 			}
-			fetchBytes := resp.Kvs[0].Value
+			fetched := resp.Kvs[0].Value
 			var newItem Item
-			if err := json.Unmarshal(fetchBytes, &newItem); err != nil {
-				return fmt.Errorf("%q has wrong JSON %q", resp.Kvs[0].Key, string(fetchBytes))
+			if err := json.Unmarshal([]byte(fetched), &newItem); err != nil {
+				return fmt.Errorf("%q has wrong JSON %q", resp.Kvs[0].Key, string(fetched))
 			}
 			if newItem.Progress != 0 {
 				return fmt.Errorf("%q must have initial progress, got %d", newItem.Key, newItem.Progress)
@@ -330,7 +331,7 @@ func (qu *queue) watchWorker(ctx context.Context, bucket string) error {
 
 			// 6. write this job to path.Join(pfxWorker, bucket)
 			glog.Infof("%q is scheduled", string(resp.Kvs[0].Key))
-			if err := qu.put(ctx, keyToWatch, resp.Kvs[0].Value); err != nil {
+			if err := qu.put(ctx, keyToWatch, string(resp.Kvs[0].Value)); err != nil {
 				return err
 			}
 
@@ -340,16 +341,16 @@ func (qu *queue) watchWorker(ctx context.Context, bucket string) error {
 				if len(wresp.Events) != 1 {
 					return fmt.Errorf("no watch events on %q after schedule (%+v, %v)", keyToWatch, wresp, wresp.Err())
 				}
-				valBytes := wresp.Events[0].Kv.Value
+				v := wresp.Events[0].Kv.Value
 				var item Item
-				if err := json.Unmarshal(valBytes, &item); err != nil {
-					return fmt.Errorf("%q returned wrong JSON value %q (%v)", keyToWatch, string(valBytes), err)
+				if err := json.Unmarshal([]byte(v), &item); err != nil {
+					return fmt.Errorf("%q returned wrong JSON value %q (%v)", keyToWatch, string(v), err)
 				}
 				if item.Progress != 0 {
 					return fmt.Errorf("%q has wrong progress %d, expected initial progress 0", keyToWatch, item.Progress)
 				}
-				if !bytes.Equal(resp.Kvs[0].Value, valBytes) {
-					return fmt.Errorf("scheduled value expected %q, got %q", string(resp.Kvs[0].Value), string(valBytes))
+				if !bytes.Equal(resp.Kvs[0].Value, v) {
+					return fmt.Errorf("scheduled value expected %q, got %q", string(resp.Kvs[0].Value), string(v))
 				}
 
 			case <-ctx.Done():
@@ -388,9 +389,9 @@ func (qu *queue) run(ctx context.Context, bucket string, errc chan error) {
 			errc <- fmt.Errorf("len(resp.Kvs) expected 1, got %+v", resp.Kvs)
 			return
 		}
-		valBytes := resp.Kvs[0].Value
+		v := resp.Kvs[0].Value
 		var item Item
-		if err = json.Unmarshal(valBytes, &item); err != nil {
+		if err = json.Unmarshal([]byte(v), &item); err != nil {
 			errc <- err
 			return
 		}
@@ -399,7 +400,7 @@ func (qu *queue) run(ctx context.Context, bucket string, errc chan error) {
 
 			// 2. notify the client back with the new results on the key (ID field in Item)
 			glog.Infof("%q is done", item.Key)
-			if err := qu.put(ctx, item.Key, valBytes); err != nil {
+			if err := qu.put(ctx, item.Key, string(v)); err != nil {
 				errc <- err
 				return
 			}
@@ -411,7 +412,7 @@ func (qu *queue) run(ctx context.Context, bucket string, errc chan error) {
 				return
 			}
 			cKey := path.Join(pfxCompleted, item.Key)
-			if err := qu.put(ctx, cKey, valBytes); err != nil {
+			if err := qu.put(ctx, cKey, string(v)); err != nil {
 				errc <- err
 				return
 			}
@@ -433,10 +434,10 @@ func (qu *queue) run(ctx context.Context, bucket string, errc chan error) {
 				errc <- fmt.Errorf("%q should return only one key-value pair (got %+v)", pfxToFetch, resp.Kvs)
 				return
 			}
-			fetchBytes := resp.Kvs[0].Value
+			fetched := resp.Kvs[0].Value
 			var newItem Item
-			if err := json.Unmarshal(fetchBytes, &newItem); err != nil {
-				errc <- fmt.Errorf("%q has wrong JSON %q", resp.Kvs[0].Key, string(fetchBytes))
+			if err := json.Unmarshal([]byte(fetched), &newItem); err != nil {
+				errc <- fmt.Errorf("%q has wrong JSON %q", resp.Kvs[0].Key, string(fetched))
 				return
 			}
 			if newItem.Progress != 0 {
@@ -446,7 +447,7 @@ func (qu *queue) run(ctx context.Context, bucket string, errc chan error) {
 
 			// 6. write this job to path.Join(pfxWorker, bucket)
 			glog.Infof("%q is scheduled", string(resp.Kvs[0].Key))
-			if err := qu.put(ctx, keyToWatch, resp.Kvs[0].Value); err != nil {
+			if err := qu.put(ctx, keyToWatch, string(resp.Kvs[0].Value)); err != nil {
 				errc <- err
 				return
 			}
@@ -456,8 +457,8 @@ func (qu *queue) run(ctx context.Context, bucket string, errc chan error) {
 	}
 }
 
-func (qu *queue) put(ctx context.Context, key string, val []byte) error {
-	_, err := qu.cli.Put(ctx, key, string(val))
+func (qu *queue) put(ctx context.Context, key, val string) error {
+	_, err := qu.cli.Put(ctx, key, val)
 	return err
 }
 
@@ -476,7 +477,7 @@ type Item struct {
 
 	// Key is autogenerated and used as a key when written to etcd.
 	Key   string `json:"key"`
-	Value []byte `json:"value"`
+	Value string `json:"value"`
 
 	// Progress is the progress status value.
 	// 100 means it's done.
@@ -487,7 +488,7 @@ type Item struct {
 // CreateItem creates an item with auto-generated ID. The ID uses unix
 // nano seconds, so that items created later are added in order.
 // The maximum weight(priority) is 99999.
-func CreateItem(bucket string, weight uint64, value []byte) *Item {
+func CreateItem(bucket string, weight uint64, value string) *Item {
 	if weight > 99999 {
 		weight = 99999
 	}

@@ -63,12 +63,12 @@ func TestQueue(t *testing.T) {
 		t.Fatalf("value expected 'bar', got %q", string(resp.Kvs[0].Value))
 	}
 
-	item1 := CreateItem("my-job", 1500, []byte("my text goes here... 1"))
+	item1 := CreateItem("my-job", 1500, "my text goes here... 1")
 	wch1, err := qu.Add(context.Background(), item1)
 	if err != nil {
 		t.Fatal(err)
 	}
-	item2 := CreateItem("my-job", 15000, []byte("my text goes here... 2"))
+	item2 := CreateItem("my-job", 15000, "my text goes here... 2")
 	wch2, err := qu.Add(context.Background(), item2)
 	if err != nil {
 		t.Fatal(err)
@@ -89,13 +89,13 @@ func TestQueue(t *testing.T) {
 	if err = json.Unmarshal(resp.Kvs[0].Value, &rt); err != nil {
 		t.Fatal(err)
 	}
-	if !bytes.Equal(item1.Value, rt.Value) {
+	if item1.Value != rt.Value {
 		t.Fatalf("rt.Value expected %s, got %s", string(item1.Value), rt.Value)
 	}
 
 	// simulate job event on item1
 	item1.Progress = 100
-	item1.Value = []byte("finished!")
+	item1.Value = "finished!"
 	item1Marshaled, err := json.Marshal(item1)
 	if err != nil {
 		t.Fatal(err)
@@ -110,10 +110,10 @@ func TestQueue(t *testing.T) {
 	select {
 	case updatedItem := <-wch1:
 		var ui Item
-		if err = json.Unmarshal(updatedItem.Value, &ui); err != nil {
+		if err = json.Unmarshal([]byte(updatedItem.Value), &ui); err != nil {
 			t.Fatal(err)
 		}
-		if !bytes.Equal(item1.Value, ui.Value) {
+		if item1.Value != ui.Value {
 			t.Fatalf("item1.Value from watch expected %+v, got %+v", item1, ui)
 		}
 		var gresp *clientv3.GetResponse
@@ -125,7 +125,7 @@ func TestQueue(t *testing.T) {
 		if err = json.Unmarshal(gresp.Kvs[0].Value, &item); err != nil {
 			t.Fatal(err)
 		}
-		if !bytes.Equal(item1.Value, item.Value) {
+		if item1.Value != item.Value {
 			t.Fatalf("item1.Value from 'completed' bucket expected %+v, got %+v", item1, item)
 		}
 	case <-time.After(10 * time.Second):
@@ -148,7 +148,7 @@ func TestQueue(t *testing.T) {
 		if err = json.Unmarshal(gresp.Kvs[0].Value, &di); err != nil {
 			t.Fatal(err)
 		}
-		if !bytes.Equal(item1.Value, di.Value) {
+		if item1.Value != di.Value {
 			t.Fatalf("item1.Value from 'completed' bucket expected %+v, got %+v", item1, di)
 		}
 	case <-time.After(10 * time.Second):
@@ -157,7 +157,7 @@ func TestQueue(t *testing.T) {
 
 	// simulate job event on item2
 	item2.Progress = 100
-	item2.Value = []byte("finished!")
+	item2.Value = "finished!"
 	item2ValBytes, err := json.Marshal(item2)
 	if err != nil {
 		t.Fatal(err)
@@ -171,10 +171,10 @@ func TestQueue(t *testing.T) {
 	select {
 	case updatedItem := <-wch2:
 		var ui Item
-		if err = json.Unmarshal(updatedItem.Value, &ui); err != nil {
+		if err = json.Unmarshal([]byte(updatedItem.Value), &ui); err != nil {
 			t.Fatal(err)
 		}
-		if !bytes.Equal(item2.Value, ui.Value) {
+		if item2.Value != ui.Value {
 			t.Fatalf("item2.Value from watch expected %+v, got %+v", item2, ui)
 		}
 		var gresp *clientv3.GetResponse
@@ -186,7 +186,7 @@ func TestQueue(t *testing.T) {
 		if err = json.Unmarshal(gresp.Kvs[0].Value, &item); err != nil {
 			t.Fatal(err)
 		}
-		if !bytes.Equal(item2.Value, item.Value) {
+		if item2.Value != item.Value {
 			t.Fatalf("item2.Value from 'completed' bucket expected %+v, got %+v", item2, item)
 		}
 	case <-time.After(10 * time.Second):
@@ -209,7 +209,7 @@ func TestQueue(t *testing.T) {
 		if err = json.Unmarshal(gresp.Kvs[0].Value, &di); err != nil {
 			t.Fatal(err)
 		}
-		if !bytes.Equal(item2.Value, di.Value) {
+		if item2.Value != di.Value {
 			t.Fatalf("item2.Value from 'completed' bucket expected %+v, got %+v", item2, di)
 		}
 	case <-time.After(10 * time.Second):
