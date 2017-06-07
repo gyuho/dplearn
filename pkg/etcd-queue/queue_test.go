@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"io/ioutil"
+	"os"
 	"path"
-	"reflect"
-	"sort"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -16,61 +16,22 @@ import (
 )
 
 /*
-go test -v -run TestItem -logtostderr=true
-*/
-func TestItem(t *testing.T) {
-	item1, err := CreateItem("test-job", 1500, []byte("Hello World!"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	glog.Infof("created %+v", item1)
-
-	vd, err := json.Marshal(item1.Value)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	item2, err := ParseItem(item1.Key, vd)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if !reflect.DeepEqual(item1, item2) {
-		t.Fatalf("expected %+v, got %+v", item1, item2)
-	}
-
-	item3, err := CreateItem("test-job", 1500, []byte("Hello World!"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	glog.Infof("created %+v", item3)
-
-	item4, err := CreateItem("test-job", 15000, []byte("Hello World!"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	glog.Infof("created %+v", item4)
-
-	items := []*Item{item1, item3, item4}
-	itemsSorted := []*Item{item4, item1, item3}
-	sort.Sort(Items(items))
-
-	if !reflect.DeepEqual(items, itemsSorted) {
-		t.Fatalf("expected %+v, got %+v", itemsSorted, items)
-	}
-}
-
-var basePort int32 = 22379
-
-/*
 go test -v -run TestQueue -logtostderr=true
 */
+
+var basePort int32 = 22379
 
 func TestQueue(t *testing.T) {
 	cport := int(atomic.LoadInt32(&basePort))
 	atomic.StoreInt32(&basePort, int32(cport)+2)
 
-	qu, err := StartQueue(cport, cport+1)
+	dataDir, err := ioutil.TempDir(os.TempDir(), "etcd-queue")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dataDir)
+
+	qu, err := StartQueue(cport, cport+1, dataDir)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -102,18 +63,12 @@ func TestQueue(t *testing.T) {
 		t.Fatalf("value expected 'bar', got %q", string(resp.Kvs[0].Value))
 	}
 
-	item1, err := CreateItem("my-job", 1500, []byte("my text goes here... 1"))
-	if err != nil {
-		t.Fatal(err)
-	}
+	item1 := CreateItem("my-job", 1500, []byte("my text goes here... 1"))
 	wch1, err := qu.Add(context.Background(), item1)
 	if err != nil {
 		t.Fatal(err)
 	}
-	item2, err := CreateItem("my-job", 15000, []byte("my text goes here... 2"))
-	if err != nil {
-		t.Fatal(err)
-	}
+	item2 := CreateItem("my-job", 15000, []byte("my text goes here... 2"))
 	wch2, err := qu.Add(context.Background(), item2)
 	if err != nil {
 		t.Fatal(err)
@@ -130,78 +85,132 @@ func TestQueue(t *testing.T) {
 	if len(resp.Kvs) != 1 {
 		t.Fatalf("%q should have 1 key-value, got %+v", todoKey, resp.Kvs)
 	}
-	item1Bts, err := json.Marshal(item1.Value)
-	if err != nil {
+	var rt Item
+	if err = json.Unmarshal(resp.Kvs[0].Value, &rt); err != nil {
 		t.Fatal(err)
 	}
-	if !bytes.Equal(item1Bts, resp.Kvs[0].Value) {
-		t.Fatalf("resp.Kvs[0].Value expected %s, got %s", string(item1Bts), resp.Kvs[0].Value)
+	if !bytes.Equal(item1.Value, rt.Value) {
+		t.Fatalf("rt.Value expected %s, got %s", string(item1.Value), rt.Value)
 	}
 
 	// simulate job event on item1
-	item1.Value.StatusCode = 100
-	item1.Value.Data = []byte("finished!")
-	item1ValBytes, err := json.Marshal(item1.Value)
+	item1.Progress = 100
+	item1.Value = []byte("finished!")
+	item1Marshaled, err := json.Marshal(item1)
 	if err != nil {
 		t.Fatal(err)
 	}
 	glog.Infof("writing to %q", todoKey)
-	if _, err = cli.Put(context.Background(), todoKey, string(item1ValBytes)); err != nil {
+	if _, err = cli.Put(context.Background(), todoKey, string(item1Marshaled)); err != nil {
 		t.Fatal(err)
 	}
+	time.Sleep(2 * time.Second)
 
 	// expects events from wch1
 	select {
-	case iresp := <-wch1:
-		if !reflect.DeepEqual(item1.Value, iresp.Value) {
-			t.Fatalf("item1.Value from watch expected %+v, got %+v", item1.Value, iresp.Value)
+	case updatedItem := <-wch1:
+		var ui Item
+		if err = json.Unmarshal(updatedItem.Value, &ui); err != nil {
+			t.Fatal(err)
 		}
-		time.Sleep(2 * time.Second) // wait for writes on completed bucket
-		gresp, err := cli.Get(context.Background(), path.Join(pfxCompleted, iresp.Key))
+		if !bytes.Equal(item1.Value, ui.Value) {
+			t.Fatalf("item1.Value from watch expected %+v, got %+v", item1, ui)
+		}
+		var gresp *clientv3.GetResponse
+		gresp, err = cli.Get(context.Background(), path.Join(pfxCompleted, updatedItem.Key))
 		if err != nil {
 			t.Fatal(err)
 		}
-		v := gresp.Kvs[0].Value
-		var val Value
-		if err = json.Unmarshal(v, &val); err != nil {
+		var item Item
+		if err = json.Unmarshal(gresp.Kvs[0].Value, &item); err != nil {
 			t.Fatal(err)
 		}
-		if !reflect.DeepEqual(item1.Value, val) {
-			t.Fatalf("item1.Value from 'completed' bucket expected %+v, got %+v", item1.Value, val)
+		if !bytes.Equal(item1.Value, item.Value) {
+			t.Fatalf("item1.Value from 'completed' bucket expected %+v, got %+v", item1, item)
+		}
+	case <-time.After(10 * time.Second):
+		t.Fatalf("took too long to receive event on item1 %s", item1.Key)
+	}
+	select {
+	case deletedItem, ok := <-wch1:
+		if !ok {
+			t.Fatal("should not be closed before receiving delete event")
+		}
+		if _, ok = <-wch1; ok {
+			t.Fatal("must be closed after delete event")
+		}
+		var gresp *clientv3.GetResponse
+		gresp, err = cli.Get(context.Background(), path.Join(pfxCompleted, deletedItem.Key))
+		if err != nil {
+			t.Fatal(err)
+		}
+		var di Item
+		if err = json.Unmarshal(gresp.Kvs[0].Value, &di); err != nil {
+			t.Fatal(err)
+		}
+		if !bytes.Equal(item1.Value, di.Value) {
+			t.Fatalf("item1.Value from 'completed' bucket expected %+v, got %+v", item1, di)
 		}
 	case <-time.After(10 * time.Second):
 		t.Fatalf("took too long to receive event on item1 %s", item1.Key)
 	}
 
 	// simulate job event on item2
-	item2.Value.StatusCode = 100
-	item2.Value.Data = []byte("finished!")
-	item2ValBytes, err := json.Marshal(item2.Value)
+	item2.Progress = 100
+	item2.Value = []byte("finished!")
+	item2ValBytes, err := json.Marshal(item2)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if _, err = cli.Put(context.Background(), todoKey, string(item2ValBytes)); err != nil {
 		t.Fatal(err)
 	}
+	time.Sleep(2 * time.Second)
 
 	// expects events from wch2
 	select {
-	case iresp := <-wch2:
-		if !reflect.DeepEqual(item2.Value, iresp.Value) {
-			t.Fatalf("item2.Value from watch expected %+v, got %+v", item2.Value, iresp.Value)
+	case updatedItem := <-wch2:
+		var ui Item
+		if err = json.Unmarshal(updatedItem.Value, &ui); err != nil {
+			t.Fatal(err)
 		}
-		time.Sleep(2 * time.Second) // wait for writes on completed bucket
-		gresp, err := cli.Get(context.Background(), path.Join(pfxCompleted, iresp.Key))
+		if !bytes.Equal(item2.Value, ui.Value) {
+			t.Fatalf("item2.Value from watch expected %+v, got %+v", item2, ui)
+		}
+		var gresp *clientv3.GetResponse
+		gresp, err = cli.Get(context.Background(), path.Join(pfxCompleted, updatedItem.Key))
 		if err != nil {
 			t.Fatal(err)
 		}
-		v := gresp.Kvs[0].Value
-		var val Value
-		if err = json.Unmarshal(v, &val); err != nil {
+		var item Item
+		if err = json.Unmarshal(gresp.Kvs[0].Value, &item); err != nil {
 			t.Fatal(err)
 		}
-		if !reflect.DeepEqual(item2.Value, val) {
-			t.Fatalf("item2.Value from 'completed' bucket expected %+v, got %+v", item2.Value, val)
+		if !bytes.Equal(item2.Value, item.Value) {
+			t.Fatalf("item2.Value from 'completed' bucket expected %+v, got %+v", item2, item)
+		}
+	case <-time.After(10 * time.Second):
+		t.Fatalf("took too long to receive event on item2 %s", item2.Key)
+	}
+	select {
+	case deletedItem, ok := <-wch2:
+		if !ok {
+			t.Fatal("should not be closed before receiving delete event")
+		}
+		if _, ok = <-wch2; ok {
+			t.Fatal("must be closed after delete event")
+		}
+		var gresp *clientv3.GetResponse
+		gresp, err = cli.Get(context.Background(), path.Join(pfxCompleted, deletedItem.Key))
+		if err != nil {
+			t.Fatal(err)
+		}
+		var di Item
+		if err = json.Unmarshal(gresp.Kvs[0].Value, &di); err != nil {
+			t.Fatal(err)
+		}
+		if !bytes.Equal(item2.Value, di.Value) {
+			t.Fatalf("item2.Value from 'completed' bucket expected %+v, got %+v", item2, di)
 		}
 	case <-time.After(10 * time.Second):
 		t.Fatalf("took too long to receive event on item2 %s", item2.Key)
