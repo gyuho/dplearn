@@ -30,12 +30,10 @@ const (
 
 // Queue wraps single-node embedded etcd cluster.
 type Queue struct {
-	mu            sync.RWMutex
-	rootDir       string
-	cfg           *embed.Config
-	srv           *embed.Etcd
-	cli           *clientv3.Client
-	watchInterval time.Duration
+	mu      sync.RWMutex
+	rootDir string
+	srv     *embed.Etcd
+	cli     *clientv3.Client
 
 	rootCtx    context.Context
 	rootCancel func()
@@ -102,14 +100,12 @@ func StartQueue(cport, pport int) (*Queue, error) {
 
 	ctx, cancel = context.WithCancel(context.Background())
 	return &Queue{
-		rootDir:       rootDir,
-		cfg:           cfg,
-		srv:           srv,
-		cli:           cli,
-		rootCtx:       ctx,
-		rootCancel:    cancel,
-		buckets:       make(map[string]chan error),
-		watchInterval: time.Second,
+		rootDir:    rootDir,
+		srv:        srv,
+		cli:        cli,
+		rootCtx:    ctx,
+		rootCancel: cancel,
+		buckets:    make(map[string]chan error),
 	}, err
 }
 
@@ -117,7 +113,7 @@ func StartQueue(cport, pport int) (*Queue, error) {
 func (qu *Queue) ClientEndpoints() []string {
 	qu.mu.RLock()
 	defer qu.mu.RUnlock()
-	return []string{qu.cfg.LCUrls[0].String()}
+	return []string{qu.srv.Config().LCUrls[0].String()}
 }
 
 // Client returns the embedded client.
@@ -127,16 +123,9 @@ func (qu *Queue) Client() *clientv3.Client {
 	return qu.cli
 }
 
-// SetWatchInterval upates watch interval.
-func (qu *Queue) SetWatchInterval(dur time.Duration) {
-	qu.mu.Lock()
-	qu.watchInterval = dur
-	qu.mu.Unlock()
-}
-
 // Stop stops the etcd server.
 func (qu *Queue) Stop() {
-	glog.Infof("stopping %q with endpoint %q", qu.cfg.Name, qu.cfg.LCUrls[0].String())
+	glog.Infof("stopping %q with endpoint %q", qu.srv.Config().Name, qu.srv.Config().LCUrls[0].String())
 
 	qu.mu.Lock()
 	qu.rootCancel()
@@ -154,7 +143,7 @@ func (qu *Queue) Stop() {
 
 	qu.mu.Unlock()
 
-	glog.Infof("stopped %q with endpoint %q", qu.cfg.Name, qu.cfg.LCUrls[0].String())
+	glog.Infof("stopped %q with endpoint %q", qu.srv.Config().Name, qu.srv.Config().LCUrls[0].String())
 }
 
 // Add adds an item to the queue.
@@ -187,7 +176,7 @@ func (qu *Queue) Add(ctx context.Context, it *Item) (<-chan *Item, error) {
 	copied := *it
 	ch := make(chan *Item, 1)
 
-	// assume first event is always 'update' event; ignore delete events afterwards
+	// TODO: watch until it's done, ignore delete event at the end
 	go func() {
 		select {
 		case wresp := <-wch:
@@ -227,7 +216,7 @@ func (qu *Queue) Add(ctx context.Context, it *Item) (<-chan *Item, error) {
 // Point is never miss events, thus one routine must always watch path.Join(pfxWorker, bucket)
 // 1. blocks until TODO job is done, notified via watch events
 // 2. notify the client back with the new results on the key (Key field in Item)
-// 3. delete the DONE key from the queue, and move to pfxCompleted + Key
+// 3. delete the DONE key from the queue, and move to pfxCompleted + Key for logging
 // 4. fetch one new job from path.Join(pfxScheduled, bucket)
 // 5. skip if there is no job to schedule
 // 6. write this job to path.Join(pfxWorker, bucket)
@@ -275,7 +264,7 @@ func (qu *Queue) watch(ctx context.Context, bucket string, expect int, errc chan
 				return
 			}
 
-			// 3. delete the DONE key from the queue, and move to pfxCompleted + Key
+			// 3. delete the DONE key from the queue, and move to pfxCompleted + Key for logging
 			glog.Infof("%q is deleted", val.Key)
 			if err := qu.delete(ctx, val.Key); err != nil {
 				errc <- err
@@ -356,7 +345,7 @@ func (qu *Queue) _watch(ctx context.Context, bucket string, expect int) error {
 				return err
 			}
 
-			// 3. delete the DONE key from the queue, and move to pfxCompleted + Key
+			// 3. delete the DONE key from the queue, and move to pfxCompleted + Key for logging
 			glog.Infof("%q is deleted", val.Key)
 			if err := qu.delete(ctx, val.Key); err != nil {
 				return err
