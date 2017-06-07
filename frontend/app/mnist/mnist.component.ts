@@ -63,7 +63,7 @@ export class MNISTComponent implements OnDestroy {
     this.inProgress = resp.progress < 100;
     this.spinnerMode = 'determinate';
     this.spinnerValue = resp.progress;
-    if (this.inProgress === true) {
+    if (this.inProgress !== true) {
       console.log('Finished', resp);
       clearInterval(this.pollingHandler);
     }
