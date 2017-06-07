@@ -31,7 +31,8 @@ type Queue interface {
 
 	// Add adds an item to the queue.
 	// Updates are sent to the returned channel.
-	// And the channel is closed after the last event, DELETE on completion.
+	// And the channel is closed after key deletion,
+	// which is the last event when the job is completed.
 	Add(ctx context.Context, it *Item) (<-chan *Item, error)
 }
 
