@@ -62,7 +62,7 @@ type embeddedQueue struct {
 // NewEmbeddedQueue starts a new embedded etcd server.
 // cport is the TCP port used for etcd client request serving.
 // pport is for etcd peer traffic, and still needed even if it's a single-node cluster.
-func NewEmbeddedQueue(cport, pport int, dataDir string) (Queue, error) {
+func NewEmbeddedQueue(ctx context.Context, cport, pport int, dataDir string) (Queue, error) {
 	cfg := embed.NewConfig()
 	cfg.ClusterState = embed.ClusterStateFlagNew
 
@@ -95,6 +95,7 @@ func NewEmbeddedQueue(cport, pport int, dataDir string) (Queue, error) {
 	case err = <-srv.Err():
 	case <-srv.Server.StopNotify():
 		err = fmt.Errorf("received from etcdserver.Server.StopNotify")
+	case <-ctx.Done():
 	}
 	if err != nil {
 		return nil, err
@@ -105,17 +106,15 @@ func NewEmbeddedQueue(cport, pport int, dataDir string) (Queue, error) {
 
 	// issue linearized read to ensure leader election
 	glog.Infof("GET request to endpoint %q", curl.String())
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	_, err = cli.Get(ctx, "foo")
-	cancel()
 	glog.Infof("GET request succeeded on endpoint %q", curl.String())
 
-	ctx, cancel = context.WithCancel(context.Background())
+	c, cancel := context.WithCancel(ctx)
 	return &embeddedQueue{
 		srv: srv,
 		Queue: &queue{
 			cli:        cli,
-			rootCtx:    ctx,
+			rootCtx:    c,
 			rootCancel: cancel,
 			buckets:    make(map[string]chan error),
 		},
