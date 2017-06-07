@@ -13,6 +13,11 @@ import (
 	etcdqueue "github.com/gyuho/deephardway/pkg/etcd-queue"
 )
 
+var (
+	wordPredictMu       sync.RWMutex
+	wordPredictRequests = make(map[string]*etcdqueue.Item)
+)
+
 func wordPredictHandler(ctx context.Context, w http.ResponseWriter, req *http.Request) error {
 	switch req.Method {
 	case http.MethodPost:
@@ -69,6 +74,11 @@ func wordPredictHandler(ctx context.Context, w http.ResponseWriter, req *http.Re
 
 	return nil
 }
+
+var (
+	catsVsDogsMu       sync.RWMutex
+	catsVsDogsRequests = make(map[string]*etcdqueue.Item)
+)
 
 func catsVsDogsHandler(ctx context.Context, w http.ResponseWriter, req *http.Request) error {
 	switch req.Method {
@@ -128,8 +138,8 @@ func catsVsDogsHandler(ctx context.Context, w http.ResponseWriter, req *http.Req
 }
 
 var (
-	rmu      sync.RWMutex
-	requests = make(map[string]*etcdqueue.Item)
+	mnistMu       sync.RWMutex
+	mnistRequests = make(map[string]*etcdqueue.Item)
 )
 
 func mnistHandler(ctx context.Context, w http.ResponseWriter, req *http.Request) error {
@@ -149,25 +159,41 @@ func mnistHandler(ctx context.Context, w http.ResponseWriter, req *http.Request)
 			})
 		}
 
-		qu := ctx.Value(queueKey).(etcdqueue.Queue)
 		userID := ctx.Value(userKey).(string)
 		requestID := userID + req.URL.Path
 
-		rmu.RLock()
-		item, ok := requests[requestID]
-		if !ok {
-			creq.UserID = userID
-			creq.Result = ""
-			rb, err = json.Marshal(creq)
-			if err != nil {
-				rmu.RUnlock()
-				return err
-			}
-			item = etcdqueue.CreateItem("cats-vs-dogs", 100, string(rb))
+		mnistMu.RLock()
+		item, ok := mnistRequests[requestID]
+		mnistMu.RUnlock()
+		if ok {
+			return json.NewEncoder(w).Encode(item)
 		}
-		rmu.RUnlock()
 
-		go func(ctx context.Context, id string, item *etcdqueue.Item, req Request) {
+		// 1. create a new Item
+		creq.UserID = userID
+		creq.Result = ""
+		rb, err = json.Marshal(creq)
+		if err != nil {
+			return err
+		}
+		item = etcdqueue.CreateItem(req.URL.Path, 100, string(rb))
+
+		// 2. enqueue(schedule) the job
+		qu := ctx.Value(queueKey).(etcdqueue.Queue)
+		ch, err := qu.Add(ctx, item)
+		if err != nil {
+			return json.NewEncoder(w).Encode(&etcdqueue.Item{
+				Progress: 0,
+				Error:    fmt.Errorf("Queue.Add error %q at %s", err.Error(), time.Now().String()[:29]),
+			})
+		}
+
+		// 3. watch for changes for later request polling
+		mnistMu.Lock()
+		mnistRequests[requestID] = item
+		mnistMu.Unlock()
+
+		go func(ctx context.Context, id string, item *etcdqueue.Item, req Request, ch <-chan *etcdqueue.Item) {
 			cnt := 0
 			for item.Progress < 100 {
 				// TODO: watch from queue until it's done, feed from queue service
@@ -181,24 +207,16 @@ func mnistHandler(ctx context.Context, w http.ResponseWriter, req *http.Request)
 				item.Progress = (cnt + 1) * 10
 				cnt++
 
-				rmu.Lock()
-				requests[requestID] = item
-				rmu.Unlock()
+				mnistMu.Lock()
+				mnistRequests[requestID] = item
+				mnistMu.Unlock()
 
 				select {
 				case <-ctx.Done():
 					return
 				}
 			}
-		}(ctx, requestID, item, creq)
-
-		// TODO: write to queue
-		fmt.Println("queue:", requestID, qu.ClientEndpoints())
-		fmt.Printf("WRITING: %+v\n", item)
-		if err := json.NewEncoder(w).Encode(item); err != nil {
-			return err
-		}
-		fmt.Printf("WROTE: %+v\n", item)
+		}(ctx, requestID, item, creq, ch)
 
 	default:
 		http.Error(w, "Method Not Allowed", 405)
