@@ -29,7 +29,8 @@ import {
 })
 export class WordPredictComponent {
   mode = 'Observable';
-  private wordPredictRequestEndpoint = 'word-predict-request';
+  private endpointI = 'word-predict-request-1';
+  private endpointII = 'word-predict-request-2';
 
   inputValueI: string;
   inputValueII: string;
@@ -96,13 +97,24 @@ export class WordPredictComponent {
     return Observable.throw(errMsg);
   }
 
-  postRequest(wordPredictRequest: Request): Observable<Item> {
-    let body = JSON.stringify(wordPredictRequest);
+  postRequestI(creq: Request): Observable<Item> {
+    let body = JSON.stringify(creq);
     let headers = new Headers({'Content-Type' : 'application/json'});
     let options = new RequestOptions({headers : headers});
 
     // this returns without waiting for POST response
-    let obser = this.http.post(this.wordPredictRequestEndpoint, body, options)
+    let obser = this.http.post(this.endpointI, body, options)
+      .map(this.processHTTPResponseClient)
+      .catch(this.processHTTPErrorClient);
+    return obser;
+  }
+  postRequestII(creq: Request): Observable<Item> {
+    let body = JSON.stringify(creq);
+    let headers = new Headers({'Content-Type' : 'application/json'});
+    let options = new RequestOptions({headers : headers});
+
+    // this returns without waiting for POST response
+    let obser = this.http.post(this.endpointII, body, options)
       .map(this.processHTTPResponseClient)
       .catch(this.processHTTPErrorClient);
     return obser;
@@ -110,9 +122,9 @@ export class WordPredictComponent {
 
   processRequestI() {
     let val = this.inputValueI;
-    let wordPredictRequest = new Request('', val);
+    let creq = new Request('', val);
     let srespFromSubscribe: Item;
-    this.postRequest(wordPredictRequest).subscribe(
+    this.postRequestI(creq).subscribe(
       sresp => srespFromSubscribe = sresp,
       error => this.srespError = <any>error,
       () => this.processItemI(srespFromSubscribe), // on-complete
@@ -125,9 +137,9 @@ export class WordPredictComponent {
   }
   processRequestII() {
     let val = this.inputValueII;
-    let wordPredictRequest = new Request('', val);
+    let creq = new Request('', val);
     let srespFromSubscribe: Item;
-    this.postRequest(wordPredictRequest).subscribe(
+    this.postRequestII(creq).subscribe(
       sresp => srespFromSubscribe = sresp,
       error => this.srespError = <any>error,
       () => this.processItemII(srespFromSubscribe), // on-complete
