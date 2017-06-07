@@ -28,25 +28,31 @@ type Server struct {
 
 // StartServer starts a backend webserver with stoppable listener.
 func StartServer(webPort, queuePort int, dataDir string) (*Server, error) {
-	qu, err := etcdqueue.NewEmbeddedQueue(queuePort, queuePort+1, dataDir)
+	rootCtx, rootCancel := context.WithCancel(context.Background())
+	defer rootCancel()
+
+	qu, err := etcdqueue.NewEmbeddedQueue(rootCtx, queuePort, queuePort+1, dataDir)
 	if err != nil {
 		return nil, err
 	}
-
-	rootCtx, rootCancel := context.WithCancel(context.Background())
+	defer qu.Stop()
 
 	mux := http.NewServeMux()
-	mux.Handle("/word-predict-request", &ContextAdapter{
+	mux.Handle("/word-predict-request-1", &ContextAdapter{
 		ctx:     rootCtx,
-		handler: ContextHandlerFunc(wordPredictHandler),
+		handler: with(ContextHandlerFunc(wordPredictHandler), qu),
+	})
+	mux.Handle("/word-predict-request-2", &ContextAdapter{
+		ctx:     rootCtx,
+		handler: with(ContextHandlerFunc(wordPredictHandler), qu),
 	})
 	mux.Handle("/cats-vs-dogs-request", &ContextAdapter{
 		ctx:     rootCtx,
-		handler: ContextHandlerFunc(catsVsDogsHandler),
+		handler: with(ContextHandlerFunc(catsVsDogsHandler), qu),
 	})
 	mux.Handle("/mnist-request", &ContextAdapter{
 		ctx:     rootCtx,
-		handler: ContextHandlerFunc(mnistHandler),
+		handler: with(ContextHandlerFunc(mnistHandler), qu),
 	})
 
 	addrURL := url.URL{Scheme: "http", Host: fmt.Sprintf("localhost:%d", webPort)}
@@ -112,4 +118,28 @@ func (srv *Server) Stop() error {
 // StopNotify returns receive-only stop channel to notify the server has stopped.
 func (srv *Server) StopNotify() <-chan struct{} {
 	return srv.donec
+}
+
+type key int
+
+const (
+	queueKey key = iota
+	userKey
+)
+
+func with(h ContextHandler, qu etcdqueue.Queue) ContextHandler {
+	return ContextHandlerFunc(func(ctx context.Context, w http.ResponseWriter, req *http.Request) error {
+		ctx = context.WithValue(ctx, queueKey, qu)
+		ctx = context.WithValue(ctx, userKey, generateUserID(req))
+
+		return h.ServeHTTPContext(ctx, w, req)
+	})
+}
+
+// Request defines common requests.
+type Request struct {
+	UserID  string `json:"userid"`
+	URL     string `json:"url"`
+	RawData string `json:"rawdata"`
+	Result  string `json:"result"`
 }
