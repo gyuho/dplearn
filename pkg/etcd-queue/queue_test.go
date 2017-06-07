@@ -47,7 +47,7 @@ func TestQueue(t *testing.T) {
 	if _, err = cli.Put(context.Background(), "foo", "bar"); err != nil {
 		t.Fatal(err)
 	}
-	if _, err = qu.cli.Put(context.Background(), "foo", "bar"); err != nil {
+	if _, err = qu.Client().Put(context.Background(), "foo", "bar"); err != nil {
 		t.Fatal(err)
 	}
 
