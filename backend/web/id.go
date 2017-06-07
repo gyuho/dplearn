@@ -14,7 +14,7 @@ func generateUserID(req *http.Request) string {
 	}
 	ip = strings.TrimSpace(strings.Replace(ip, ".", "", -1))
 	ua := req.UserAgent()
-	return ip + classifyUA(ua) + hashSha512(ip + ua)[:15]
+	return ip + classifyUA(ua) + hashSha512(ip+ua)
 }
 
 func getRealIP(req *http.Request) string {
