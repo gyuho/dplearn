@@ -44,6 +44,7 @@ func wordPredictHandler(ctx context.Context, w http.ResponseWriter, req *http.Re
 		cnt := 0
 		for item.Progress < 100 {
 			// TODO: watch from queue until it's done
+			time.Sleep(time.Second)
 			creq.Result = fmt.Sprintf("Processing %+v at %s", creq, time.Now().String()[:29])
 			rb, err = json.Marshal(creq)
 			if err != nil {
@@ -51,7 +52,7 @@ func wordPredictHandler(ctx context.Context, w http.ResponseWriter, req *http.Re
 			}
 			item.Value = string(rb)
 			item.Progress = (cnt + 1) * 10
-			time.Sleep(time.Second)
+			cnt++
 
 			// received progress report from queue service
 			if err := json.NewEncoder(w).Encode(item); err != nil {

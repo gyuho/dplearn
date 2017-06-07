@@ -35,7 +35,6 @@ func StartServer(webPort, queuePort int, dataDir string) (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer qu.Stop()
 
 	mux := http.NewServeMux()
 	mux.Handle("/word-predict-request-1", &ContextAdapter{

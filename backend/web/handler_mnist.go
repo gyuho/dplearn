@@ -44,6 +44,7 @@ func mnistHandler(ctx context.Context, w http.ResponseWriter, req *http.Request)
 		cnt := 0
 		for item.Progress < 100 {
 			// TODO: watch from queue until it's done
+			time.Sleep(time.Second)
 			creq.Result = fmt.Sprintf("Processing %+v at %s", creq, time.Now().String()[:29])
 			rb, err = json.Marshal(creq)
 			if err != nil {
@@ -51,12 +52,14 @@ func mnistHandler(ctx context.Context, w http.ResponseWriter, req *http.Request)
 			}
 			item.Value = string(rb)
 			item.Progress = (cnt + 1) * 10
-			time.Sleep(time.Second)
+			cnt++
 
 			// received progress report from queue service
+			fmt.Printf("WRITING: %+v\n", item)
 			if err := json.NewEncoder(w).Encode(item); err != nil {
 				return err
 			}
+			fmt.Printf("WROTE: %+v\n", item)
 		}
 
 	default:
