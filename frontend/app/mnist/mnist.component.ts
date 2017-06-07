@@ -60,10 +60,11 @@ export class MNISTComponent implements OnDestroy {
   processItem(resp: Item) {
     this.sresp = resp;
     this.result = resp.value;
+
     this.inProgress = resp.progress < 100;
     this.spinnerMode = 'determinate';
     this.spinnerValue = resp.progress;
-    if (resp.progress === 100) {
+    if (this.inProgress === true) { // resp.progress === 100
       console.log('Finished', resp);
       clearInterval(this.pollingHandler);
     }
@@ -104,14 +105,14 @@ export class MNISTComponent implements OnDestroy {
       error => this.srespError = <any>error,
       () => this.processItem(responseFromSubscribe), // on-complete
     );
+  }
+
+  clickProcessRequest() {
     this.snackBar.open('Predicting correct words...', 'Requested!', {
       duration: 5000,
     });
     this.inProgress = true;
     this.spinnerMode = 'indeterminate';
-  }
-
-  clickProcessRequest() {
     this.pollingHandler = setInterval(() => this.processRequest(), 1000);
   }
 }

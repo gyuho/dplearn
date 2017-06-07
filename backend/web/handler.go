@@ -10,6 +10,7 @@ import (
 
 	"sync"
 
+	"github.com/golang/glog"
 	etcdqueue "github.com/gyuho/deephardway/pkg/etcd-queue"
 )
 
@@ -175,7 +176,7 @@ func mnistHandler(ctx context.Context, w http.ResponseWriter, req *http.Request)
 			return json.NewEncoder(w).Encode(item)
 		}
 
-		// 1. create a new Item
+		glog.Infof("creating a new item with request ID %s", requestID)
 		creq.UserID = userID
 		creq.Result = ""
 		rb, err = json.Marshal(creq)
@@ -231,6 +232,8 @@ func watch(ctx context.Context, requestID string, item *etcdqueue.Item, req Requ
 		mnistMu.Lock()
 		mnistRequests[requestID] = item
 		mnistMu.Unlock()
+
+		glog.Infof("updated item with request ID %s", requestID)
 
 		select {
 		case <-ctx.Done():
