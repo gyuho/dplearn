@@ -122,7 +122,7 @@ func TestQueue(t *testing.T) {
 	time.Sleep(3 * time.Second)
 
 	// expects 'item1' to be scheduled
-	todoKey := path.Join(pfxTODO, "my-job")
+	todoKey := path.Join(pfxWorker, "my-job")
 	resp, err = cli.Get(context.Background(), todoKey)
 	if err != nil {
 		t.Fatal(err)
@@ -139,7 +139,7 @@ func TestQueue(t *testing.T) {
 	}
 
 	// simulate job event on item1
-	item1.Value.StatusCode = StatusCodeDone
+	item1.Value.StatusCode = 100
 	item1.Value.Data = []byte("finished!")
 	item1ValBytes, err := json.Marshal(item1.Value)
 	if err != nil {
@@ -174,7 +174,7 @@ func TestQueue(t *testing.T) {
 	}
 
 	// simulate job event on item2
-	item2.Value.StatusCode = StatusCodeDone
+	item2.Value.StatusCode = 100
 	item2.Value.Data = []byte("finished!")
 	item2ValBytes, err := json.Marshal(item2.Value)
 	if err != nil {

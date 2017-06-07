@@ -23,20 +23,9 @@ import (
 )
 
 const (
-	// all scheduled jobs are namespaced with pfxScheduled
-	pfxScheduled = "__ETCD_QUEUE_SCHEDULED"
-	pfxTODO      = "__ETCD_QUEUE_TODO"
-	pfxCompleted = "__ETCD_QUEUE_COMPLETED"
-)
-
-// StatusCode represents the job status.
-type StatusCode int8
-
-const (
-	// StatusCodeScheduled is the initial status.
-	StatusCodeScheduled StatusCode = iota
-	// StatusCodeDone is the final status.
-	StatusCodeDone
+	pfxScheduled = "queue_scheduled" // requested by client, added on queue
+	pfxWorker    = "queue_worker"    // ready/in-progress in worker process
+	pfxCompleted = "queue_completed" // finished by worker
 )
 
 // Queue wraps single-node embedded etcd cluster.
@@ -185,12 +174,12 @@ func (qu *Queue) Add(ctx context.Context, it *Item) (<-chan *Item, error) {
 	}
 
 	if _, ok := qu.buckets[it.Bucket]; !ok {
-		if err = qu.put(ctx, path.Join(pfxTODO, it.Bucket), val); err != nil {
+		if err = qu.put(ctx, path.Join(pfxWorker, it.Bucket), val); err != nil {
 			return nil, err
 		}
 		qu.buckets[it.Bucket] = make(chan error, 1)
 
-		go qu.watch(qu.rootCtx, it.Bucket, qu.buckets[it.Bucket])
+		go qu.watch(qu.rootCtx, it.Bucket, 100, qu.buckets[it.Bucket])
 	}
 
 	wch := qu.cli.Watch(ctx, key)
@@ -235,20 +224,20 @@ func (qu *Queue) Add(ctx context.Context, it *Item) (<-chan *Item, error) {
 }
 
 // watch watches on the queue and schedules the jobs.
-// Point is never miss events, thus one routine must always watch path.Join(pfxTODO, bucket)
+// Point is never miss events, thus one routine must always watch path.Join(pfxWorker, bucket)
 // 1. blocks until TODO job is done, notified via watch events
 // 2. notify the client back with the new results on the key (Key field in Item)
 // 3. delete the DONE key from the queue, and move to pfxCompleted + Key
 // 4. fetch one new job from path.Join(pfxScheduled, bucket)
 // 5. skip if there is no job to schedule
-// 6. write this job to path.Join(pfxTODO, bucket)
+// 6. write this job to path.Join(pfxWorker, bucket)
 // 7. drain watch events for this wrtie
 // repeat!
-func (qu *Queue) watch(ctx context.Context, bucket string, errc chan error) {
+func (qu *Queue) watch(ctx context.Context, bucket string, expect int, errc chan error) {
 	defer close(errc)
 
 	for {
-		if err := qu._watch(ctx, bucket); err != nil {
+		if err := qu._watch(ctx, bucket, expect); err != nil {
 			if err == context.Canceled {
 				errc <- err
 				return
@@ -257,7 +246,7 @@ func (qu *Queue) watch(ctx context.Context, bucket string, errc chan error) {
 		}
 
 		// below is implemented for failure tolerance; retry logic
-		keyToWatch := path.Join(pfxTODO, bucket)
+		keyToWatch := path.Join(pfxWorker, bucket)
 		pfxToFetch := path.Join(pfxScheduled, bucket)
 
 		// resetting current TODO job
@@ -276,7 +265,7 @@ func (qu *Queue) watch(ctx context.Context, bucket string, errc chan error) {
 			errc <- err
 			return
 		}
-		if val.StatusCode == StatusCodeDone {
+		if val.StatusCode == expect {
 			glog.Warningf("watch might have failed after %q is finished", val.Key)
 
 			// 2. notify the client back with the new results on the key (ID field in Item)
@@ -316,17 +305,17 @@ func (qu *Queue) watch(ctx context.Context, bucket string, errc chan error) {
 				return
 			}
 			fetchBytes := resp.Kvs[0].Value
-			var fval Value
-			if err := json.Unmarshal(fetchBytes, &fval); err != nil {
+			var fetchedValue Value
+			if err := json.Unmarshal(fetchBytes, &fetchedValue); err != nil {
 				errc <- fmt.Errorf("%q has wrong JSON %q", resp.Kvs[0].Key, string(fetchBytes))
 				return
 			}
-			if fval.StatusCode != StatusCodeScheduled {
-				errc <- fmt.Errorf("%q must have status code scheduled, got %d", fval.Key, fval.StatusCode)
+			if fetchedValue.StatusCode != 0 {
+				errc <- fmt.Errorf("%q must have initial status, got %d", fetchedValue.Key, fetchedValue.StatusCode)
 				return
 			}
 
-			// 6. write this job to path.Join(pfxTODO, bucket)
+			// 6. write this job to path.Join(pfxWorker, bucket)
 			glog.Infof("%q is scheduled", string(resp.Kvs[0].Key))
 			if err := qu.put(ctx, keyToWatch, resp.Kvs[0].Value); err != nil {
 				errc <- err
@@ -338,8 +327,8 @@ func (qu *Queue) watch(ctx context.Context, bucket string, errc chan error) {
 	}
 }
 
-func (qu *Queue) _watch(ctx context.Context, bucket string) error {
-	keyToWatch := path.Join(pfxTODO, bucket)
+func (qu *Queue) _watch(ctx context.Context, bucket string, expect int) error {
+	keyToWatch := path.Join(pfxWorker, bucket)
 	pfxToFetch := path.Join(pfxScheduled, bucket)
 
 	wch := qu.cli.Watch(ctx, keyToWatch)
@@ -357,8 +346,8 @@ func (qu *Queue) _watch(ctx context.Context, bucket string) error {
 			if err := json.Unmarshal(valBytes, &val); err != nil {
 				return fmt.Errorf("%q returned wrong value %q (%v)", keyToWatch, string(valBytes), err)
 			}
-			if val.StatusCode != StatusCodeDone {
-				return fmt.Errorf("wrong status code %d (expected %d)", val.StatusCode, StatusCodeDone)
+			if val.StatusCode != expect {
+				return fmt.Errorf("wrong status code %d (expected %d)", val.StatusCode, expect)
 			}
 
 			// 2. notify the client back with the new results on the key (ID field in Item)
@@ -393,15 +382,15 @@ func (qu *Queue) _watch(ctx context.Context, bucket string) error {
 				return fmt.Errorf("%q should return only one key-value pair (got %+v)", pfxToFetch, resp.Kvs)
 			}
 			fetchBytes := resp.Kvs[0].Value
-			var fval Value
-			if err := json.Unmarshal(fetchBytes, &fval); err != nil {
+			var fetchedValue Value
+			if err := json.Unmarshal(fetchBytes, &fetchedValue); err != nil {
 				return fmt.Errorf("%q has wrong JSON %q", resp.Kvs[0].Key, string(fetchBytes))
 			}
-			if fval.StatusCode != StatusCodeScheduled {
-				return fmt.Errorf("%q must have status code scheduled, got %d", fval.Key, fval.StatusCode)
+			if fetchedValue.StatusCode != 0 {
+				return fmt.Errorf("%q must have initial status, got %d", fetchedValue.Key, fetchedValue.StatusCode)
 			}
 
-			// 6. write this job to path.Join(pfxTODO, bucket)
+			// 6. write this job to path.Join(pfxWorker, bucket)
 			glog.Infof("%q is scheduled", string(resp.Kvs[0].Key))
 			if err := qu.put(ctx, keyToWatch, resp.Kvs[0].Value); err != nil {
 				return err
@@ -416,10 +405,10 @@ func (qu *Queue) _watch(ctx context.Context, bucket string) error {
 				valBytes := wresp.Events[0].Kv.Value
 				var val Value
 				if err := json.Unmarshal(valBytes, &val); err != nil {
-					return fmt.Errorf("%q returned wrong value %q (%v)", keyToWatch, string(valBytes), err)
+					return fmt.Errorf("%q returned wrong JSON value %q (%v)", keyToWatch, string(valBytes), err)
 				}
-				if val.StatusCode != StatusCodeScheduled {
-					return fmt.Errorf("wrong status code %d (expected %d)", val.StatusCode, StatusCodeScheduled)
+				if val.StatusCode != 0 {
+					return fmt.Errorf("%q has wrong status %d, expected initial status 0", keyToWatch, val.StatusCode)
 				}
 				if !bytes.Equal(resp.Kvs[0].Value, valBytes) {
 					return fmt.Errorf("scheduled value expected %q, got %q", string(resp.Kvs[0].Value), string(valBytes))
@@ -474,10 +463,10 @@ func (qu *Queue) Get(ctx context.Context, it *Item) (*Item, error) {
 
 // Value contains status and any data.
 type Value struct {
-	Key        string     `json:"key"`
-	StatusCode StatusCode `json:"status-code"`
-	Error      string     `json:"error"`
-	Data       []byte     `json:"value"`
+	Key        string `json:"key"`
+	StatusCode int    `json:"status-code"`
+	Error      string `json:"error"`
+	Data       []byte `json:"value"`
 }
 
 // Item is a job item.
