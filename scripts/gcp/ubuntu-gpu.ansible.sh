@@ -146,6 +146,7 @@ ExecStartPre=/usr/bin/docker pull gcr.io/deephardway/deephardway:latest-gpu
 ExecStart=/usr/bin/nvidia-docker run \
   --rm \
   -p 4200:4200 \
+  --volume=/var/lib/etcd:/var/lib/etcd \
   --name deephardway-gpu \
   --ulimit nofile=262144:262144 \
   gcr.io/deephardway/deephardway:latest-gpu \

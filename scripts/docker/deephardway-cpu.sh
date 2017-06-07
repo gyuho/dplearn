@@ -14,5 +14,6 @@ docker run \
   --rm \
   -it \
   -p 4200:4200 \
+  --volume=/var/lib/etcd:/var/lib/etcd \
   gcr.io/deephardway/deephardway:latest-cpu \
   /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && ./scripts/run/deephardway-cpu.sh"

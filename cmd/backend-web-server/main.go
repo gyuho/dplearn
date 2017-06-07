@@ -8,18 +8,14 @@ import (
 	"github.com/golang/glog"
 )
 
-func init() {
-	flag.Parse()
-}
-
-const (
-	webPort   = 2200
-	queuePort = 22000
-)
-
 func main() {
-	glog.Info("starting web server")
-	srv, err := web.StartServer(webPort, queuePort)
+	webPort := flag.Int("web-port", 2200, "Specify the port for web server backend.")
+	queuePort := flag.Int("queue-port", 22000, "Specify the port for queue service.")
+	dataDir := flag.String("data-dir", "/var/lib/etcd", "Specify the etcd data directory.")
+	flag.Parse()
+
+	glog.Infof("starting web server with :%d (queue :%d, data-dir %q)", *webPort, *queuePort, *dataDir)
+	srv, err := web.StartServer(*webPort, *queuePort, *dataDir)
 	if err != nil {
 		glog.Fatal(err)
 	}

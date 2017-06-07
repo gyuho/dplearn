@@ -21,14 +21,14 @@ type Server struct {
 	rootCancel func()
 	addrURL    url.URL
 	httpServer *http.Server
-	qu         *etcdqueue.Queue
+	qu         etcdqueue.Queue
 
 	donec chan struct{}
 }
 
 // StartServer starts a backend webserver with stoppable listener.
-func StartServer(webPort, queuePort int) (*Server, error) {
-	qu, err := etcdqueue.StartQueue(queuePort, queuePort+1)
+func StartServer(webPort, queuePort int, dataDir string) (*Server, error) {
+	qu, err := etcdqueue.StartQueue(queuePort, queuePort+1, dataDir)
 	if err != nil {
 		return nil, err
 	}
