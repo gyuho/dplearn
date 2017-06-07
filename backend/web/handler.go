@@ -170,17 +170,19 @@ func mnistHandler(ctx context.Context, w http.ResponseWriter, req *http.Request)
 		requestID := userID + req.URL.Path
 
 		mnistMu.RLock()
+		fmt.Println(len(mnistRequests))
 		item, ok := mnistRequests[requestID]
 		mnistMu.RUnlock()
 		if ok {
 			return json.NewEncoder(w).Encode(item)
 		}
 
-		glog.Infof("creating a new item with request ID %s", requestID)
+		glog.Infof("creating a new item with request ID %s %v", requestID, mnistRequests)
 		creq.UserID = userID
 		creq.Result = ""
 		rb, err = json.Marshal(creq)
 		if err != nil {
+			fmt.Println(err)
 			return err
 		}
 		item = etcdqueue.CreateItem(req.URL.Path, 100, string(rb))
@@ -189,6 +191,7 @@ func mnistHandler(ctx context.Context, w http.ResponseWriter, req *http.Request)
 		qu := ctx.Value(queueKey).(etcdqueue.Queue)
 		ch, err := qu.Add(ctx, item)
 		if err != nil {
+			fmt.Println(err)
 			return json.NewEncoder(w).Encode(&etcdqueue.Item{
 				Progress: 0,
 				Error:    fmt.Errorf("Queue.Add error %q at %s", err.Error(), time.Now().String()[:29]),
@@ -197,6 +200,7 @@ func mnistHandler(ctx context.Context, w http.ResponseWriter, req *http.Request)
 
 		// 3. watch for changes for later request polling
 		mnistMu.Lock()
+		fmt.Println("added:", requestID, item)
 		mnistRequests[requestID] = item
 		mnistMu.Unlock()
 

@@ -29,10 +29,9 @@ type Server struct {
 // StartServer starts a backend webserver with stoppable listener.
 func StartServer(webPort, queuePort int, dataDir string) (*Server, error) {
 	rootCtx, rootCancel := context.WithCancel(context.Background())
-	defer rootCancel()
-
 	qu, err := etcdqueue.NewEmbeddedQueue(rootCtx, queuePort, queuePort+1, dataDir)
 	if err != nil {
+		rootCancel()
 		return nil, err
 	}
 
