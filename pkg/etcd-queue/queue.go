@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/url"
 	"path"
+	"sync"
 	"time"
 
 	"github.com/coreos/etcd/clientv3"
@@ -45,6 +46,7 @@ const (
 )
 
 type queue struct {
+	mu         sync.RWMutex
 	cli        *clientv3.Client
 	rootCtx    context.Context
 	rootCancel func()
@@ -159,19 +161,19 @@ func NewQueue(cli *clientv3.Client) (Queue, error) {
 func (qu *queue) ClientEndpoints() []string { return qu.cli.Endpoints() }
 func (qu *queue) Client() *clientv3.Client  { return qu.cli }
 func (qu *queue) Stop() {
-	glog.Info("stopping queue")
+	qu.mu.Lock()
+	defer qu.mu.Unlock()
 
+	glog.Info("stopping queue")
 	qu.rootCancel()
 	for bucket, errc := range qu.buckets {
 		glog.Infof("stopping bucket %q", bucket)
-		err := <-errc
-		if err != nil && err != context.Canceled {
+		if err := <-errc; err != nil && err != context.Canceled {
 			glog.Warningf("watch error: %v", err)
 		}
 		glog.Infof("stopped bucket %q", bucket)
 	}
 	qu.cli.Close()
-
 	glog.Info("stopped queue")
 }
 
@@ -181,6 +183,9 @@ func (qu *queue) Add(ctx context.Context, it *Item) (<-chan *Item, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	qu.mu.Lock()
+	defer qu.mu.Unlock()
 
 	err = qu.put(ctx, key, val)
 	if err != nil {
