@@ -1,5 +1,9 @@
 {
-    "/word-predict-request": {
+    "/word-predict-request-1": {
+        "target": "http://0.0.0.0:2200",
+        "secure": "false"
+    },
+    "/word-predict-request-2": {
         "target": "http://0.0.0.0:2200",
         "secure": "false"
     },

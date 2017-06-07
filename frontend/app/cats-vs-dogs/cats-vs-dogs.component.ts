@@ -17,21 +17,10 @@ import {
   MdSnackBar,
 } from '@angular/material';
 
-export class CatsVsDogsRequest {
-  url: string;
-  rawdata: string;
-  constructor(
-    url: string,
-    d: string,
-  ) {
-    this.url = url;
-    this.rawdata = d;
-  }
-}
-
-export class CatsVsDogsResponse {
-  result: string;
-}
+import {
+  Request,
+  Item,
+} from '../request-item.component';
 
 @Component({
   selector: 'app-cats-vs-dogs',
@@ -40,54 +29,54 @@ export class CatsVsDogsResponse {
 })
 export class CatsVsDogsComponent {
   mode = 'Observable';
-  private catsVsDogsRequestEndpoint = 'cats-vs-dogs-request';
+  private endpoint = 'cats-vs-dogs-request';
 
   inputValue: string;
 
-  catsVsDogsResponse: CatsVsDogsResponse;
-  catsVsDogsResponseError: string;
+  sresp: Item;
+  srespError: string;
+  result: string;
 
-  catsVsDogsResult: string;
-  catsVsDogsResultI: string;
-
-  catsVsDogsInProgress = false;
+  inProgress = false;
   spinnerColor = 'primary';
   spinnerMode = 'determinate';
   spinnerValue = 0;
 
   constructor(private http: Http, public snackBar: MdSnackBar) {
     this.inputValue = '';
-    this.catsVsDogsResponseError = '';
-    this.catsVsDogsResult = 'No results to show yet...';
+    this.srespError = '';
+    this.result = 'No results to show yet...';
   }
 
-  processCatsVsDogsResponse(resp: CatsVsDogsResponse) {
-    this.catsVsDogsResponse = resp;
-    this.catsVsDogsResult = resp.result;
-    this.catsVsDogsInProgress = false;
+  processItem(resp: Item) {
+    this.sresp = resp;
+    this.result = resp.value;
+    this.inProgress = resp.progress < 100;
+    this.spinnerMode = 'determinate';
+    this.spinnerValue = resp.progress;
   }
 
   processHTTPResponseClient(res: Response) {
     let jsonBody = res.json();
-    let catsVsDogsResponse = <CatsVsDogsResponse>jsonBody;
-    return catsVsDogsResponse || {};
+    let sresp = <Item>jsonBody;
+    return sresp || {};
   }
 
   processHTTPErrorClient(error: any) {
     let errMsg = (error.message) ? error.message :
       error.status ? `${error.status} - ${error.statusText}` : 'Server error';
     console.error(errMsg);
-    this.catsVsDogsResponseError = errMsg;
+    this.srespError = errMsg;
     return Observable.throw(errMsg);
   }
 
-  postRequest(catsVsDogsRequest: CatsVsDogsRequest): Observable<CatsVsDogsResponse> {
-    let body = JSON.stringify(catsVsDogsRequest);
+  postRequest(creq: Request): Observable<Item> {
+    let body = JSON.stringify(creq);
     let headers = new Headers({'Content-Type' : 'application/json'});
     let options = new RequestOptions({headers : headers});
 
     // this returns without waiting for POST response
-    let obser = this.http.post(this.catsVsDogsRequestEndpoint, body, options)
+    let obser = this.http.post(this.endpoint, body, options)
       .map(this.processHTTPResponseClient)
       .catch(this.processHTTPErrorClient);
     return obser;
@@ -95,17 +84,17 @@ export class CatsVsDogsComponent {
 
   processRequest() {
     let val = this.inputValue;
-    let catsVsDogsRequest = new CatsVsDogsRequest('http://aaa.com', val);
-    let catsVsDogsResponseFromSubscribe: CatsVsDogsResponse;
-    this.postRequest(catsVsDogsRequest).subscribe(
-      catsVsDogsResponse => catsVsDogsResponseFromSubscribe = catsVsDogsResponse,
-      error => this.catsVsDogsResponseError = <any>error,
-      () => this.processCatsVsDogsResponse(catsVsDogsResponseFromSubscribe), // on-complete
+    let creq = new Request('http://aaa.com', val);
+    let responseFromSubscribe: Item;
+    this.postRequest(creq).subscribe(
+      sresp => responseFromSubscribe = sresp,
+      error => this.srespError = <any>error,
+      () => this.processItem(responseFromSubscribe), // on-complete
     );
     this.snackBar.open('Predicting correct words...', 'Requested!', {
       duration: 5000,
     });
-    this.catsVsDogsInProgress = true;
+    this.inProgress = true;
     this.spinnerMode = 'indeterminate';
   }
 }

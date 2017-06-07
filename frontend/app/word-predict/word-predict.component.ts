@@ -17,21 +17,10 @@ import {
   MdSnackBar,
 } from '@angular/material';
 
-export class WordPredictRequest {
-  type: number;
-  text: string;
-  constructor(
-    tp: number,
-    txt: string,
-  ) {
-    this.type = tp;
-    this.text = txt;
-  }
-}
-
-export class WordPredictResponse {
-  result: string;
-}
+import {
+  Request,
+  Item,
+} from '../request-item.component';
 
 @Component({
   selector: 'app-word-predict',
@@ -45,18 +34,18 @@ export class WordPredictComponent {
   inputValueI: string;
   inputValueII: string;
 
-  wordPredictResponse: WordPredictResponse;
-  wordPredictResponseError: string;
+  sresp: Item;
+  srespError: string;
 
-  wordPredictResultI: string;
-  wordPredictResultII: string;
+  resultI: string;
+  resultII: string;
 
-  wordPredictInProgressI = false;
+  inProgressI = false;
   spinnerColorI = 'primary';
   spinnerModeI = 'determinate';
   spinnerValueI = 0;
 
-  wordPredictInProgressII = false;
+  inProgressII = false;
   spinnerColorII = 'primary';
   spinnerModeII = 'determinate';
   spinnerValueII = 0;
@@ -64,9 +53,9 @@ export class WordPredictComponent {
   constructor(private http: Http, public snackBar: MdSnackBar) {
     this.inputValueI = '';
     this.inputValueII = '';
-    this.wordPredictResponseError = '';
-    this.wordPredictResultI = 'No results to show yet...';
-    this.wordPredictResultII = 'No results to show yet...';
+    this.srespError = '';
+    this.resultI = 'No results to show yet...';
+    this.resultII = 'No results to show yet...';
   }
 
   // ngOnInit(): void {}
@@ -78,32 +67,36 @@ export class WordPredictComponent {
   //   return;
   // }
 
-  processWordPredictResponseI(resp: WordPredictResponse) {
-    this.wordPredictResponse = resp;
-    this.wordPredictResultI = resp.result;
-    this.wordPredictInProgressI = false;
+  processItemI(resp: Item) {
+    this.sresp = resp;
+    this.resultI = resp.value;
+    this.inProgressI = resp.progress < 100;
+    this.spinnerModeI = 'determinate';
+    this.spinnerValueI = resp.progress;
   }
-  processWordPredictResponseII(resp: WordPredictResponse) {
-    this.wordPredictResponse = resp;
-    this.wordPredictResultII = resp.result;
-    this.wordPredictInProgressII = false;
+  processItemII(resp: Item) {
+    this.sresp = resp;
+    this.resultII = resp.value;
+    this.inProgressII = resp.progress < 100;
+    this.spinnerModeII = 'determinate';
+    this.spinnerValueII = resp.progress;
   }
 
   processHTTPResponseClient(res: Response) {
     let jsonBody = res.json();
-    let wordPredictResponse = <WordPredictResponse>jsonBody;
-    return wordPredictResponse || {};
+    let sresp = <Item>jsonBody;
+    return sresp || {};
   }
 
   processHTTPErrorClient(error: any) {
     let errMsg = (error.message) ? error.message :
       error.status ? `${error.status} - ${error.statusText}` : 'Server error';
     console.error(errMsg);
-    this.wordPredictResponseError = errMsg;
+    this.srespError = errMsg;
     return Observable.throw(errMsg);
   }
 
-  postRequest(wordPredictRequest: WordPredictRequest): Observable<WordPredictResponse> {
+  postRequest(wordPredictRequest: Request): Observable<Item> {
     let body = JSON.stringify(wordPredictRequest);
     let headers = new Headers({'Content-Type' : 'application/json'});
     let options = new RequestOptions({headers : headers});
@@ -117,32 +110,32 @@ export class WordPredictComponent {
 
   processRequestI() {
     let val = this.inputValueI;
-    let wordPredictRequest = new WordPredictRequest(1, val);
-    let wordPredictResponseFromSubscribe: WordPredictResponse;
+    let wordPredictRequest = new Request('', val);
+    let srespFromSubscribe: Item;
     this.postRequest(wordPredictRequest).subscribe(
-      wordPredictResponse => wordPredictResponseFromSubscribe = wordPredictResponse,
-      error => this.wordPredictResponseError = <any>error,
-      () => this.processWordPredictResponseI(wordPredictResponseFromSubscribe), // on-complete
+      sresp => srespFromSubscribe = sresp,
+      error => this.srespError = <any>error,
+      () => this.processItemI(srespFromSubscribe), // on-complete
     );
     this.snackBar.open('Predicting correct words...', 'Requested!', {
       duration: 5000,
     });
-    this.wordPredictInProgressI = true;
+    this.inProgressI = true;
     this.spinnerModeI = 'indeterminate';
   }
   processRequestII() {
     let val = this.inputValueII;
-    let wordPredictRequest = new WordPredictRequest(2, val);
-    let wordPredictResponseFromSubscribe: WordPredictResponse;
+    let wordPredictRequest = new Request('', val);
+    let srespFromSubscribe: Item;
     this.postRequest(wordPredictRequest).subscribe(
-      wordPredictResponse => wordPredictResponseFromSubscribe = wordPredictResponse,
-      error => this.wordPredictResponseError = <any>error,
-      () => this.processWordPredictResponseII(wordPredictResponseFromSubscribe), // on-complete
+      sresp => srespFromSubscribe = sresp,
+      error => this.srespError = <any>error,
+      () => this.processItemII(srespFromSubscribe), // on-complete
     );
     this.snackBar.open('Predicting next words...', 'Requested!', {
       duration: 5000,
     });
-    this.wordPredictInProgressII = true;
+    this.inProgressII = true;
     this.spinnerModeII = 'indeterminate';
   }
 }

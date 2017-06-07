@@ -17,21 +17,10 @@ import {
   MdSnackBar,
 } from '@angular/material';
 
-export class MNISTRequest {
-  url: string;
-  rawdata: string;
-  constructor(
-    url: string,
-    d: string,
-  ) {
-    this.url = url;
-    this.rawdata = d;
-  }
-}
-
-export class MNISTResponse {
-  result: string;
-}
+import {
+  Request,
+  Item,
+} from '../request-item.component';
 
 @Component({
   selector: 'app-mnist',
@@ -40,53 +29,54 @@ export class MNISTResponse {
 })
 export class MNISTComponent {
   mode = 'Observable';
-  private mnistRequestEndpoint = 'mnist-request';
+  private endpoint = 'mnist-request';
 
   inputValue: string;
 
-  mnistResponse: MNISTResponse;
-  mnistResponseError: string;
+  sresp: Item;
+  srespError: string;
+  result: string;
 
-  mnistResult: string;
-
-  mnistInProgress = false;
+  inProgress = false;
   spinnerColor = 'primary';
   spinnerMode = 'determinate';
   spinnerValue = 0;
 
   constructor(private http: Http, public snackBar: MdSnackBar) {
     this.inputValue = '';
-    this.mnistResponseError = '';
-    this.mnistResult = 'No results to show yet...';
+    this.srespError = '';
+    this.result = 'No results to show yet...';
   }
 
-  processMNISTResponse(resp: MNISTResponse) {
-    this.mnistResponse = resp;
-    this.mnistResult = resp.result;
-    this.mnistInProgress = false;
+  processItem(resp: Item) {
+    this.sresp = resp;
+    this.result = resp.value;
+    this.inProgress = resp.progress < 100;
+    this.spinnerMode = 'determinate';
+    this.spinnerValue = resp.progress;
   }
 
   processHTTPResponseClient(res: Response) {
     let jsonBody = res.json();
-    let mnistResponse = <MNISTResponse>jsonBody;
-    return mnistResponse || {};
+    let sresp = <Item>jsonBody;
+    return sresp || {};
   }
 
   processHTTPErrorClient(error: any) {
     let errMsg = (error.message) ? error.message :
       error.status ? `${error.status} - ${error.statusText}` : 'Server error';
     console.error(errMsg);
-    this.mnistResponseError = errMsg;
+    this.srespError = errMsg;
     return Observable.throw(errMsg);
   }
 
-  postRequest(mnistRequest: MNISTRequest): Observable<MNISTResponse> {
-    let body = JSON.stringify(mnistRequest);
+  postRequest(creq: Request): Observable<Item> {
+    let body = JSON.stringify(creq);
     let headers = new Headers({'Content-Type' : 'application/json'});
     let options = new RequestOptions({headers : headers});
 
     // this returns without waiting for POST response
-    let obser = this.http.post(this.mnistRequestEndpoint, body, options)
+    let obser = this.http.post(this.endpoint, body, options)
       .map(this.processHTTPResponseClient)
       .catch(this.processHTTPErrorClient);
     return obser;
@@ -94,17 +84,17 @@ export class MNISTComponent {
 
   processRequest() {
     let val = this.inputValue;
-    let mnistRequest = new MNISTRequest('http://aaa.com', val);
-    let mnistResponseFromSubscribe: MNISTResponse;
-    this.postRequest(mnistRequest).subscribe(
-      mnistResponse => mnistResponseFromSubscribe = mnistResponse,
-      error => this.mnistResponseError = <any>error,
-      () => this.processMNISTResponse(mnistResponseFromSubscribe), // on-complete
+    let creq = new Request('http://aaa.com', val);
+    let responseFromSubscribe: Item;
+    this.postRequest(creq).subscribe(
+      sresp => responseFromSubscribe = sresp,
+      error => this.srespError = <any>error,
+      () => this.processItem(responseFromSubscribe), // on-complete
     );
     this.snackBar.open('Predicting correct words...', 'Requested!', {
       duration: 5000,
     });
-    this.mnistInProgress = true;
+    this.inProgress = true;
     this.spinnerMode = 'indeterminate';
   }
 }

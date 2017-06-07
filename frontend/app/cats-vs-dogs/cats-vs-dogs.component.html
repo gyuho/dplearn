@@ -17,9 +17,9 @@
             </div>
             <div class="block block-copy half">
                 <p>
-                    <md-progress-spinner *ngIf="catsVsDogsInProgress" [color]="spinnerColor" [mode]="spinnerMode" [value]="spinnerValue">
+                    <md-progress-spinner *ngIf="inProgress" [color]="spinnerColor" [mode]="spinnerMode" [value]="spinnerValue">
                     </md-progress-spinner>
-                    {{catsVsDogsResult}}
+                    {{result}}
                 </p>
             </div>
         </div>

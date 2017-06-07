@@ -26,9 +26,9 @@
             <div class="block block-copy half">
                 <b>Results</b>
                 <p>
-                    <md-progress-spinner *ngIf="wordPredictInProgressI" [color]="spinnerColorI" [mode]="spinnerModeI" [value]="spinnerValueI">
+                    <md-progress-spinner *ngIf="inProgressI" [color]="spinnerColorI" [mode]="spinnerModeI" [value]="spinnerValueI">
                     </md-progress-spinner>
-                    {{wordPredictResultI}}
+                    {{resultI}}
                 </p>
             </div>
         </div>
@@ -58,9 +58,9 @@
             <div class="block block-copy half">
                 <b>Results</b>
                 <p>
-                    <md-progress-spinner *ngIf="wordPredictInProgressII" [color]="spinnerColorII" [mode]="spinnerModeII" [value]="spinnerValueII">
+                    <md-progress-spinner *ngIf="inProgressII" [color]="spinnerColorII" [mode]="spinnerModeII" [value]="spinnerValueII">
                     </md-progress-spinner>
-                    {{wordPredictResultII}}
+                    {{resultII}}
                 </p>
             </div>
         </div>
