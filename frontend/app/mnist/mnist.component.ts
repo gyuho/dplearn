@@ -1,5 +1,6 @@
 import {
   Component,
+  OnDestroy,
 } from '@angular/core';
 
 import {
@@ -27,7 +28,7 @@ import {
   templateUrl: 'mnist.component.html',
   styleUrls: ['mnist.component.css'],
 })
-export class MNISTComponent {
+export class MNISTComponent implements OnDestroy {
   mode = 'Observable';
   private endpoint = 'mnist-request';
 
@@ -42,10 +43,18 @@ export class MNISTComponent {
   spinnerMode = 'determinate';
   spinnerValue = 0;
 
+  pollingHandler;
+
   constructor(private http: Http, public snackBar: MdSnackBar) {
     this.inputValue = '';
     this.srespError = '';
     this.result = 'No results to show yet...';
+  }
+
+  ngOnDestroy() {
+    console.log('Disconnected (user left the page)!');
+    clearInterval(this.pollingHandler);
+    return;
   }
 
   processItem(resp: Item) {
@@ -54,6 +63,10 @@ export class MNISTComponent {
     this.inProgress = resp.progress < 100;
     this.spinnerMode = 'determinate';
     this.spinnerValue = resp.progress;
+    if (this.inProgress === true) {
+      console.log('Finished', resp);
+      clearInterval(this.pollingHandler);
+    }
   }
 
   processHTTPResponseClient(res: Response) {
@@ -96,5 +109,9 @@ export class MNISTComponent {
     });
     this.inProgress = true;
     this.spinnerMode = 'indeterminate';
+  }
+
+  clickProcessRequest() {
+    this.pollingHandler = setInterval(() => this.processRequest(), 1000);
   }
 }
