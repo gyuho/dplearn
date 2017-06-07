@@ -54,14 +54,20 @@ export class MNISTComponent implements OnDestroy {
   ngOnDestroy() {
     console.log('Disconnected (user left the page)!');
     clearInterval(this.pollingHandler);
+
+    // TODO: DELETE request to backend
+
+    this.inputValue = '';
+    this.srespError = '';
     return;
   }
 
   processItem(resp: Item) {
     this.sresp = resp;
     this.result = resp.value;
-
-    console.log('processItem:', resp);
+    if (resp.error !== '') {
+      this.result = resp.value + '(' + resp.error + ')';
+    }
 
     this.inProgress = resp.progress < 100;
     this.spinnerValue = resp.progress;

@@ -3,6 +3,7 @@ package web
 import (
 	"crypto/sha512"
 	"encoding/base64"
+	"fmt"
 	"net/http"
 	"strings"
 )
@@ -14,7 +15,7 @@ func generateUserID(req *http.Request) string {
 	}
 	ip = strings.TrimSpace(strings.Replace(ip, ".", "", -1))
 	ua := req.UserAgent()
-	return ip + classifyUA(ua) + hashSha512(ip+ua)
+	return fmt.Sprintf("%s_%s_%s", ip, classifyUA(ua), hashSha512(ip + ua)[:30])
 }
 
 func getRealIP(req *http.Request) string {

@@ -6,6 +6,10 @@ import (
 	"testing"
 )
 
+/*
+go test -v -run TestID -logtostderr=true
+*/
+
 func TestID(t *testing.T) {
 	req := &http.Request{
 		Header: map[string][]string{

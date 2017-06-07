@@ -144,6 +144,8 @@ func catsVsDogsHandler(ctx context.Context, w http.ResponseWriter, req *http.Req
 	return nil
 }
 
+// TODO: combine handlers?
+// TODO: global cache as struct?
 var (
 	mnistMu       sync.RWMutex
 	mnistRequests = make(map[string]*etcdqueue.Item)
@@ -167,22 +169,20 @@ func mnistHandler(ctx context.Context, w http.ResponseWriter, req *http.Request)
 		}
 
 		userID := ctx.Value(userKey).(string)
-		requestID := userID + req.URL.Path
+		requestID := fmt.Sprintf("%s-%s-%s", userID, req.URL.Path, hashSha512(creq.RawData))
 
 		mnistMu.RLock()
-		fmt.Println(len(mnistRequests))
 		item, ok := mnistRequests[requestID]
 		mnistMu.RUnlock()
 		if ok {
 			return json.NewEncoder(w).Encode(item)
 		}
 
-		glog.Infof("creating a new item with request ID %s %v", requestID, mnistRequests)
+		glog.Infof("creating a new item with request ID %s", requestID)
 		creq.UserID = userID
 		creq.Result = ""
 		rb, err = json.Marshal(creq)
 		if err != nil {
-			fmt.Println(err)
 			return err
 		}
 		item = etcdqueue.CreateItem(req.URL.Path, 100, string(rb))
@@ -191,7 +191,6 @@ func mnistHandler(ctx context.Context, w http.ResponseWriter, req *http.Request)
 		qu := ctx.Value(queueKey).(etcdqueue.Queue)
 		ch, err := qu.Add(ctx, item)
 		if err != nil {
-			fmt.Println(err)
 			return json.NewEncoder(w).Encode(&etcdqueue.Item{
 				Progress: 0,
 				Error:    fmt.Errorf("Queue.Add error %q at %s", err.Error(), time.Now().String()[:29]),
@@ -200,11 +199,34 @@ func mnistHandler(ctx context.Context, w http.ResponseWriter, req *http.Request)
 
 		// 3. watch for changes for later request polling
 		mnistMu.Lock()
-		fmt.Println("added:", requestID, item)
 		mnistRequests[requestID] = item
 		mnistMu.Unlock()
 
 		go watch(ctx, requestID, item, creq, ch)
+
+	case http.MethodDelete:
+		rb, err := ioutil.ReadAll(req.Body)
+		if err != nil {
+			return err
+		}
+		req.Body.Close()
+
+		creq := Request{}
+		if err = json.Unmarshal(rb, &creq); err != nil {
+			return json.NewEncoder(w).Encode(&etcdqueue.Item{
+				Progress: 0,
+				Error:    fmt.Errorf("JSON parse error %q at %s", err.Error(), time.Now().String()[:29]),
+			})
+		}
+
+		userID := ctx.Value(userKey).(string)
+		requestID := fmt.Sprintf("%s-%s-%s", userID, req.URL.Path, hashSha512(creq.RawData))
+
+		glog.Infof("requested to delete %q", requestID)
+		mnistMu.Lock()
+		delete(mnistRequests, requestID)
+		mnistMu.Unlock()
+		glog.Infof("deleted %q", requestID)
 
 	default:
 		http.Error(w, "Method Not Allowed", 405)
@@ -222,6 +244,13 @@ func watch(ctx context.Context, requestID string, item *etcdqueue.Item, req Requ
 		default:
 		}
 
+		mnistMu.RLock()
+		_, ok := mnistRequests[requestID]
+		mnistMu.RUnlock()
+		if !ok {
+			glog.Infof("%q is deleted; exiting watch routine", requestID)
+		}
+
 		// TODO: watch from queue until it's done, feed from queue service
 		time.Sleep(time.Second)
 		req.Result = fmt.Sprintf("Processing %+v at %s", req, time.Now().String()[:29])
@@ -236,7 +265,6 @@ func watch(ctx context.Context, requestID string, item *etcdqueue.Item, req Requ
 		mnistMu.Lock()
 		mnistRequests[requestID] = item
 		mnistMu.Unlock()
-
 		glog.Infof("updated item with request ID %s", requestID)
 
 		select {
