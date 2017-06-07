@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"net/url"
 	"path"
-	"sync"
 	"time"
 
 	"github.com/coreos/etcd/clientv3"
@@ -45,97 +44,30 @@ const (
 	maxProgress = 100
 )
 
-// embeddedQueue implements Queue interface with a single-node embedded etcd cluster.
-type embeddedQueue struct {
-	mu      sync.RWMutex
-	dataDir string
-	srv     *embed.Etcd
-	cli     *clientv3.Client
-
+type queue struct {
+	cli        *clientv3.Client
 	rootCtx    context.Context
 	rootCancel func()
 	buckets    map[string]chan error
 }
 
-// StartQueue starts a new etcd server.
-// cport is the TCP port used for etcd client request serving.
-// pport is for etcd peer traffic, and still needed even if it's a single-node cluster.
-func StartQueue(cport, pport int, dataDir string) (Queue, error) {
-	cfg := embed.NewConfig()
-	cfg.ClusterState = embed.ClusterStateFlagNew
-
-	cfg.Name = "etcd-queue"
-	cfg.Dir = dataDir
-
-	curl := url.URL{Scheme: "http", Host: fmt.Sprintf("localhost:%d", cport)}
-	cfg.ACUrls = []url.URL{curl}
-	cfg.LCUrls = []url.URL{curl}
-
-	purl := url.URL{Scheme: "http", Host: fmt.Sprintf("localhost:%d", pport)}
-	cfg.APUrls = []url.URL{purl}
-	cfg.LPUrls = []url.URL{purl}
-
-	cfg.InitialCluster = fmt.Sprintf("%s=%s", cfg.Name, cfg.APUrls[0].String())
-
-	// auto-compaction every hour
-	cfg.AutoCompactionRetention = 1
-	// single-node, so aggressively snapshot/discard Raft log entries
-	cfg.SnapCount = 1000
-
-	glog.Infof("starting %q with endpoint %q", cfg.Name, curl.String())
-	srv, err := embed.StartEtcd(cfg)
-	if err != nil {
-		return nil, err
-	}
-	select {
-	case <-srv.Server.ReadyNotify():
-		err = nil
-	case err = <-srv.Err():
-	case <-srv.Server.StopNotify():
-		err = fmt.Errorf("received from etcdserver.Server.StopNotify")
-	}
-	if err != nil {
-		return nil, err
-	}
-	glog.Infof("started %q with endpoint %q", cfg.Name, curl.String())
-
-	cli := v3client.New(srv.Server)
-
-	// issue linearized read to ensure leader election
-	glog.Infof("GET request to endpoint %q", curl.String())
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	_, err = cli.Get(ctx, "foo")
-	cancel()
-	glog.Infof("GET request succeeded on endpoint %q", curl.String())
-
-	ctx, cancel = context.WithCancel(context.Background())
-	return &embeddedQueue{
-		dataDir:    dataDir,
-		srv:        srv,
+// NewQueue creates a new queue from given etcd client.
+func NewQueue(cli *clientv3.Client) Queue {
+	ctx, cancel := context.WithCancel(context.Background())
+	return &queue{
 		cli:        cli,
 		rootCtx:    ctx,
 		rootCancel: cancel,
 		buckets:    make(map[string]chan error),
-	}, err
+	}
 }
 
-func (qu *embeddedQueue) ClientEndpoints() []string {
-	qu.mu.RLock()
-	defer qu.mu.RUnlock()
-	return []string{qu.srv.Config().LCUrls[0].String()}
-}
+func (qu *queue) ClientEndpoints() []string { return qu.cli.Endpoints() }
+func (qu *queue) Client() *clientv3.Client  { return qu.cli }
 
-func (qu *embeddedQueue) Client() *clientv3.Client {
-	qu.mu.RLock()
-	defer qu.mu.RUnlock()
-	return qu.cli
-}
+func (qu *queue) Stop() {
+	glog.Info("stopping queue")
 
-// Stop stops the etcd server.
-func (qu *embeddedQueue) Stop() {
-	glog.Infof("stopping %q with endpoint %q", qu.srv.Config().Name, qu.srv.Config().LCUrls[0].String())
-
-	qu.mu.Lock()
 	qu.rootCancel()
 	for bucket, errc := range qu.buckets {
 		glog.Infof("stopping bucket %q", bucket)
@@ -146,16 +78,11 @@ func (qu *embeddedQueue) Stop() {
 		glog.Infof("stopped bucket %q", bucket)
 	}
 	qu.cli.Close()
-	qu.srv.Close()
-	qu.mu.Unlock()
 
-	glog.Infof("stopped %q with endpoint %q", qu.srv.Config().Name, qu.srv.Config().LCUrls[0].String())
+	glog.Info("stopped queue")
 }
 
-func (qu *embeddedQueue) Add(ctx context.Context, it *Item) (<-chan *Item, error) {
-	qu.mu.Lock()
-	defer qu.mu.Unlock()
-
+func (qu *queue) Add(ctx context.Context, it *Item) (<-chan *Item, error) {
 	key := it.Key
 	val, err := json.Marshal(it)
 	if err != nil {
@@ -239,7 +166,7 @@ func (qu *embeddedQueue) Add(ctx context.Context, it *Item) (<-chan *Item, error
 // 6. write this job to path.Join(pfxWorker, bucket)
 // 7. drain watch events for this wrtie
 // repeat!
-func (qu *embeddedQueue) watchWorker(ctx context.Context, bucket string) error {
+func (qu *queue) watchWorker(ctx context.Context, bucket string) error {
 	keyToWatch := path.Join(pfxWorker, bucket)
 	pfxToFetch := path.Join(pfxScheduled, bucket)
 
@@ -337,7 +264,7 @@ func (qu *embeddedQueue) watchWorker(ctx context.Context, bucket string) error {
 	}
 }
 
-func (qu *embeddedQueue) run(ctx context.Context, bucket string, errc chan error) {
+func (qu *queue) run(ctx context.Context, bucket string, errc chan error) {
 	defer close(errc)
 
 	for {
@@ -431,14 +358,98 @@ func (qu *embeddedQueue) run(ctx context.Context, bucket string, errc chan error
 	}
 }
 
-func (qu *embeddedQueue) put(ctx context.Context, key string, val []byte) error {
+func (qu *queue) put(ctx context.Context, key string, val []byte) error {
 	_, err := qu.cli.Put(ctx, key, string(val))
 	return err
 }
 
-func (qu *embeddedQueue) delete(ctx context.Context, key string) error {
+func (qu *queue) delete(ctx context.Context, key string) error {
 	_, err := qu.cli.Delete(ctx, key)
 	return err
+}
+
+// embeddedQueue implements Queue interface with a single-node embedded etcd cluster.
+type embeddedQueue struct {
+	srv *embed.Etcd
+	Queue
+}
+
+// NewEmbeddedQueue starts a new embedded etcd server.
+// cport is the TCP port used for etcd client request serving.
+// pport is for etcd peer traffic, and still needed even if it's a single-node cluster.
+func NewEmbeddedQueue(cport, pport int, dataDir string) (Queue, error) {
+	cfg := embed.NewConfig()
+	cfg.ClusterState = embed.ClusterStateFlagNew
+
+	cfg.Name = "etcd-queue"
+	cfg.Dir = dataDir
+
+	curl := url.URL{Scheme: "http", Host: fmt.Sprintf("localhost:%d", cport)}
+	cfg.ACUrls = []url.URL{curl}
+	cfg.LCUrls = []url.URL{curl}
+
+	purl := url.URL{Scheme: "http", Host: fmt.Sprintf("localhost:%d", pport)}
+	cfg.APUrls = []url.URL{purl}
+	cfg.LPUrls = []url.URL{purl}
+
+	cfg.InitialCluster = fmt.Sprintf("%s=%s", cfg.Name, cfg.APUrls[0].String())
+
+	// auto-compaction every hour
+	cfg.AutoCompactionRetention = 1
+	// single-node, so aggressively snapshot/discard Raft log entries
+	cfg.SnapCount = 1000
+
+	glog.Infof("starting %q with endpoint %q", cfg.Name, curl.String())
+	srv, err := embed.StartEtcd(cfg)
+	if err != nil {
+		return nil, err
+	}
+	select {
+	case <-srv.Server.ReadyNotify():
+		err = nil
+	case err = <-srv.Err():
+	case <-srv.Server.StopNotify():
+		err = fmt.Errorf("received from etcdserver.Server.StopNotify")
+	}
+	if err != nil {
+		return nil, err
+	}
+	glog.Infof("started %q with endpoint %q", cfg.Name, curl.String())
+
+	cli := v3client.New(srv.Server)
+
+	// issue linearized read to ensure leader election
+	glog.Infof("GET request to endpoint %q", curl.String())
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	_, err = cli.Get(ctx, "foo")
+	cancel()
+	glog.Infof("GET request succeeded on endpoint %q", curl.String())
+
+	ctx, cancel = context.WithCancel(context.Background())
+	return &embeddedQueue{
+		srv: srv,
+		Queue: &queue{
+			cli:        cli,
+			rootCtx:    ctx,
+			rootCancel: cancel,
+			buckets:    make(map[string]chan error),
+		},
+	}, err
+}
+
+func (qu *embeddedQueue) ClientEndpoints() []string {
+	eps := make([]string, len(qu.srv.Config().LCUrls))
+	for i := range qu.srv.Config().LCUrls {
+		eps = append(eps, qu.srv.Config().LCUrls[i].String())
+	}
+	return eps
+}
+
+func (qu *embeddedQueue) Stop() {
+	glog.Info("stopping queue with an embedded etcd server")
+	qu.Queue.Stop()
+	qu.srv.Close()
+	glog.Info("stopped queue with an embedded etcd server")
 }
 
 // Item is a job item.

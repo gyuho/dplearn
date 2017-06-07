@@ -31,7 +31,7 @@ func TestQueue(t *testing.T) {
 	}
 	defer os.RemoveAll(dataDir)
 
-	qu, err := StartQueue(cport, cport+1, dataDir)
+	qu, err := NewEmbeddedQueue(cport, cport+1, dataDir)
 	if err != nil {
 		t.Fatal(err)
 	}
