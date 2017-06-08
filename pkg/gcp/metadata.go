@@ -1,6 +1,7 @@
 package gcp
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -42,5 +43,6 @@ func GetComputeMetadata(key string, try int, interval time.Duration) ([]byte, er
 		resp.Body.Close()
 		return data, nil
 	}
-	return nil, err
+
+	return nil, fmt.Errorf("could not fetch %q (%v)", key, err)
 }

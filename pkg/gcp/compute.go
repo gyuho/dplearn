@@ -92,6 +92,7 @@ func (g *Compute) CreateMacine(ctx context.Context, cfg InstanceConfig) (st *com
 }
 
 // SetMetadata sets metadata to the instance.
+// TODO: this does not work...
 func (g *Compute) SetMetadata(ctx context.Context, cfg InstanceConfig) error {
 	glog.Infof("setting %d metadata on %q", len(cfg.MetadataItems), cfg.Name)
 	csrv, err := compute.New(g.client)
