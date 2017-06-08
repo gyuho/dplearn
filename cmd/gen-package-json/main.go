@@ -34,21 +34,16 @@ func main() {
 		ProxyConfigJSONPath: "proxy.config.json",
 	}
 
-	for i := 0; i < 3; i++ {
-		// inspect metadata to get public IP
-		bts, err := gcp.GetComputeMetadata("instance/network-interfaces/0/access-configs/0/external-ip")
-		if err != nil {
-			glog.Warning(err)
-			time.Sleep(300 * time.Millisecond)
-			continue
-		}
+	bts, err := gcp.GetComputeMetadata("instance/network-interfaces/0/access-configs/0/external-ip", 3, 300*time.Millisecond)
+	if err != nil {
+		glog.Warning(err)
+	} else {
 		ip := strings.TrimSpace(string(bts))
 		glog.Infof("found public host IP %q", ip)
 
 		// TODO: angular-cli does not work with public IP, so need to use 0.0.0.0
 		// https://github.com/angular/angular-cli/issues/2587#issuecomment-252586913
 		// https://github.com/webpack/webpack-dev-server/issues/882
-		break
 	}
 
 	buf := new(bytes.Buffer)

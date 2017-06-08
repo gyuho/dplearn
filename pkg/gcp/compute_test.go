@@ -13,11 +13,15 @@ import (
 )
 
 /*
-go test -v -run TestComputeUbuntu -logtostderr=true
-go test -v -run TestComputeContainerLinux -logtostderr=true
+GCP_TEST_KEY_PATH=/etc/gcp-key.json go test -v -run TestComputeUbuntu -logtostderr=true
+GCP_TEST_KEY_PATH=/etc/gcp-key.json go test -v -run TestComputeContainerLinux -logtostderr=true
+
+curl -L http://metadata.google.internal/computeMetadata/v1/instance/attributes/gcp-key -H 'Metadata-Flavor:Google'
+curl -L http://metadata.google.internal/computeMetadata/v1/instance/attributes/startup-script -H 'Metadata-Flavor:Google'
+curl -L http://metadata.google.internal/computeMetadata/v1/instance/attributes/test-key -H 'Metadata-Flavor:Google'
 */
 func TestComputeUbuntu(t *testing.T)         { testCompute(t, "ubuntu", false) }
-func TestComputeContainerLinux(t *testing.T) { testCompute(t, "container-linux", false) }
+func TestComputeContainerLinux(t *testing.T) { testCompute(t, "container-linux", true) }
 func testCompute(t *testing.T, osType string, skip bool) {
 	testKeyPath := os.Getenv("GCP_TEST_KEY_PATH")
 	if testKeyPath == "" {
@@ -82,6 +86,14 @@ apt-get -y --allow-unauthenticated install ansible`
 		t.Skip(err1)
 	}
 	glog.Infof("created %+v", st1)
+
+	time.Sleep(2 * time.Second)
+
+	metadataItems["aaa"] = `{"hello": "world"}`
+	cfg.MetadataItems = metadataItems
+	if err = api.SetMetadata(context.Background(), cfg); err != nil {
+		t.Fatal(err)
+	}
 
 	if skip {
 		t.Skip("skip after creating an instance")

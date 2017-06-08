@@ -91,30 +91,30 @@ func (g *Compute) CreateMacine(ctx context.Context, cfg InstanceConfig) (st *com
 	return cfg.watchStatus()
 }
 
-// StartMachine starts a virtual machines in the zone.
-func (g *Compute) StartMachine(ctx context.Context, cfg InstanceConfig) (st *compute.Instance, err error) {
-	glog.Infof("starting %q", cfg.Name)
-
+// SetMetadata sets metadata to the instance.
+func (g *Compute) SetMetadata(ctx context.Context, cfg InstanceConfig) error {
+	glog.Infof("setting %d metadata on %q", len(cfg.MetadataItems), cfg.Name)
 	csrv, err := compute.New(g.client)
 	if err != nil {
-		return nil, err
+		return err
 	}
+
+	items := make([]*compute.MetadataItems, 0, len(cfg.MetadataItems))
+	for k, v := range cfg.MetadataItems {
+		// make sure to copy as value before passing as reference!
+		copied := v
+		items = append(items, &compute.MetadataItems{Key: k, Value: &copied})
+	}
+	metadata := &compute.Metadata{Items: items}
 
 	_, err = compute.
 		NewInstancesService(csrv).
-		Start(g.projectID, cfg.Zone, cfg.Name).
+		SetMetadata(g.projectID, cfg.Zone, cfg.Name, metadata).
 		Context(ctx).
 		Do()
-	if err != nil {
-		return nil, err
-	}
 
-	cfg.ctx = ctx
-	cfg.csrv = csrv
-	cfg.projectID = g.projectID
-	cfg.expectStatus = "RUNNING"
-	cfg.needDelete = false
-	return cfg.watchStatus()
+	glog.Infof("finished setting %d metadata on %q", len(cfg.MetadataItems), cfg.Name)
+	return err
 }
 
 // StopMachine stops a virtual machines in the zone.
@@ -139,6 +139,32 @@ func (g *Compute) StopMachine(ctx context.Context, cfg InstanceConfig) (st *comp
 	cfg.csrv = csrv
 	cfg.projectID = g.projectID
 	cfg.expectStatus = "TERMINATED"
+	cfg.needDelete = false
+	return cfg.watchStatus()
+}
+
+// StartMachine starts a virtual machines in the zone.
+func (g *Compute) StartMachine(ctx context.Context, cfg InstanceConfig) (st *compute.Instance, err error) {
+	glog.Infof("starting %q", cfg.Name)
+
+	csrv, err := compute.New(g.client)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = compute.
+		NewInstancesService(csrv).
+		Start(g.projectID, cfg.Zone, cfg.Name).
+		Context(ctx).
+		Do()
+	if err != nil {
+		return nil, err
+	}
+
+	cfg.ctx = ctx
+	cfg.csrv = csrv
+	cfg.projectID = g.projectID
+	cfg.expectStatus = "RUNNING"
 	cfg.needDelete = false
 	return cfg.watchStatus()
 }

@@ -7,6 +7,7 @@ import (
 	"io"
 	"path"
 	"strings"
+	"time"
 
 	"cloud.google.com/go/storage"
 	humanize "github.com/dustin/go-humanize"
@@ -54,7 +55,10 @@ func NewGCS(ctx context.Context, bucket, scope string, key []byte, prefix string
 	}
 
 	glog.Infof("creating bucket %q", bucket)
-	if err = cli.Bucket(bucket).Create(ctx, project, nil); err != nil {
+	cctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	err = cli.Bucket(bucket).Create(cctx, project, nil)
+	cancel()
+	if err != nil {
 		// expects; "googleapi: Error 409: You already own this bucket. Please select another name., conflict"
 		// https://cloud.google.com/storage/docs/xml-api/reference-status#409conflict
 		gerr, ok := err.(*googleapi.Error)

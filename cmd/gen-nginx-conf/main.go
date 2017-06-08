@@ -22,18 +22,13 @@ func main() {
 		HostPort:   4200,
 	}
 
-	for i := 0; i < 3; i++ {
-		// inspect metadata to get public IP
-		bts, err := gcp.GetComputeMetadata("instance/network-interfaces/0/access-configs/0/external-ip")
-		if err != nil {
-			glog.Warning(err)
-			time.Sleep(300 * time.Millisecond)
-			continue
-		}
+	bts, err := gcp.GetComputeMetadata("instance/network-interfaces/0/access-configs/0/external-ip", 3, 300*time.Millisecond)
+	if err != nil {
+		glog.Warning(err)
+	} else {
 		ip := strings.TrimSpace(string(bts))
 		glog.Infof("found public host IP %q", ip)
 		cfg.ServerName = ip + " " + cfg.ServerName
-		break
 	}
 
 	buf := new(bytes.Buffer)
