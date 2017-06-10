@@ -28,10 +28,26 @@ type Server struct {
 	donec chan struct{}
 }
 
+type key int
+
+const (
+	queueKey key = iota
+	userKey
+)
+
+func with(h ContextHandler, qu etcdqueue.Queue) ContextHandler {
+	return ContextHandlerFunc(func(ctx context.Context, w http.ResponseWriter, req *http.Request) error {
+		ctx = context.WithValue(ctx, queueKey, qu)
+		ctx = context.WithValue(ctx, userKey, generateUserID(req))
+
+		return h.ServeHTTPContext(ctx, w, req)
+	})
+}
+
 // StartServer starts a backend webserver with stoppable listener.
-func StartServer(webPort, queuePort int, dataDir string) (*Server, error) {
+func StartServer(webPort, queuePortClient, queuePortPeer int, dataDir string) (*Server, error) {
 	rootCtx, rootCancel := context.WithCancel(context.Background())
-	qu, err := etcdqueue.NewEmbeddedQueue(rootCtx, queuePort, queuePort+1, dataDir)
+	qu, err := etcdqueue.NewEmbeddedQueue(rootCtx, queuePortClient, queuePortPeer, dataDir)
 	if err != nil {
 		rootCancel()
 		return nil, err
@@ -94,20 +110,17 @@ func (srv *Server) Stop() error {
 
 	srv.mu.Lock()
 	srv.qu.Stop()
-
 	if srv.httpServer == nil {
 		srv.mu.Unlock()
 		glog.Infof("already stopped %q", srv.addrURL.String())
 		return nil
 	}
-
 	ctx, cancel := context.WithTimeout(srv.rootCtx, 5*time.Second)
 	err := srv.httpServer.Shutdown(ctx)
 	cancel()
 	if err != nil && err != context.DeadlineExceeded {
 		return err
 	}
-
 	srv.httpServer = nil
 	srv.mu.Unlock()
 
@@ -118,22 +131,6 @@ func (srv *Server) Stop() error {
 // StopNotify returns receive-only stop channel to notify the server has stopped.
 func (srv *Server) StopNotify() <-chan struct{} {
 	return srv.donec
-}
-
-type key int
-
-const (
-	queueKey key = iota
-	userKey
-)
-
-func with(h ContextHandler, qu etcdqueue.Queue) ContextHandler {
-	return ContextHandlerFunc(func(ctx context.Context, w http.ResponseWriter, req *http.Request) error {
-		ctx = context.WithValue(ctx, queueKey, qu)
-		ctx = context.WithValue(ctx, userKey, generateUserID(req))
-
-		return h.ServeHTTPContext(ctx, w, req)
-	})
 }
 
 // Request defines common requests.
@@ -150,8 +147,14 @@ var (
 )
 
 func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.Request) error {
+	reqPath := req.URL.Path
+	userID := ctx.Value(userKey).(string)
+
 	switch req.Method {
 	case http.MethodPost:
+		// TODO: glog.V(2).Infof
+		glog.Infof("client request on %q", reqPath)
+
 		rb, err := ioutil.ReadAll(req.Body)
 		if err != nil {
 			return err
@@ -165,9 +168,7 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 				Error:    fmt.Errorf("JSON parse error %q at %s", err.Error(), time.Now().String()[:29]),
 			})
 		}
-
-		userID := ctx.Value(userKey).(string)
-		requestID := fmt.Sprintf("%s-%s-%s", userID, req.URL.Path, hashSha512(creq.RawData))
+		requestID := fmt.Sprintf("%s-%s-%s", userID, reqPath, hashSha512(creq.RawData))
 
 		requestCacheMu.RLock()
 		item, ok := requestCache[requestID]
@@ -191,7 +192,7 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 		if err != nil {
 			return json.NewEncoder(w).Encode(&etcdqueue.Item{
 				Progress: 0,
-				Error:    fmt.Errorf("Queue.Add error %q at %s", err.Error(), time.Now().String()[:29]),
+				Error:    fmt.Errorf("schedule error %q at %s", err.Error(), time.Now().String()[:29]),
 			})
 		}
 
@@ -216,8 +217,6 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 				Error:    fmt.Errorf("JSON parse error %q at %s", err.Error(), time.Now().String()[:29]),
 			})
 		}
-
-		userID := ctx.Value(userKey).(string)
 		requestID := fmt.Sprintf("%s-%s-%s", userID, req.URL.Path, hashSha512(creq.RawData))
 
 		glog.Infof("requested to delete %q", requestID)

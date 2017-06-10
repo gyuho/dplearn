@@ -33,43 +33,40 @@ func hashSha512(s string) string {
 	return base64.StdEncoding.EncodeToString(sum[:])
 }
 
-func classifyUA(ua string) string {
-	var (
-		us  = ""
-		raw = strings.Replace(strings.ToLower(ua), " ", "", -1)
-	)
+func classifyUA(ua string) (s string) {
+	raw := strings.Replace(strings.ToLower(ua), " ", "", -1)
 
 	// OS
 	switch {
 	case strings.Contains(raw, "linux"):
-		us += "linux"
+		s += "linux"
 	case strings.Contains(raw, "macintosh") || strings.Contains(raw, "macos"):
-		us += "mac"
+		s += "mac"
 	case strings.Contains(raw, "windows"):
-		us += "window"
+		s += "window"
 	case strings.Contains(raw, "iphone"):
-		us += "iphone"
+		s += "iphone"
 	case strings.Contains(raw, "android"):
-		us += "android"
+		s += "android"
 	case len(raw) > 7:
-		us += raw[2:7]
+		s += raw[2:7]
 	default:
-		us += raw
+		s += raw
 	}
 
 	// browser
 	switch {
 	case strings.Contains(raw, "firefox/") && !strings.Contains(raw, "seammonkey/"):
-		us += "firefox"
+		s += "firefox"
 	case strings.Contains(raw, ";msie"):
-		us += "ie"
+		s += "ie"
 	case strings.Contains(raw, "safari/") && !strings.Contains(raw, "chrome/") && !strings.Contains(raw, "chromium/"):
-		us += "safari"
+		s += "safari"
 	case strings.Contains(raw, "chrome/") || strings.Contains(raw, "chromium/"):
-		us += "chrome"
+		s += "chrome"
 	case len(raw) > 15:
-		us += raw[9:14]
+		s += raw[9:14]
 	}
 
-	return us
+	return s
 }

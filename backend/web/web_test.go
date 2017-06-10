@@ -18,7 +18,7 @@ func TestServer(t *testing.T) {
 	}
 	defer os.RemoveAll(dataDir)
 
-	srv, err := StartServer(0, 5555, dataDir)
+	srv, err := StartServer(0, 5555, 5556, dataDir)
 	if err != nil {
 		t.Fatal(err)
 	}
