@@ -99,7 +99,7 @@ const tmplPackageJSON = `{
         "core-js": "2.4.1",
         "rxjs": "5.4.0",
         "ts-helpers": "1.1.2",
-        "zone.js": "0.8.11"
+        "zone.js": "0.8.12"
     },
     "devDependencies": {
         "@angular/cli": "1.2.0-beta.0",
@@ -113,9 +113,9 @@ const tmplPackageJSON = `{
         "@angular/material": "2.0.0-beta.6",
         "@types/hammerjs": "2.0.34",
         "@types/jasmine": "2.5.51",
-        "@types/node": "7.0.27",
+        "@types/node": "7.0.29",
         "codelyzer": "3.0.1",
-        "jasmine-core": "2.6.2",
+        "jasmine-core": "2.6.3",
         "jasmine-spec-reporter": "4.1.0",
         "karma": "1.7.0",
         "karma-chrome-launcher": "2.1.1",
@@ -124,8 +124,8 @@ const tmplPackageJSON = `{
         "karma-remap-istanbul": "0.6.0",
         "protractor": "5.1.2",
         "typescript": "2.3.4",
-        "ts-node": "3.0.4",
-        "tslint": "5.4.2"
+        "ts-node": "3.0.6",
+        "tslint": "5.4.3"
     },
     "description": "website",
     "main": "index.js",
