@@ -1,4 +1,4 @@
-# Last Updated at 2017-06-10 02:34:37.316533959 -0700 PDT
+# Last Updated at 2017-06-10 14:42:32.820064126 -0700 PDT
 # This Dockerfile contains everything needed for development and production use.
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile.gpu
@@ -39,6 +39,9 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
   python-pip \
   python-dev \
   python3-pip \
+  r-base \
+  fonts-dejavu \
+  gfortran \
   nginx \
   && echo "root ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers \
   && apt-get -y clean \
@@ -49,7 +52,12 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
   && apt-get -y update \
   && apt-get -y upgrade \
   && apt-get -y autoremove \
-  && apt-get -y autoclean
+  && apt-get -y autoclean \
+  && wget http://repo.continuum.io/miniconda/Miniconda3-3.7.0-Linux-x86_64.sh -O /root/miniconda.sh \
+  && bash /root/miniconda.sh -b -p /root/miniconda
+
+ENV PATH /root/miniconda/bin:${PATH}
+RUN conda list
 
 # Configure reverse proxy
 RUN mkdir -p /etc/nginx/sites-available/
@@ -58,19 +66,42 @@ ADD nginx.conf /etc/nginx/sites-available/default
 
 ##########################
 # Set working directory
-ENV HOME_DIR /
-WORKDIR ${HOME_DIR}
+ENV ROOT_DIR /
+WORKDIR ${ROOT_DIR}
 ##########################
 
 ##########################
 # Install additional Python libraries
 ENV HOME /root
 
-RUN pip --no-cache-dir install \
+# https://github.com/jupyter/docker-stacks/blob/master/r-notebook/Dockerfile
+RUN conda update conda \
+  && conda config --system --add channels r \
+  && conda info \
+  && conda --version \
+  && conda install --yes \
+  pip \
   requests \
   bcolz \
   theano \
-  keras==1.2.2 \
+  r \
+  r-essentials \
+  'r-base=3.3.2' \
+  'r-irkernel=0.7*' \
+  'r-plyr=1.8*' \
+  'r-devtools=1.12*' \
+  'r-tidyverse=1.0*' \
+  'r-shiny=0.14*' \
+  'r-rmarkdown=1.2*' \
+  'r-forecast=7.3*' \
+  'r-rsqlite=1.1*' \
+  'r-reshape2=1.4*' \
+  'r-nycflights13=0.2*' \
+  'r-caret=6.0*' \
+  'r-rcurl=1.95*' \
+  'r-crayon=1.3*' \
+  'r-randomforest=4.6*' \
+  && conda clean -tipsy \
   && echo $'[global]\n\
 device = gpu\n\
 floatX = float32\n\
@@ -78,6 +109,11 @@ floatX = float32\n\
 root = /usr/local/cuda\n'\
 > ${HOME}/.theanorc \
   && cat ${HOME}/.theanorc \
+  && conda create --name py27 python=2.7 ipykernel \
+  && conda create --name py36 python=3.6 ipykernel \
+  && conda list \
+  && source activate py27 && pip --no-cache-dir install keras==1.2.2 \
+  && source activate py36 && pip --no-cache-dir install keras==1.2.2 \
   && mkdir -p ${HOME}/.keras \
   && echo $'{\n\
   "image_dim_ordering": "th",\n\
@@ -86,7 +122,10 @@ root = /usr/local/cuda\n'\
   "backend": "theano"\n\
 }\n'\
 > ${HOME}/.keras/keras.json \
-  && cat ${HOME}/.keras/keras.json
+  && cat ${HOME}/.keras/keras.json \
+  && which python \
+  && which python3 \
+  && which pip
 
 # Tensorflow GPU image already includes https://developer.nvidia.com/cudnn
 # https://github.com/fastai/courses/blob/master/setup/install-gpu.sh
@@ -105,7 +144,7 @@ ADD ./run_jupyter.sh /
 # Install Go for backend
 ENV GOROOT /usr/local/go
 ENV GOPATH /gopath
-ENV PATH ${GOPATH}/bin:${GOROOT}/bin:$PATH
+ENV PATH ${GOPATH}/bin:${GOROOT}/bin:${PATH}
 ENV GO_VERSION 1.8.3
 ENV GO_DOWNLOAD_URL https://storage.googleapis.com/golang
 RUN rm -rf ${GOROOT} \
@@ -165,8 +204,8 @@ RUN pushd ${GOPATH}/src/github.com/gyuho/deephardway \
 
 ##########################
 # Set working directory
-ENV HOME_DIR /
-WORKDIR ${HOME_DIR}
+ENV ROOT_DIR /
+WORKDIR ${ROOT_DIR}
 ##########################
 
 ##########################
@@ -194,17 +233,40 @@ RUN cat /etc/lsb-release >> /container-version.txt \
   && uname -a >> /container-version.txt \
   && printf "\n" >> /container-version.txt \
   && echo Python2: $(python -V 2>&1) >> /container-version.txt \
+  && printf "\n" >> /container-version.txt \
   && echo Python3: $(python3 -V 2>&1) >> /container-version.txt \
+  && printf "\n" >> /container-version.txt \
   && echo IPython: $(ipython -V 2>&1) >> /container-version.txt \
+  && printf "\n" >> /container-version.txt \
   && echo Jupyter: $(jupyter --version 2>&1) >> /container-version.txt \
+  && printf "\n" >> /container-version.txt \
+  && echo pip-freeze: $(pip freeze --all 2>&1) >> /container-version.txt \
+  && printf "\n" >> /container-version.txt \
+  && echo R: $(R --version 2>&1) >> /container-version.txt \
+  && printf "\n" >> /container-version.txt \
+  && echo Anaconda version: $(conda --version 2>&1) >> /container-version.txt \
+  && printf "\n" >> /container-version.txt \
+  && echo Anaconda list: $(conda list 2>&1) >> /container-version.txt \
+  && printf "\n" >> /container-version.txt \
+  && echo Anaconda info --envs: $(conda info --envs 2>&1) >> /container-version.txt \
+  && printf "\n" >> /container-version.txt \
   && echo Go: $(go version 2>&1) >> /container-version.txt \
+  && printf "\n" >> /container-version.txt \
   && echo yarn: $(yarn --version 2>&1) >> /container-version.txt \
+  && printf "\n" >> /container-version.txt \
   && echo node: $(node --version 2>&1) >> /container-version.txt \
+  && printf "\n" >> /container-version.txt \
   && echo NPM: $(/usr/local/nvm/versions/node/v7.10.0/bin/npm --version 2>&1) >> /container-version.txt \
+  && printf "\n" >> /container-version.txt \
   && echo Angular-CLI: $(${GOPATH}/src/github.com/gyuho/deephardway/node_modules/.bin/ng --version 2>&1) >> /container-version.txt \
+  && printf "\n" >> /container-version.txt \
   && echo etcd: $(/etcd --version 2>&1) >> /container-version.txt \
+  && printf "\n" >> /container-version.txt \
   && echo etcdctl: $(ETCDCTL_API=3 /etcdctl version 2>&1) >> /container-version.txt \
+  && printf "\n" >> /container-version.txt \
   && cat ${GOPATH}/src/github.com/gyuho/deephardway/git-tensorflow.json >> /container-version.txt \
+  && printf "\n" >> /container-version.txt \
   && cat ${GOPATH}/src/github.com/gyuho/deephardway/git-fastai-courses.json >> /container-version.txt \
+  && printf "\n" >> /container-version.txt \
   && cat /container-version.txt
 ##########################
