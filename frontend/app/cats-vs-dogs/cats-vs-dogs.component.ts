@@ -69,6 +69,9 @@ export class CatsVsDogsComponent implements OnDestroy {
     if (resp.error !== '') {
       this.result = resp.value + '(' + resp.error + ')';
     }
+    if (resp.canceled === true) {
+      this.result += ' - canceled!';
+    }
 
     this.inProgress = resp.progress < 100;
     this.spinnerValue = resp.progress;
