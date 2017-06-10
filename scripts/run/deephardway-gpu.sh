@@ -12,6 +12,6 @@ cat package.json
 ./gen-nginx-conf -output nginx.conf -logtostderr=true
 cat nginx.conf
 
-./backend-web-server -web-port 2200 -queue-port 22000 -data-dir /var/lib/etcd -logtostderr=true &
+./backend-web-server -web-port 2200 -queue-port-client 22000 -queue-port-peer 22001 -data-dir /var/lib/etcd -logtostderr=true &
 yarn start-prod &
 wait

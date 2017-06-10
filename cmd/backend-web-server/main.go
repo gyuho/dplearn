@@ -10,12 +10,13 @@ import (
 
 func main() {
 	webPort := flag.Int("web-port", 2200, "Specify the port for web server backend.")
-	queuePort := flag.Int("queue-port", 22000, "Specify the port for queue service.")
+	queuePortClient := flag.Int("queue-port-client", 22000, "Specify the client port for queue service.")
+	queuePortPeer := flag.Int("queue-port-peer", 22001, "Specify the peer port for queue service.")
 	dataDir := flag.String("data-dir", "/var/lib/etcd", "Specify the etcd data directory.")
 	flag.Parse()
 
-	glog.Infof("starting web server with :%d (queue :%d, data-dir %q)", *webPort, *queuePort, *dataDir)
-	srv, err := web.StartServer(*webPort, *queuePort, *dataDir)
+	glog.Infof("starting web server with :%d (queue :%d/:%d, data-dir %q)", *webPort, *queuePortClient, *queuePortPeer, *dataDir)
+	srv, err := web.StartServer(*webPort, *queuePortClient, *queuePortPeer, *dataDir)
 	if err != nil {
 		glog.Fatal(err)
 	}
