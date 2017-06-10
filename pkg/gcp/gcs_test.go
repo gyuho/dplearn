@@ -16,7 +16,7 @@ import (
 )
 
 /*
-go test -v -run TestGCS -logtostderr=true
+GCP_TEST_KEY_PATH=/etc/gcp-key-deephardway.json go test -v -run TestGCS -logtostderr=true
 */
 func TestGCS(t *testing.T) {
 	testKeyPath := os.Getenv("GCP_TEST_KEY_PATH")
