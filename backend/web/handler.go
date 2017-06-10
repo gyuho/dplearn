@@ -254,13 +254,27 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 		}
 		requestID := generateRequestID(reqPath, userID, creq.RawData)
 
-		// TODO: delete from queue
-
 		glog.Infof("requested to delete %q", requestID)
 		srv.requestCacheMu.Lock()
 		delete(srv.requestCache, requestID)
 		srv.requestCacheMu.Unlock()
 		glog.Infof("deleted %q", requestID)
+
+		srv.requestCacheMu.RLock()
+		item, ok := srv.requestCache[requestID]
+		srv.requestCacheMu.RUnlock()
+		if !ok {
+			return nil
+		}
+
+		// dequeue the job
+		glog.Infof("canceling the item with request ID %s", requestID)
+		if err = qu.Delete(ctx, item); err != nil {
+			errMsg := fmt.Errorf("schedule error %q at %s", err.Error(), time.Now().String()[:29])
+			glog.Warning(errMsg)
+			return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: errMsg})
+		}
+		glog.Infof("canceled the item with request ID %s", requestID)
 
 	default:
 		http.Error(w, "Method Not Allowed", 405)
