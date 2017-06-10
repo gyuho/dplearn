@@ -14,8 +14,8 @@ It is a set of small projects on [Deep Learning](https://en.wikipedia.org/wiki/D
 
 - [`frontend`](https://github.com/gyuho/deephardway/tree/master/frontend) implements user-facing UI, sends user requests to [`backend/*`](https://github.com/gyuho/deephardway/tree/master/backend).
 - [`backend/web`](https://github.com/gyuho/deephardway/tree/master/backend/web) schedules user requests on [`pkg/etcd-queue`](https://github.com/gyuho/deephardway/tree/master/pkg/etcd-queue) service.
-- [`backend/deep/etcd`](https://github.com/gyuho/deephardway/tree/master/backend/deep/etcd) fetches the list of jobs, and the writes results back to the queue.
-- [`backend/deep`](https://github.com/gyuho/deephardway/tree/master/backend/deep) processes/computes the list of jobs, and writes results back to queue.
+- [`backend/etcd-python`](https://github.com/gyuho/deephardway/tree/master/backend/etcd-python) fetches the list of jobs, and the writes results back to the queue.
+- [`backend/worker`](https://github.com/gyuho/deephardway/tree/master/backend/worker) processes/computes the list of jobs, and writes results back to queue.
 - [`backend/web`](https://github.com/gyuho/deephardway/tree/master/backend/web) gets notified with [watch API](https://godoc.org/github.com/coreos/etcd/clientv3#Watcher) when the job is done, and returns results back to users.
 
 Notes:
