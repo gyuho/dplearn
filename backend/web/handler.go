@@ -174,9 +174,9 @@ func (srv *Server) StopNotify() <-chan struct{} {
 
 // Request defines common requests.
 type Request struct {
-	UserID  string `json:"userid"`
+	UserID  string `json:"user_id"`
 	URL     string `json:"url"`
-	RawData string `json:"rawdata"`
+	RawData string `json:"raw_data"`
 	Result  string `json:"result"`
 }
 
@@ -256,6 +256,8 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 			})
 		}
 		requestID := generateRequestID(reqPath, userID, creq.RawData)
+
+		// TODO: delete from queue
 
 		glog.Infof("requested to delete %q", requestID)
 		srv.requestCacheMu.Lock()
