@@ -12,15 +12,23 @@ fi
 # -p 2200:2200
 # -p 4200:4200
 docker run \
+  --privileged \
+  --rm \
+  -it \
+  -p 8888:8888 \
+  --volume=`pwd`/notebooks:/gopath/src/github.com/gyuho/deephardway/notebooks \
+  gcr.io/deephardway/deephardway:latest-cpu \
+  /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && PASSWORD='' ./run_jupyter.sh -y --notebook-dir=./notebooks"
+
+# source activate py36
+
+<<COMMENT
+docker run \
   --rm \
   -it \
   -p 8888:8888 \
   --volume=`pwd`/notebooks:/gopath/src/github.com/gyuho/deephardway/notebooks \
   gcr.io/deephardway/deephardway:latest-cpu \
   /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && PASSWORD='' ./run_jupyter.sh -y --allow-root --notebook-dir=./notebooks"
-
-<<COMMENT
-https://hub.docker.com/r/tensorflow/tensorflow/
-https://console.cloud.google.com/gcr/images/tensorflow/GLOBAL/tensorflow?pli=1
-docker run -it -p 8888:8888 gcr.io/tensorflow/tensorflow:latest
 COMMENT
+
