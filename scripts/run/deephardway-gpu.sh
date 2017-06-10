@@ -9,7 +9,7 @@ fi
 ./gen-package-json -output package.json -logtostderr=true
 cat package.json
 
-./gen-nginx-conf -output nginx.conf -logtostderr=true
+./gen-nginx-conf -output nginx.conf -target-port 4200 -logtostderr=true
 cat nginx.conf
 
 ./backend-web-server -web-port 2200 -queue-port-client 22000 -queue-port-peer 22001 -data-dir /var/lib/etcd -logtostderr=true &

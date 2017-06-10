@@ -7,4 +7,4 @@ if ! [[ "$0" =~ "./scripts/gen-nginx-conf.sh" ]]; then
 fi
 
 go install -v ./cmd/gen-nginx-conf
-gen-nginx-conf --output nginx.conf --logtostderr
+gen-nginx-conf --output nginx.conf --target-port 4200 --logtostderr

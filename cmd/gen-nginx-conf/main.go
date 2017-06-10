@@ -15,11 +15,12 @@ import (
 
 func main() {
 	outputPath := flag.String("output", "nginx.conf", "Specify nginx.conf output file path.")
+	targetPort := flag.Int("target-port", 4200, "Specify target host port to proxy requests to.")
 	flag.Parse()
 
 	cfg := configuration{
 		ServerName: "deephardway.com",
-		HostPort:   4200,
+		TargetPort: *targetPort,
 	}
 
 	bts, err := gcp.GetComputeMetadata("instance/network-interfaces/0/access-configs/0/external-ip", 3, 300*time.Millisecond)
@@ -46,7 +47,7 @@ func main() {
 
 type configuration struct {
 	ServerName string
-	HostPort   int
+	TargetPort int
 }
 
 const tmplNginxConf = `server {
@@ -65,7 +66,7 @@ const tmplNginxConf = `server {
 		proxy_set_header Host $host;
 		proxy_set_header X-Real-IP $remote_addr;
 		proxy_set_header X-Forwarded-For $remote_addr;
-		proxy_pass http://127.0.0.1:{{.HostPort}};
+		proxy_pass http://127.0.0.1:{{.TargetPort}};
 	}
 }
 `
