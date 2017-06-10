@@ -199,10 +199,9 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 
 		creq := Request{}
 		if err = json.Unmarshal(rb, &creq); err != nil {
-			return json.NewEncoder(w).Encode(&etcdqueue.Item{
-				Progress: 0,
-				Error:    fmt.Errorf("JSON parse error %q at %s", err.Error(), time.Now().String()[:29]),
-			})
+			errMsg := fmt.Errorf("JSON parse error %q at %s", err.Error(), time.Now().String()[:29])
+			glog.Warning(errMsg)
+			return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: errMsg})
 		}
 		requestID := generateRequestID(reqPath, userID, creq.RawData)
 
@@ -227,10 +226,9 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 		glog.Infof("enqueue-ing a new item with request ID %s", requestID)
 		ch, err := qu.Add(ctx, item)
 		if err != nil {
-			return json.NewEncoder(w).Encode(&etcdqueue.Item{
-				Progress: 0,
-				Error:    fmt.Errorf("schedule error %q at %s", err.Error(), time.Now().String()[:29]),
-			})
+			errMsg := fmt.Errorf("schedule error %q at %s", err.Error(), time.Now().String()[:29])
+			glog.Warning(errMsg)
+			return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: errMsg})
 		}
 		glog.Infof("enqueue-ed a new item with request ID %s", requestID)
 
@@ -250,10 +248,9 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 
 		creq := Request{}
 		if err = json.Unmarshal(rb, &creq); err != nil {
-			return json.NewEncoder(w).Encode(&etcdqueue.Item{
-				Progress: 0,
-				Error:    fmt.Errorf("JSON parse error %q at %s", err.Error(), time.Now().String()[:29]),
-			})
+			errMsg := fmt.Errorf("JSON parse error %q at %s", err.Error(), time.Now().String()[:29])
+			glog.Warning(errMsg)
+			return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: errMsg})
 		}
 		requestID := generateRequestID(reqPath, userID, creq.RawData)
 
