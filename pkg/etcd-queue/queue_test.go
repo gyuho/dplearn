@@ -215,4 +215,27 @@ func TestQueue(t *testing.T) {
 	case <-time.After(10 * time.Second):
 		t.Fatalf("took too long to receive event on item2 %s", item2.Key)
 	}
+
+	item3 := CreateItem("my-job", 99999, "my text goes here... 3")
+	wch3, err := qu.Add(context.Background(), item3)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// wait until item3 is scheduled by worker
+	time.Sleep(2 * time.Second) // TODO: do this synchronously
+
+	// cancel item3
+	if err = qu.Delete(context.Background(), item3); err != nil {
+		t.Fatal(err)
+	}
+
+	select {
+	case it := <-wch3:
+		if !it.Canceled {
+			t.Fatalf("expected canceled events, got %+v", it)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatalf("timed out waiting for delete events")
+	}
 }
