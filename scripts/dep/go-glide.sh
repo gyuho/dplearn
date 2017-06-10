@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-if ! [[ "$0" =~ "./scripts/dep/go.sh" ]]; then
+if ! [[ "$0" =~ "./scripts/dep/go-glide.sh" ]]; then
   echo "must be run from repository root"
   exit 255
 fi
@@ -13,6 +13,7 @@ pushd "${DEP_ROOT}"
   git reset --hard HEAD
   go install -v
 popd
+
 if [ ! $(command -v glide) ]; then
   echo "glide: command not found"
   exit 1
