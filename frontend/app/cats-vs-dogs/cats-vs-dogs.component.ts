@@ -1,5 +1,6 @@
 import {
   Component,
+  OnDestroy,
 } from '@angular/core';
 
 import {
@@ -23,13 +24,14 @@ import {
 } from '../request-item.component';
 
 @Component({
-  selector: 'app-cats-vs-dogs',
+  selector: 'app',
   templateUrl: 'cats-vs-dogs.component.html',
   styleUrls: ['cats-vs-dogs.component.css'],
 })
-export class CatsVsDogsComponent {
-  mode = 'Observable';
+export class CatsVsDogsComponent implements OnDestroy {
   private endpoint = 'cats-vs-dogs-request';
+
+  mode = 'Observable';
 
   inputValue: string;
 
@@ -42,18 +44,39 @@ export class CatsVsDogsComponent {
   spinnerMode = 'determinate';
   spinnerValue = 0;
 
+  pollingHandler;
+
   constructor(private http: Http, public snackBar: MdSnackBar) {
     this.inputValue = '';
     this.srespError = '';
     this.result = 'No results to show yet...';
   }
 
+  ngOnDestroy() {
+    console.log('Disconnected (user left the page)!');
+    clearInterval(this.pollingHandler);
+
+    // TODO: DELETE request to backend
+
+    this.inputValue = '';
+    this.srespError = '';
+    return;
+  }
+
   processItem(resp: Item) {
     this.sresp = resp;
     this.result = resp.value;
+    if (resp.error !== '') {
+      this.result = resp.value + '(' + resp.error + ')';
+    }
+
     this.inProgress = resp.progress < 100;
-    this.spinnerMode = 'determinate';
     this.spinnerValue = resp.progress;
+
+    if (resp.progress === 100) {
+      console.log('Finished', resp);
+      clearInterval(this.pollingHandler);
+    }
   }
 
   processHTTPResponseClient(res: Response) {
@@ -91,10 +114,15 @@ export class CatsVsDogsComponent {
       error => this.srespError = <any>error,
       () => this.processItem(responseFromSubscribe), // on-complete
     );
+  }
+
+  clickProcessRequest() {
     this.snackBar.open('Predicting correct words...', 'Requested!', {
       duration: 5000,
     });
     this.inProgress = true;
-    this.spinnerMode = 'indeterminate';
+    this.spinnerMode = 'determinate';
+    this.spinnerValue = 0;
+    this.pollingHandler = setInterval(() => this.processRequest(), 1000);
   }
 }

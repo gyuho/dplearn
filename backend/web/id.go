@@ -18,6 +18,10 @@ func generateUserID(req *http.Request) string {
 	return fmt.Sprintf("%s_%s_%s", ip, classifyUA(ua), hashSha512(ip + ua)[:30])
 }
 
+func generateRequestID(urlPath, userID, data string) string {
+	return fmt.Sprintf("%s-%s-%s", urlPath, userID, hashSha512(data))
+}
+
 func getRealIP(req *http.Request) string {
 	ts := []string{"X-Forwarded-For", "x-forwarded-for", "X-FORWARDED-FOR"}
 	for _, k := range ts {

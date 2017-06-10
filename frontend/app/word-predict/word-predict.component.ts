@@ -1,5 +1,6 @@
 import {
   Component,
+  OnDestroy,
 } from '@angular/core';
 
 import {
@@ -23,64 +24,59 @@ import {
 } from '../request-item.component';
 
 @Component({
-  selector: 'app-word-predict',
+  selector: 'app',
   templateUrl: 'word-predict.component.html',
   styleUrls: ['word-predict.component.css'],
 })
-export class WordPredictComponent {
-  mode = 'Observable';
-  private endpointI = 'word-predict-request-1';
-  private endpointII = 'word-predict-request-2';
+export class WordPredictComponent implements OnDestroy {
+  private endpoint = 'word-predict-request';
 
-  inputValueI: string;
-  inputValueII: string;
+  mode = 'Observable';
+
+  inputValue: string;
 
   sresp: Item;
   srespError: string;
+  result: string;
 
-  resultI: string;
-  resultII: string;
+  inProgress = false;
+  spinnerColor = 'primary';
+  spinnerMode = 'determinate';
+  spinnerValue = 0;
 
-  inProgressI = false;
-  spinnerColorI = 'primary';
-  spinnerModeI = 'determinate';
-  spinnerValueI = 0;
-
-  inProgressII = false;
-  spinnerColorII = 'primary';
-  spinnerModeII = 'determinate';
-  spinnerValueII = 0;
+  pollingHandler;
 
   constructor(private http: Http, public snackBar: MdSnackBar) {
-    this.inputValueI = '';
-    this.inputValueII = '';
+    this.inputValue = '';
     this.srespError = '';
-    this.resultI = 'No results to show yet...';
-    this.resultII = 'No results to show yet...';
+    this.result = 'No results to show yet...';
   }
 
-  // ngOnInit(): void {}
-  // ngAfterContentInit() {}
-  // ngAfterViewInit() {}
-  // ngAfterViewChecked() {}
-  // ngOnDestroy() {
-  //   console.log('Disconnected from cluster (user left the page)!');
-  //   return;
-  // }
+  ngOnDestroy() {
+    console.log('Disconnected (user left the page)!');
+    clearInterval(this.pollingHandler);
 
-  processItemI(resp: Item) {
-    this.sresp = resp;
-    this.resultI = resp.value;
-    this.inProgressI = resp.progress < 100;
-    this.spinnerModeI = 'determinate';
-    this.spinnerValueI = resp.progress;
+    // TODO: DELETE request to backend
+
+    this.inputValue = '';
+    this.srespError = '';
+    return;
   }
-  processItemII(resp: Item) {
+
+  processItem(resp: Item) {
     this.sresp = resp;
-    this.resultII = resp.value;
-    this.inProgressII = resp.progress < 100;
-    this.spinnerModeII = 'determinate';
-    this.spinnerValueII = resp.progress;
+    this.result = resp.value;
+    if (resp.error !== '') {
+      this.result = resp.value + '(' + resp.error + ')';
+    }
+
+    this.inProgress = resp.progress < 100;
+    this.spinnerValue = resp.progress;
+
+    if (resp.progress === 100) {
+      console.log('Finished', resp);
+      clearInterval(this.pollingHandler);
+    }
   }
 
   processHTTPResponseClient(res: Response) {
@@ -97,57 +93,36 @@ export class WordPredictComponent {
     return Observable.throw(errMsg);
   }
 
-  postRequestI(creq: Request): Observable<Item> {
+  postRequest(creq: Request): Observable<Item> {
     let body = JSON.stringify(creq);
     let headers = new Headers({'Content-Type' : 'application/json'});
     let options = new RequestOptions({headers : headers});
 
     // this returns without waiting for POST response
-    let obser = this.http.post(this.endpointI, body, options)
-      .map(this.processHTTPResponseClient)
-      .catch(this.processHTTPErrorClient);
-    return obser;
-  }
-  postRequestII(creq: Request): Observable<Item> {
-    let body = JSON.stringify(creq);
-    let headers = new Headers({'Content-Type' : 'application/json'});
-    let options = new RequestOptions({headers : headers});
-
-    // this returns without waiting for POST response
-    let obser = this.http.post(this.endpointII, body, options)
+    let obser = this.http.post(this.endpoint, body, options)
       .map(this.processHTTPResponseClient)
       .catch(this.processHTTPErrorClient);
     return obser;
   }
 
-  processRequestI() {
-    let val = this.inputValueI;
-    let creq = new Request('', val);
-    let srespFromSubscribe: Item;
-    this.postRequestI(creq).subscribe(
-      sresp => srespFromSubscribe = sresp,
+  processRequest() {
+    let val = this.inputValue;
+    let creq = new Request('http://aaa.com', val);
+    let responseFromSubscribe: Item;
+    this.postRequest(creq).subscribe(
+      sresp => responseFromSubscribe = sresp,
       error => this.srespError = <any>error,
-      () => this.processItemI(srespFromSubscribe), // on-complete
+      () => this.processItem(responseFromSubscribe), // on-complete
     );
+  }
+
+  clickProcessRequest() {
     this.snackBar.open('Predicting correct words...', 'Requested!', {
       duration: 5000,
     });
-    this.inProgressI = true;
-    this.spinnerModeI = 'indeterminate';
-  }
-  processRequestII() {
-    let val = this.inputValueII;
-    let creq = new Request('', val);
-    let srespFromSubscribe: Item;
-    this.postRequestII(creq).subscribe(
-      sresp => srespFromSubscribe = sresp,
-      error => this.srespError = <any>error,
-      () => this.processItemII(srespFromSubscribe), // on-complete
-    );
-    this.snackBar.open('Predicting next words...', 'Requested!', {
-      duration: 5000,
-    });
-    this.inProgressII = true;
-    this.spinnerModeII = 'indeterminate';
+    this.inProgress = true;
+    this.spinnerMode = 'determinate';
+    this.spinnerValue = 0;
+    this.pollingHandler = setInterval(() => this.processRequest(), 1000);
   }
 }

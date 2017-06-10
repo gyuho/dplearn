@@ -21,22 +21,27 @@ type Server struct {
 	mu         sync.RWMutex
 	rootCtx    context.Context
 	rootCancel func()
-	addrURL    url.URL
+	webURL     url.URL
 	httpServer *http.Server
 	qu         etcdqueue.Queue
 
 	donec chan struct{}
+
+	requestCacheMu sync.RWMutex
+	requestCache   map[string]*etcdqueue.Item
 }
 
 type key int
 
 const (
-	queueKey key = iota
+	serverKey key = iota
+	queueKey
 	userKey
 )
 
-func with(h ContextHandler, qu etcdqueue.Queue) ContextHandler {
+func with(h ContextHandler, qu etcdqueue.Queue, srv *Server) ContextHandler {
 	return ContextHandlerFunc(func(ctx context.Context, w http.ResponseWriter, req *http.Request) error {
+		ctx = context.WithValue(ctx, serverKey, srv)
 		ctx = context.WithValue(ctx, queueKey, qu)
 		ctx = context.WithValue(ctx, userKey, generateUserID(req))
 
@@ -54,32 +59,33 @@ func StartServer(webPort, queuePortClient, queuePortPeer int, dataDir string) (*
 	}
 
 	mux := http.NewServeMux()
-	mux.Handle("/word-predict-request-1", &ContextAdapter{
+
+	webURL := url.URL{Scheme: "http", Host: fmt.Sprintf("localhost:%d", webPort)}
+	srv := &Server{
+		rootCtx:      rootCtx,
+		rootCancel:   rootCancel,
+		webURL:       webURL,
+		httpServer:   &http.Server{Addr: webURL.Host, Handler: mux},
+		qu:           qu,
+		donec:        make(chan struct{}),
+		requestCache: make(map[string]*etcdqueue.Item),
+	}
+
+	mux.Handle("/word-predict-request", &ContextAdapter{
 		ctx:     rootCtx,
-		handler: with(ContextHandlerFunc(clientRequestHandler), qu),
-	})
-	mux.Handle("/word-predict-request-2", &ContextAdapter{
-		ctx:     rootCtx,
-		handler: with(ContextHandlerFunc(clientRequestHandler), qu),
+		handler: with(ContextHandlerFunc(clientRequestHandler), qu, srv),
 	})
 	mux.Handle("/cats-vs-dogs-request", &ContextAdapter{
 		ctx:     rootCtx,
-		handler: with(ContextHandlerFunc(clientRequestHandler), qu),
+		handler: with(ContextHandlerFunc(clientRequestHandler), qu, srv),
 	})
-	mux.Handle("/mnist-request", &ContextAdapter{
-		ctx:     rootCtx,
-		handler: with(ContextHandlerFunc(clientRequestHandler), qu),
-	})
+	// mux.Handle("/mnist-request", &ContextAdapter{
+	// 	ctx:     rootCtx,
+	// 	handler: with(ContextHandlerFunc(clientRequestHandler), qu,srv),
+	// })
 
-	addrURL := url.URL{Scheme: "http", Host: fmt.Sprintf("localhost:%d", webPort)}
-	srv := &Server{
-		rootCtx:    rootCtx,
-		rootCancel: rootCancel,
-		addrURL:    addrURL,
-		httpServer: &http.Server{Addr: addrURL.Host, Handler: mux},
-		qu:         qu,
-		donec:      make(chan struct{}),
-	}
+	gcPeriod := 5 * time.Minute
+	go srv.gcCache(gcPeriod)
 
 	go func() {
 		defer func() {
@@ -90,13 +96,16 @@ func StartServer(webPort, queuePortClient, queuePortPeer int, dataDir string) (*
 			srv.rootCancel()
 		}()
 
-		glog.Infof("starting server %q", srv.addrURL.String())
+		glog.Infof("starting server %q", srv.webURL.String())
 		if err := srv.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			glog.Fatal(err)
 		}
 
 		select {
+		case <-srv.rootCtx.Done():
+			return
 		case <-srv.donec:
+			return
 		default:
 			close(srv.donec)
 		}
@@ -104,15 +113,45 @@ func StartServer(webPort, queuePortClient, queuePortPeer int, dataDir string) (*
 	return srv, nil
 }
 
+// gcCache garbage-collects old items in the cache.
+func (srv *Server) gcCache(period time.Duration) {
+	ticker := time.NewTicker(period)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-srv.rootCtx.Done():
+			return
+		case <-srv.donec:
+			return
+		case <-ticker.C:
+		}
+
+		srv.requestCacheMu.Lock()
+		for id, item := range srv.requestCache {
+			glog.Warningf("%q should have been requested to delete when user leaves browser (missed DELETE request?)", id)
+			if time.Since(item.CreatedAt) > period {
+				delete(srv.requestCache, id)
+				if item.Progress == 100 {
+					glog.Infof("deleted %q because its progress is 100 (created at %s)", id, item.CreatedAt)
+				} else {
+					glog.Warningf("deleted %q and its progress is %d (created at %s)", id, item.Progress, item.CreatedAt)
+				}
+			}
+		}
+		srv.requestCacheMu.Unlock()
+	}
+}
+
 // Stop stops the server. Useful for testing.
 func (srv *Server) Stop() error {
-	glog.Infof("stopping server %q", srv.addrURL.String())
+	glog.Infof("stopping server %q", srv.webURL.String())
 
 	srv.mu.Lock()
 	srv.qu.Stop()
 	if srv.httpServer == nil {
 		srv.mu.Unlock()
-		glog.Infof("already stopped %q", srv.addrURL.String())
+		glog.Infof("already stopped %q", srv.webURL.String())
 		return nil
 	}
 	ctx, cancel := context.WithTimeout(srv.rootCtx, 5*time.Second)
@@ -124,7 +163,7 @@ func (srv *Server) Stop() error {
 	srv.httpServer = nil
 	srv.mu.Unlock()
 
-	glog.Infof("stopped server %q", srv.addrURL.String())
+	glog.Infof("stopped server %q", srv.webURL.String())
 	return nil
 }
 
@@ -141,13 +180,10 @@ type Request struct {
 	Result  string `json:"result"`
 }
 
-var (
-	requestCacheMu sync.RWMutex
-	requestCache   = make(map[string]*etcdqueue.Item)
-)
-
 func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.Request) error {
 	reqPath := req.URL.Path
+	srv := ctx.Value(serverKey).(*Server)
+	qu := ctx.Value(queueKey).(etcdqueue.Queue)
 	userID := ctx.Value(userKey).(string)
 
 	switch req.Method {
@@ -168,11 +204,11 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 				Error:    fmt.Errorf("JSON parse error %q at %s", err.Error(), time.Now().String()[:29]),
 			})
 		}
-		requestID := fmt.Sprintf("%s-%s-%s", userID, reqPath, hashSha512(creq.RawData))
+		requestID := generateRequestID(reqPath, userID, creq.RawData)
 
-		requestCacheMu.RLock()
-		item, ok := requestCache[requestID]
-		requestCacheMu.RUnlock()
+		srv.requestCacheMu.RLock()
+		item, ok := srv.requestCache[requestID]
+		srv.requestCacheMu.RUnlock()
 		if ok {
 			return json.NewEncoder(w).Encode(item)
 		}
@@ -184,10 +220,11 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 		if err != nil {
 			return err
 		}
-		item = etcdqueue.CreateItem(req.URL.Path, 100, string(rb))
+		item = etcdqueue.CreateItem(reqPath, 100, string(rb))
+		glog.Infof("created a new item with request ID %s", requestID)
 
 		// 2. enqueue(schedule) the job
-		qu := ctx.Value(queueKey).(etcdqueue.Queue)
+		glog.Infof("enqueue-ing a new item with request ID %s", requestID)
 		ch, err := qu.Add(ctx, item)
 		if err != nil {
 			return json.NewEncoder(w).Encode(&etcdqueue.Item{
@@ -195,13 +232,14 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 				Error:    fmt.Errorf("schedule error %q at %s", err.Error(), time.Now().String()[:29]),
 			})
 		}
+		glog.Infof("enqueue-ed a new item with request ID %s", requestID)
 
 		// 3. watch for changes for later request polling
-		requestCacheMu.Lock()
-		requestCache[requestID] = item
-		requestCacheMu.Unlock()
+		srv.requestCacheMu.Lock()
+		srv.requestCache[requestID] = item
+		srv.requestCacheMu.Unlock()
 
-		go watch(ctx, requestID, item, creq, ch)
+		go srv.watch(ctx, requestID, item, creq, ch)
 
 	case http.MethodDelete:
 		rb, err := ioutil.ReadAll(req.Body)
@@ -217,12 +255,12 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 				Error:    fmt.Errorf("JSON parse error %q at %s", err.Error(), time.Now().String()[:29]),
 			})
 		}
-		requestID := fmt.Sprintf("%s-%s-%s", userID, req.URL.Path, hashSha512(creq.RawData))
+		requestID := generateRequestID(reqPath, userID, creq.RawData)
 
 		glog.Infof("requested to delete %q", requestID)
-		requestCacheMu.Lock()
-		delete(requestCache, requestID)
-		requestCacheMu.Unlock()
+		srv.requestCacheMu.Lock()
+		delete(srv.requestCache, requestID)
+		srv.requestCacheMu.Unlock()
 		glog.Infof("deleted %q", requestID)
 
 	default:
@@ -232,18 +270,20 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 	return nil
 }
 
-func watch(ctx context.Context, requestID string, item *etcdqueue.Item, req Request, ch <-chan *etcdqueue.Item) {
+func (srv *Server) watch(ctx context.Context, requestID string, item *etcdqueue.Item, req Request, ch <-chan *etcdqueue.Item) {
 	cnt := 0
 	for item.Progress < 100 {
 		select {
+		case <-srv.donec:
+			return
 		case <-ctx.Done():
 			return
 		default:
 		}
 
-		requestCacheMu.RLock()
-		_, ok := requestCache[requestID]
-		requestCacheMu.RUnlock()
+		srv.requestCacheMu.RLock()
+		_, ok := srv.requestCache[requestID]
+		srv.requestCacheMu.RUnlock()
 		if !ok {
 			glog.Infof("%q is deleted; exiting watch routine", requestID)
 		}
@@ -259,13 +299,15 @@ func watch(ctx context.Context, requestID string, item *etcdqueue.Item, req Requ
 		item.Progress = (cnt + 1) * 10
 		cnt++
 
-		requestCacheMu.Lock()
-		requestCache[requestID] = item
-		requestCacheMu.Unlock()
+		srv.requestCacheMu.Lock()
+		srv.requestCache[requestID] = item
+		srv.requestCacheMu.Unlock()
 		glog.Infof("updated item with request ID %s", requestID)
 
 		select {
-		case <-ctx.Done():
+		case <-srv.rootCtx.Done():
+			return
+		case <-srv.donec:
 			return
 		default:
 		}
