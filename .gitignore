@@ -4,7 +4,7 @@
 /backend-web-server
 /gen-package-json
 /notebooks/.ipynb_checkpoints
-/sample-notebooks
+/notebooks/sample-notebooks
 /backend/deep/*.pyc
 /backend/deep/etcd/*.pyc
 
