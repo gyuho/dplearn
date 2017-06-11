@@ -44,6 +44,20 @@ func main() {
 		glog.Fatal(err)
 	}
 	glog.Infof("wrote %q", *outputPath)
+
+	glog.Infof("writing to /etc/nginx/sites-available/default")
+	if err = os.MkdirAll("/etc/nginx/sites-available/", os.ModePerm); err != nil {
+		glog.Fatal(err)
+	}
+	if err = toFile(txt, "/etc/nginx/sites-available/default"); err != nil {
+		glog.Fatal(err)
+	}
+	glog.Infof("wrote to /etc/nginx/sites-available/default")
+	/*
+	   // Configure reverse proxy
+	   RUN mkdir -p /etc/nginx/sites-available/
+	   ADD nginx.conf /etc/nginx/sites-available/default
+	*/
 }
 
 type configuration struct {
