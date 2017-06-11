@@ -8,11 +8,16 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
+	"reflect"
+	"strings"
 	"sync"
 	"time"
 
 	etcdqueue "github.com/gyuho/deephardway/pkg/etcd-queue"
+	"github.com/gyuho/deephardway/pkg/lru"
 
+	humanize "github.com/dustin/go-humanize"
 	"github.com/golang/glog"
 )
 
@@ -36,13 +41,15 @@ type key int
 const (
 	serverKey key = iota
 	queueKey
+	lruCacheKey
 	userKey
 )
 
-func with(h ContextHandler, qu etcdqueue.Queue, srv *Server) ContextHandler {
+func with(h ContextHandler, srv *Server, qu etcdqueue.Queue, cache lru.Cache) ContextHandler {
 	return ContextHandlerFunc(func(ctx context.Context, w http.ResponseWriter, req *http.Request) error {
 		ctx = context.WithValue(ctx, serverKey, srv)
 		ctx = context.WithValue(ctx, queueKey, qu)
+		ctx = context.WithValue(ctx, lruCacheKey, cache)
 		ctx = context.WithValue(ctx, userKey, generateUserID(req))
 
 		return h.ServeHTTPContext(ctx, w, req)
@@ -71,17 +78,20 @@ func StartServer(webPort, queuePortClient, queuePortPeer int, dataDir string) (*
 		requestCache: make(map[string]*etcdqueue.Item),
 	}
 
+	cache := lru.NewInMemory(imageCacheSize)
+	cache.CreateNamespace(imageCacheBucket)
+
 	mux.Handle("/cats-vs-dogs-request", &ContextAdapter{
 		ctx:     rootCtx,
-		handler: with(ContextHandlerFunc(clientRequestHandler), qu, srv),
+		handler: with(ContextHandlerFunc(clientRequestHandler), srv, qu, cache),
 	})
 	// mux.Handle("/mnist-request", &ContextAdapter{
 	// 	ctx:     rootCtx,
-	// 	handler: with(ContextHandlerFunc(clientRequestHandler), qu,srv),
+	// 	handler: with(ContextHandlerFunc(clientRequestHandler), srv, qu, cache),
 	// })
 	mux.Handle("/word-predict-request", &ContextAdapter{
 		ctx:     rootCtx,
-		handler: with(ContextHandlerFunc(clientRequestHandler), qu, srv),
+		handler: with(ContextHandlerFunc(clientRequestHandler), srv, qu, cache),
 	})
 
 	gcPeriod := 5 * time.Minute
@@ -175,7 +185,6 @@ func (srv *Server) StopNotify() <-chan struct{} {
 // Request defines common requests.
 type Request struct {
 	UserID        string `json:"user_id"`
-	URL           string `json:"url"`
 	RawData       string `json:"raw_data"`
 	Result        string `json:"result"`
 	DeleteRequest bool   `json:"delete_request"`
@@ -185,6 +194,7 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 	reqPath := req.URL.Path
 	srv := ctx.Value(serverKey).(*Server)
 	qu := ctx.Value(queueKey).(etcdqueue.Queue)
+	cache := ctx.Value(lruCacheKey).(lru.Cache)
 	userID := ctx.Value(userKey).(string)
 
 	switch req.Method {
@@ -200,15 +210,39 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 
 		creq := Request{}
 		if err = json.Unmarshal(rb, &creq); err != nil {
-			errMsg := fmt.Errorf("JSON parse error %q at %s", err.Error(), time.Now().String()[:29])
-			glog.Warning(errMsg)
-			return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: errMsg})
+			err = fmt.Errorf("JSON parse error %q at %s", err.Error(), time.Now().String()[:29])
+			glog.Warning(err)
+			return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: err.Error()})
 		}
 
 		// TODO: bug in ngOnDestroy?
-		if creq.UserID == "" && creq.RawData == "" {
+		if creq.RawData == "" {
 			glog.Info("skipping empty request...")
 			return nil
+		}
+
+		switch reqPath {
+		case "/cats-vs-dogs-request":
+			var rawPath string
+			var imageBytes []byte
+			rawPath, imageBytes, err = fetchImage(cache, creq.RawData)
+			if err != nil {
+				err = fmt.Errorf("error %q while fetching %q", err.Error(), creq.RawData)
+				glog.Warning(err)
+				return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: err.Error()})
+			}
+
+			// TODO: decode or pass to worker
+			fmt.Println(rawPath, string(imageBytes[:5]))
+
+		case "/mnist-request":
+
+		case "/word-predict-request":
+
+		default:
+			err = fmt.Errorf("unknown request %q at %s", reqPath, time.Now().String()[:29])
+			glog.Warning(err)
+			return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: err.Error()})
 		}
 
 		requestID := generateRequestID(reqPath, userID, creq.RawData)
@@ -236,9 +270,9 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 			glog.Infof("enqueue-ing a new item with request ID %s", requestID)
 			ch, err := qu.Add(ctx, item)
 			if err != nil {
-				errMsg := fmt.Errorf("schedule error %q at %s", err.Error(), time.Now().String()[:29])
-				glog.Warning(errMsg)
-				return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: errMsg})
+				err = fmt.Errorf("schedule error %q at %s", err.Error(), time.Now().String()[:29])
+				glog.Warning(err)
+				return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: err.Error()})
 			}
 			glog.Infof("enqueue-ed a new item with request ID %s", requestID)
 
@@ -262,10 +296,10 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 			glog.Infof("deleted %q", requestID)
 			glog.Infof("canceling the item with request ID %q from the queue", requestID)
 			if err = qu.Delete(ctx, item); err != nil {
-				errMsg := fmt.Errorf("schedule error %q at %s", err.Error(), time.Now().String()[:29])
-				glog.Warning(errMsg)
+				err = fmt.Errorf("schedule error %q at %s", err.Error(), time.Now().String()[:29])
+				glog.Warning(err)
 				srv.requestCacheMu.Unlock()
-				return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: errMsg})
+				return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: err.Error()})
 			}
 			glog.Infof("canceled the item with request ID %q from the queue", requestID)
 			srv.requestCacheMu.Unlock()
@@ -320,4 +354,66 @@ func (srv *Server) watch(ctx context.Context, requestID string, item *etcdqueue.
 		default:
 		}
 	}
+}
+
+const (
+	imageCacheSize   = 100
+	imageCacheBucket = "image-cache"
+)
+
+func fetchImage(cache lru.Cache, ep string) (string, []byte, error) {
+	u, err := url.Parse(strings.TrimSpace(ep))
+	if err != nil {
+		return "", nil, err
+	}
+
+	rawPath := strings.TrimSpace(u.String())
+	if u.RawQuery != "" {
+		rawPath = strings.Replace(rawPath, "?"+u.RawQuery, "", -1)
+	}
+
+	var vi interface{}
+	vi, err = cache.Get(imageCacheBucket, rawPath)
+	if err != nil && err != lru.ErrKeyNotFound {
+		return rawPath, nil, err
+	}
+
+	var ibt []byte
+	if err == lru.ErrKeyNotFound { // not exist in cache, download, and cache it!
+		switch filepath.Ext(rawPath) {
+		case ".jpg":
+		case ".jpeg":
+		default:
+			return rawPath, nil, fmt.Errorf("does not support image format %q in %q (only support 'jpg', 'jpeg')", filepath.Ext(rawPath), rawPath)
+		}
+		glog.Infof("downloading %q", u.String())
+		var dresp *http.Response
+		dresp, err = http.Get(u.String())
+		if err != nil {
+			return rawPath, nil, err
+		}
+		ibt, err = ioutil.ReadAll(dresp.Body)
+		if err != nil {
+			return rawPath, nil, err
+		}
+		dresp.Body.Close()
+		glog.Infof("downloaded %q (%s)", u.String(), humanize.Bytes(uint64(len(ibt))))
+
+		glog.Infof("storing %q into cache", rawPath)
+		if err = cache.Put(imageCacheBucket, rawPath, ibt); err != nil {
+			return rawPath, nil, err
+		}
+		glog.Infof("stored %q into cache", rawPath)
+
+	} else { // exist in cache, just use the one from cache
+		glog.Infof("fetching %q from cache", rawPath)
+		var ok bool
+		ibt, ok = vi.([]byte)
+		if !ok {
+			return rawPath, nil, fmt.Errorf("expected bytes type in 'image-cache' bucket, got %v", reflect.TypeOf(vi))
+		}
+		glog.Infof("fetched %q from cache", rawPath)
+	}
+
+	return rawPath, ibt, nil
 }
