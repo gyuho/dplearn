@@ -191,8 +191,10 @@ mv -f /tmp/reverse-proxy.service /etc/systemd/system/reverse-proxy.service
 
 systemctl daemon-reload
 
+<<COMMENT
 systemctl enable ipython-gpu.service
 systemctl start ipython-gpu.service
+COMMENT
 
 systemctl enable deephardway-gpu.service
 systemctl start deephardway-gpu.service
