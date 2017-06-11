@@ -7,14 +7,14 @@ if ! [[ "$0" =~ "./scripts/dep/tensorflow.sh" ]]; then
 fi
 
 rm -rf ./tensorflow
-mkdir -p ./notebooks
+mkdir -p ./sample-notebooks
 
 echo "Downloading 'tensorflow'"
 git clone https://github.com/tensorflow/tensorflow.git --branch master
 curl -o ./git-tensorflow.json https://api.github.com/repos/tensorflow/tensorflow/git/refs/heads/master
 
-rm -rf ./notebooks/tensorflow-sample-notebooks
-cp -rf ./tensorflow/tensorflow/tools/docker/notebooks ./notebooks/tensorflow-sample-notebooks
+rm -rf ./sample-notebooks/tensorflow-sample-notebooks
+cp -rf ./tensorflow/tensorflow/tools/docker/notebooks ./sample-notebooks/tensorflow-sample-notebooks
 cp ./tensorflow/tensorflow/tools/docker/jupyter_notebook_config.py .
 cp ./tensorflow/tensorflow/tools/docker/run_jupyter.sh .
 

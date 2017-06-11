@@ -4,9 +4,9 @@
 /backend-web-server
 /gen-package-json
 /notebooks/.ipynb_checkpoints
+/sample-notebooks
 /backend/deep/*.pyc
 /backend/deep/etcd/*.pyc
-
 
 # Ignore everything in vendor/, except for *.go files,
 # LICENSE and COPYING. Ignore Go tests.

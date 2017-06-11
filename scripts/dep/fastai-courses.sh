@@ -7,13 +7,13 @@ if ! [[ "$0" =~ "./scripts/dep/fastai-courses.sh" ]]; then
 fi
 
 rm -rf ./courses
-mkdir -p ./notebooks
+mkdir -p ./sample-notebooks
 
 echo "Downloading 'fastai/courses'"
 git clone https://github.com/fastai/courses.git --branch master
 curl -o ./git-fastai-courses.json https://api.github.com/repos/fastai/courses/git/refs/heads/master
 
-rm -rf ./notebooks/fastai-courses-deep-learning-part-1
-cp -rf ./courses/deeplearning1 ./notebooks/fastai-courses-deep-learning-part-1
+rm -rf ./sample-notebooks/fastai-courses-deep-learning-part-1
+cp -rf ./courses/deeplearning1 ./sample-notebooks/fastai-courses-deep-learning-part-1
 
 rm -rf ./courses

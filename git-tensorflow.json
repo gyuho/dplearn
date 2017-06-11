@@ -2,8 +2,8 @@
   "ref": "refs/heads/master",
   "url": "https://api.github.com/repos/tensorflow/tensorflow/git/refs/heads/master",
   "object": {
-    "sha": "38e0922d1e2dcd572379af4496f878492e9f689a",
+    "sha": "bbb81bdb34ec494484002dd92938a90f88109086",
     "type": "commit",
-    "url": "https://api.github.com/repos/tensorflow/tensorflow/git/commits/38e0922d1e2dcd572379af4496f878492e9f689a"
+    "url": "https://api.github.com/repos/tensorflow/tensorflow/git/commits/bbb81bdb34ec494484002dd92938a90f88109086"
   }
 }
