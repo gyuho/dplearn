@@ -1,4 +1,4 @@
-# Last Updated at 2017-06-10 17:30:01.146147432 -0700 PDT
+# Last Updated at 2017-06-10 18:07:09.37919363 -0700 PDT
 # This Dockerfile contains everything needed for development and production use.
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile.gpu
