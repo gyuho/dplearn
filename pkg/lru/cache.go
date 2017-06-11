@@ -15,9 +15,12 @@ var (
 
 // Cache defines LRU cache store.
 type Cache interface {
-	// Put writes a key-value pair.
+	// CreateNamespace creates a new bucket in cache.
+	CreateNamespace(namespace string)
+
+	// Put writes a key-value pair. If the namespace is not found, create one.
 	Put(namespace string, key, value interface{}) error
 
-	// Get returns the value, or 'ErrKeyNotFound'.
+	// Get returns the value, or 'ErrKeyNotFound'. If the namespace is not found, returns 'ErrNamespaceNotFound'.
 	Get(namespace string, key interface{}) (interface{}, error)
 }

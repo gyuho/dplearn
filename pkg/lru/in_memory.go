@@ -3,6 +3,8 @@ package lru
 import (
 	"container/list"
 	"sync"
+
+	"github.com/golang/glog"
 )
 
 // NewInMemory returns a new in-memory LRU cache.
@@ -37,6 +39,15 @@ type inMemory struct {
 	buckets map[string]*bucket
 }
 
+func (c *inMemory) CreateNamespace(namespace string) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if _, ok := c.buckets[namespace]; !ok {
+		c.buckets[namespace] = newBucket(c.cap)
+	}
+}
+
 func (c *inMemory) Put(namespace string, key, value interface{}) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -61,6 +72,7 @@ func (c *inMemory) Put(namespace string, key, value interface{}) error {
 		oldestkey := oldest.Value.(*pair).key
 		b.kvs.Remove(oldest)
 		delete(b.k2it, oldestkey)
+		glog.Infof("lru: evicted %q", oldestkey)
 	}
 
 	b.kvs.PushFront(&pair{key, value})
