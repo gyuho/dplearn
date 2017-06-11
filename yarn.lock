@@ -2644,13 +2644,9 @@ istanbul@0.4.5, istanbul@^0.4.3:
     which "^1.1.1"
     wordwrap "^1.0.0"
 
-jasmine-core@2.6.3:
+jasmine-core@2.6.3, jasmine-core@~2.6.0:
   version "2.6.3"
   resolved "https://registry.yarnpkg.com/jasmine-core/-/jasmine-core-2.6.3.tgz#45072950e4a42b1e322fe55c001100a465d77815"
-
-jasmine-core@~2.6.0:
-  version "2.6.2"
-  resolved "https://registry.yarnpkg.com/jasmine-core/-/jasmine-core-2.6.2.tgz#74ea1f7cf428691af201107d631234027a09daab"
 
 jasmine-spec-reporter@4.1.0:
   version "4.1.0"
@@ -3193,17 +3189,17 @@ minimalistic-assert@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/minimalistic-assert/-/minimalistic-assert-1.0.0.tgz#702be2dda6b37f4836bcb3f5db56641b64a1d3d3"
 
-"minimatch@2 || 3", minimatch@^3.0.0, minimatch@^3.0.2, minimatch@^3.0.3, minimatch@~3.0.0:
-  version "3.0.3"
-  resolved "https://registry.yarnpkg.com/minimatch/-/minimatch-3.0.3.tgz#2a4e4090b96b2db06a9d7df01055a62a77c9b774"
-  dependencies:
-    brace-expansion "^1.0.0"
-
-minimatch@^3.0.4:
+"minimatch@2 || 3", minimatch@^3.0.0, minimatch@^3.0.4, minimatch@~3.0.0:
   version "3.0.4"
   resolved "https://registry.yarnpkg.com/minimatch/-/minimatch-3.0.4.tgz#5166e286457f03306064be5497e8dbb0c3d32083"
   dependencies:
     brace-expansion "^1.1.7"
+
+minimatch@^3.0.2, minimatch@^3.0.3:
+  version "3.0.3"
+  resolved "https://registry.yarnpkg.com/minimatch/-/minimatch-3.0.3.tgz#2a4e4090b96b2db06a9d7df01055a62a77c9b774"
+  dependencies:
+    brace-expansion "^1.0.0"
 
 minimist@0.0.8:
   version "0.0.8"
@@ -3265,6 +3261,10 @@ ncname@1.0.x:
 negotiator@0.6.1:
   version "0.6.1"
   resolved "https://registry.yarnpkg.com/negotiator/-/negotiator-0.6.1.tgz#2b327184e8992101177b28563fb5e7102acd0ca9"
+
+ngx-uploader@3.0.6:
+  version "3.0.6"
+  resolved "https://registry.yarnpkg.com/ngx-uploader/-/ngx-uploader-3.0.6.tgz#bdd3284b6227db484a35bdd1c6e0ba294a2d7a1e"
 
 no-case@^2.2.0:
   version "2.3.0"
@@ -5614,10 +5614,6 @@ yn@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/yn/-/yn-2.0.0.tgz#e5adabc8acf408f6385fc76495684c88e6af689a"
 
-zone.js@0.8.12:
+zone.js@0.8.12, zone.js@^0.8.4:
   version "0.8.12"
   resolved "https://registry.yarnpkg.com/zone.js/-/zone.js-0.8.12.tgz#86ff5053c98aec291a0bf4bbac501d694a05cfbb"
-
-zone.js@^0.8.4:
-  version "0.8.11"
-  resolved "https://registry.yarnpkg.com/zone.js/-/zone.js-0.8.11.tgz#742befb17fbc49a571712b8c7d87e58ca26fd886"
