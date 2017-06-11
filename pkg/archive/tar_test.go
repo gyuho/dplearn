@@ -3,6 +3,8 @@ package archive
 import (
 	"os"
 	"testing"
+
+	"github.com/golang/glog"
 )
 
 /*
@@ -16,4 +18,5 @@ func TestTarGz(t *testing.T) {
 	if err := TarGz("test-etcd.data", "test-etcd.tar.gz"); err != nil {
 		t.Fatal(err)
 	}
+	glog.Info("success!")
 }
