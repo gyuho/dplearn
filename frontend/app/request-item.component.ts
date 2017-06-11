@@ -2,17 +2,17 @@
 // Request represents TypeScript version of Request in https://github.com/gyuho/deephardway/blob/master/backend/web/web.go.
 export class Request {
   user_id: string;
-  url: string;
   raw_data: string;
   result: string;
+  delete_request: boolean;
   constructor(
-    url: string,
     d: string,
+    delete_request: boolean,
   ) {
     this.user_id = '';
-    this.url = url;
     this.raw_data = d;
     this.result = '';
+    this.delete_request = delete_request;
   }
 };
 

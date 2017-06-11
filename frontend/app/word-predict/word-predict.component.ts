@@ -56,7 +56,16 @@ export class WordPredictComponent implements OnDestroy {
     console.log('Disconnected (user left the page)!');
     clearInterval(this.pollingHandler);
 
-    // TODO: DELETE request to backend
+    // DELETE request to backend
+    console.log('sending DELETE');
+    let creq = new Request(this.inputValue, true);
+    let responseFromSubscribe: Item;
+    this.deleteRequest(creq).subscribe(
+      sresp => responseFromSubscribe = sresp,
+      error => this.srespError = <any>error,
+      () => this.processItem(responseFromSubscribe), // on-complete
+    );
+    console.log('sent DELETE');
 
     this.inputValue = '';
     this.srespError = '';
@@ -108,9 +117,13 @@ export class WordPredictComponent implements OnDestroy {
     return obser;
   }
 
+  deleteRequest(creq: Request): Observable<Item> {
+    creq.delete_request = true;
+    return this.postRequest(creq);
+  }
+
   processRequest() {
-    let val = this.inputValue;
-    let creq = new Request('http://aaa.com', val);
+    let creq = new Request(this.inputValue, false);
     let responseFromSubscribe: Item;
     this.postRequest(creq).subscribe(
       sresp => responseFromSubscribe = sresp,
