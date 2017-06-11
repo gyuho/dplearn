@@ -27,7 +27,7 @@ type Server struct {
 
 	donec chan struct{}
 
-	requestCacheMu sync.RWMutex
+	requestCacheMu sync.Mutex
 	requestCache   map[string]*etcdqueue.Item
 }
 
@@ -71,10 +71,6 @@ func StartServer(webPort, queuePortClient, queuePortPeer int, dataDir string) (*
 		requestCache: make(map[string]*etcdqueue.Item),
 	}
 
-	mux.Handle("/word-predict-request", &ContextAdapter{
-		ctx:     rootCtx,
-		handler: with(ContextHandlerFunc(clientRequestHandler), qu, srv),
-	})
 	mux.Handle("/cats-vs-dogs-request", &ContextAdapter{
 		ctx:     rootCtx,
 		handler: with(ContextHandlerFunc(clientRequestHandler), qu, srv),
@@ -83,6 +79,10 @@ func StartServer(webPort, queuePortClient, queuePortPeer int, dataDir string) (*
 	// 	ctx:     rootCtx,
 	// 	handler: with(ContextHandlerFunc(clientRequestHandler), qu,srv),
 	// })
+	mux.Handle("/word-predict-request", &ContextAdapter{
+		ctx:     rootCtx,
+		handler: with(ContextHandlerFunc(clientRequestHandler), qu, srv),
+	})
 
 	gcPeriod := 5 * time.Minute
 	go srv.gcCache(gcPeriod)
@@ -174,10 +174,11 @@ func (srv *Server) StopNotify() <-chan struct{} {
 
 // Request defines common requests.
 type Request struct {
-	UserID  string `json:"user_id"`
-	URL     string `json:"url"`
-	RawData string `json:"raw_data"`
-	Result  string `json:"result"`
+	UserID        string `json:"user_id"`
+	URL           string `json:"url"`
+	RawData       string `json:"raw_data"`
+	Result        string `json:"result"`
+	DeleteRequest bool   `json:"delete_request"`
 }
 
 func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.Request) error {
@@ -203,77 +204,72 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 			glog.Warning(errMsg)
 			return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: errMsg})
 		}
-		requestID := generateRequestID(reqPath, userID, creq.RawData)
 
-		srv.requestCacheMu.RLock()
-		item, ok := srv.requestCache[requestID]
-		srv.requestCacheMu.RUnlock()
-		if ok {
-			return json.NewEncoder(w).Encode(item)
-		}
-
-		glog.Infof("creating a new item with request ID %s", requestID)
-		creq.UserID = userID
-		creq.Result = ""
-		rb, err = json.Marshal(creq)
-		if err != nil {
-			return err
-		}
-		item = etcdqueue.CreateItem(reqPath, 100, string(rb))
-		glog.Infof("created a new item with request ID %s", requestID)
-
-		// 2. enqueue(schedule) the job
-		glog.Infof("enqueue-ing a new item with request ID %s", requestID)
-		ch, err := qu.Add(ctx, item)
-		if err != nil {
-			errMsg := fmt.Errorf("schedule error %q at %s", err.Error(), time.Now().String()[:29])
-			glog.Warning(errMsg)
-			return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: errMsg})
-		}
-		glog.Infof("enqueue-ed a new item with request ID %s", requestID)
-
-		// 3. watch for changes for later request polling
-		srv.requestCacheMu.Lock()
-		srv.requestCache[requestID] = item
-		srv.requestCacheMu.Unlock()
-
-		go srv.watch(ctx, requestID, item, creq, ch)
-
-	case http.MethodDelete:
-		rb, err := ioutil.ReadAll(req.Body)
-		if err != nil {
-			return err
-		}
-		req.Body.Close()
-
-		creq := Request{}
-		if err = json.Unmarshal(rb, &creq); err != nil {
-			errMsg := fmt.Errorf("JSON parse error %q at %s", err.Error(), time.Now().String()[:29])
-			glog.Warning(errMsg)
-			return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: errMsg})
-		}
-		requestID := generateRequestID(reqPath, userID, creq.RawData)
-
-		glog.Infof("requested to delete %q", requestID)
-		srv.requestCacheMu.Lock()
-		item, ok := srv.requestCache[requestID]
-		if !ok {
-			srv.requestCacheMu.Unlock()
-			glog.Infof("already deleted %q", requestID)
+		// TODO: bug in ngOnDestroy?
+		if creq.UserID == "" && creq.RawData == "" {
+			glog.Info("skipping empty request...")
 			return nil
 		}
-		delete(srv.requestCache, requestID)
-		srv.requestCacheMu.Unlock()
-		glog.Infof("deleted %q", requestID)
 
-		// dequeue the job
-		glog.Infof("canceling the item with request ID %q from the queue", requestID)
-		if err = qu.Delete(ctx, item); err != nil {
-			errMsg := fmt.Errorf("schedule error %q at %s", err.Error(), time.Now().String()[:29])
-			glog.Warning(errMsg)
-			return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: errMsg})
+		requestID := generateRequestID(reqPath, userID, creq.RawData)
+
+		switch creq.DeleteRequest {
+		case false:
+			srv.requestCacheMu.Lock()
+			item, ok := srv.requestCache[requestID]
+			srv.requestCacheMu.Unlock()
+			if ok {
+				return json.NewEncoder(w).Encode(item)
+			}
+
+			glog.Infof("creating a new item with request ID %s", requestID)
+			creq.UserID = userID
+			creq.Result = ""
+			rb, err = json.Marshal(creq)
+			if err != nil {
+				return err
+			}
+			item = etcdqueue.CreateItem(reqPath, 100, string(rb))
+			glog.Infof("created a new item with request ID %s", requestID)
+
+			// 2. enqueue(schedule) the job
+			glog.Infof("enqueue-ing a new item with request ID %s", requestID)
+			ch, err := qu.Add(ctx, item)
+			if err != nil {
+				errMsg := fmt.Errorf("schedule error %q at %s", err.Error(), time.Now().String()[:29])
+				glog.Warning(errMsg)
+				return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: errMsg})
+			}
+			glog.Infof("enqueue-ed a new item with request ID %s", requestID)
+
+			// 3. watch for changes for later request polling
+			srv.requestCacheMu.Lock()
+			srv.requestCache[requestID] = item
+			srv.requestCacheMu.Unlock()
+
+			go srv.watch(ctx, requestID, item, creq, ch)
+
+		case true:
+			glog.Infof("requested to delete %q", requestID)
+			srv.requestCacheMu.Lock()
+			item, ok := srv.requestCache[requestID]
+			if !ok {
+				srv.requestCacheMu.Unlock()
+				glog.Infof("already deleted %q", requestID)
+				return nil
+			}
+			delete(srv.requestCache, requestID)
+			glog.Infof("deleted %q", requestID)
+			glog.Infof("canceling the item with request ID %q from the queue", requestID)
+			if err = qu.Delete(ctx, item); err != nil {
+				errMsg := fmt.Errorf("schedule error %q at %s", err.Error(), time.Now().String()[:29])
+				glog.Warning(errMsg)
+				srv.requestCacheMu.Unlock()
+				return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: errMsg})
+			}
+			glog.Infof("canceled the item with request ID %q from the queue", requestID)
+			srv.requestCacheMu.Unlock()
 		}
-		glog.Infof("canceled the item with request ID %q from the queue", requestID)
 
 	default:
 		http.Error(w, "Method Not Allowed", 405)
@@ -293,11 +289,12 @@ func (srv *Server) watch(ctx context.Context, requestID string, item *etcdqueue.
 		default:
 		}
 
-		srv.requestCacheMu.RLock()
+		srv.requestCacheMu.Lock()
 		_, ok := srv.requestCache[requestID]
-		srv.requestCacheMu.RUnlock()
 		if !ok {
 			glog.Infof("%q is deleted; exiting watch routine", requestID)
+			srv.requestCacheMu.Unlock()
+			return
 		}
 
 		// TODO: watch from queue until it's done, feed from queue service
@@ -311,10 +308,9 @@ func (srv *Server) watch(ctx context.Context, requestID string, item *etcdqueue.
 		item.Progress = (cnt + 1) * 10
 		cnt++
 
-		srv.requestCacheMu.Lock()
 		srv.requestCache[requestID] = item
 		srv.requestCacheMu.Unlock()
-		glog.Infof("updated item with request ID %s", requestID)
+		glog.Infof("updated item with request ID %q", requestID)
 
 		select {
 		case <-srv.rootCtx.Done():
