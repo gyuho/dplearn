@@ -385,8 +385,9 @@ func fetchImage(cache lru.Cache, ep string) (string, []byte, error) {
 		switch filepath.Ext(rawPath) {
 		case ".jpg":
 		case ".jpeg":
+		case ".png":
 		default:
-			return rawPath, nil, fmt.Errorf("does not support image format %q in %q (only support 'jpg', 'jpeg')", filepath.Ext(rawPath), rawPath)
+			return rawPath, nil, fmt.Errorf("not support %q in %q (must be jpg, jpeg, png)", filepath.Ext(rawPath), rawPath)
 		}
 		glog.Infof("downloading %q", u.String())
 		var dresp *http.Response
