@@ -119,7 +119,7 @@ ExecStart=/usr/bin/nvidia-docker run \
   --name ipython-gpu \
   --ulimit nofile=262144:262144 \
   gcr.io/deephardway/deephardway:latest-gpu \
-  /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && PASSWORD='' ./run_jupyter.sh -y --allow-root"
+  /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && PASSWORD='' ./run_jupyter.sh -y"
 
 ExecStop=/usr/bin/docker rm --force ipython-gpu
 

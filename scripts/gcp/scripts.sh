@@ -41,9 +41,10 @@ sudo systemctl stop deephardway-gpu.service
 sudo systemctl disable deephardway-gpu.service
 
 
+systemctl enable reverse-proxy.service
+systemctl start reverse-proxy.service
 
-
-
+sudo journalctl -u reverse-proxy.service -l --no-pager|less
 
 
 

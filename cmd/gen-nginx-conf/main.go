@@ -29,7 +29,8 @@ func main() {
 	} else {
 		ip := strings.TrimSpace(string(bts))
 		glog.Infof("found public host IP %q", ip)
-		cfg.ServerName = ip + " " + cfg.ServerName
+		// cfg.ServerName = ip + " " + cfg.ServerName
+		cfg.ServerName = ip
 	}
 
 	buf := new(bytes.Buffer)
