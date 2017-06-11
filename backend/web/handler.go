@@ -233,7 +233,8 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 			}
 
 			// TODO: decode or pass to worker
-			fmt.Println(rawPath, string(imageBytes[:5]))
+			creq.RawData = string(imageBytes)
+			fmt.Println(rawPath, creq.RawData[:5])
 
 		case "/mnist-request":
 
