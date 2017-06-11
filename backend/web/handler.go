@@ -359,7 +359,7 @@ func (srv *Server) watch(ctx context.Context, requestID string, item *etcdqueue.
 const (
 	imageCacheSize      = 100
 	imageCacheBucket    = "image-cache"
-	imageCacheSizeLimit = 15000000 // 15 MB
+	imageCacheSizeLimit = 20000000 // 20 MB
 )
 
 func fetchImage(cache lru.Cache, ep string) (string, []byte, error) {
