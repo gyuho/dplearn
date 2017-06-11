@@ -76,7 +76,12 @@ export class CatsVsDogsComponent implements OnDestroy {
     this.sresp = resp;
     this.result = resp.value;
     if (resp.error !== '') {
-      this.result = resp.value + '(' + resp.error + ')';
+      clearInterval(this.pollingHandler);
+      if (this.result !== '') {
+        this.result = resp.value + '(' + resp.error + ')';
+      } else {
+        this.result = resp.error;
+      }
     }
     if (resp.canceled === true) {
       this.result += ' - canceled!';
