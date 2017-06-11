@@ -42,7 +42,8 @@ type Item struct {
 	Canceled bool `json:"canceled"`
 
 	// Error contains any error message.
-	Error error `json:"error"`
+	// It's defined as string for different language interpolation.
+	Error string `json:"error"`
 }
 
 // CreateItem creates an item with auto-generated ID. The ID uses unix
@@ -58,7 +59,7 @@ func CreateItem(bucket string, weight uint64, value string) *Item {
 		Key:       path.Join(pfxScheduled, bucket, fmt.Sprintf("%05d%035X", weight, time.Now().UnixNano())),
 		Value:     value,
 		Progress:  0,
-		Error:     nil,
+		Error:     "",
 	}
 }
 
@@ -303,7 +304,7 @@ func (qu *queue) Add(ctx context.Context, it *Item) (ItemWatcher, error) {
 			select {
 			case wresp := <-wch:
 				if len(wresp.Events) != 1 {
-					item.Error = fmt.Errorf("watcher: %q expects 1 event from watch, got %+v", key, wresp.Events)
+					item.Error = fmt.Sprintf("watcher: %q expects 1 event from watch, got %+v", key, wresp.Events)
 					ch <- &item
 					close(ch)
 					return
@@ -315,7 +316,7 @@ func (qu *queue) Add(ctx context.Context, it *Item) (ItemWatcher, error) {
 					}
 					var oldItem Item
 					if err := json.Unmarshal(wresp.Events[0].PrevKv.Value, &oldItem); err != nil {
-						item.Error = fmt.Errorf("watcher: cannot parse %s", item.Value)
+						item.Error = fmt.Sprintf("watcher: cannot parse %s", item.Value)
 						ch <- &item
 						close(ch)
 						return
@@ -329,14 +330,14 @@ func (qu *queue) Add(ctx context.Context, it *Item) (ItemWatcher, error) {
 					return
 				}
 				if err := json.Unmarshal(wresp.Events[0].Kv.Value, &item); err != nil {
-					item.Error = fmt.Errorf("watcher: cannot parse %s", string(wresp.Events[0].Kv.Value))
+					item.Error = fmt.Sprintf("watcher: cannot parse %s", string(wresp.Events[0].Kv.Value))
 					ch <- &item
 					close(ch)
 					return
 				}
 
 				ch <- &item
-				if item.Error != nil {
+				if item.Error != "" {
 					glog.Warningf("watcher: watched item contains error %v", item.Error)
 					close(ch)
 					return
@@ -344,7 +345,7 @@ func (qu *queue) Add(ctx context.Context, it *Item) (ItemWatcher, error) {
 				glog.Infof("watcher: %q has been updated", key)
 
 			case <-ctx.Done():
-				item.Error = ctx.Err()
+				item.Error = ctx.Err().Error()
 				ch <- &item
 				close(ch)
 				return
