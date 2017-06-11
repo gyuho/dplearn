@@ -357,8 +357,9 @@ func (srv *Server) watch(ctx context.Context, requestID string, item *etcdqueue.
 }
 
 const (
-	imageCacheSize   = 100
-	imageCacheBucket = "image-cache"
+	imageCacheSize      = 100
+	imageCacheBucket    = "image-cache"
+	imageCacheSizeLimit = 15000000 // 15 MB
 )
 
 func fetchImage(cache lru.Cache, ep string) (string, []byte, error) {
@@ -397,6 +398,9 @@ func fetchImage(cache lru.Cache, ep string) (string, []byte, error) {
 			return rawPath, nil, err
 		}
 		dresp.Body.Close()
+		if len(ibt) > imageCacheSizeLimit {
+			return rawPath, nil, fmt.Errorf("%q is too large (%s, limit %s)", rawPath, humanize.Bytes(uint64(len(ibt))), humanize.Bytes(uint64(imageCacheSizeLimit)))
+		}
 		glog.Infof("downloaded %q (%s)", u.String(), humanize.Bytes(uint64(len(ibt))))
 
 		glog.Infof("storing %q into cache", rawPath)
@@ -404,7 +408,6 @@ func fetchImage(cache lru.Cache, ep string) (string, []byte, error) {
 			return rawPath, nil, err
 		}
 		glog.Infof("stored %q into cache", rawPath)
-
 	} else { // exist in cache, just use the one from cache
 		glog.Infof("fetching %q from cache", rawPath)
 		var ok bool
