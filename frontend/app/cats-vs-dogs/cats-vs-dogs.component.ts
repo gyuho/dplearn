@@ -46,7 +46,7 @@ export class CatsVsDogsComponent implements OnDestroy {
   pollingHandler;
 
   constructor(private http: Http, public snackBar: MdSnackBar) {
-    this.inputValue = '';
+    this.inputValue = 'https://images.pexels.com/photos/127028/pexels-photo-127028.jpeg?w=1260&h=750&auto=compress&cs=tinysrgb';
     this.srespError = '';
     this.result = 'No results to show yet...';
   }

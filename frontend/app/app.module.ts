@@ -13,7 +13,7 @@ import {
   MdInputModule,
   MdSnackBarModule,
   MdProgressSpinnerModule,
-  MdIconModule,
+  MdChipsModule,
 } from '@angular/material';
 
 import { AppComponent } from './app.component';
@@ -36,7 +36,7 @@ import { routing, routedComponents } from './app.routing';
     MdInputModule,
     MdSnackBarModule,
     MdProgressSpinnerModule,
-    MdIconModule,
+    MdChipsModule,
 
     routing,
   ],

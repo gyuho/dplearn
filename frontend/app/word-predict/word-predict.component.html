@@ -26,7 +26,10 @@
             <div class="block block-copy half">
                 <p>
                     <md-progress-spinner *ngIf="progress === 0" [color]="spinnerColor" [mode]="spinnerMode"></md-progress-spinner>
-                    <md-icon *ngIf="progress === 100" svgIcon="thumbs-up"></md-icon>
+                    <md-chip-list *ngIf="progress === 100">
+                        <md-chip color="primary" selected="true">Done!</md-chip>
+                    </md-chip-list>
+                    <br>
                     {{result}}
                 </p>
             </div>
