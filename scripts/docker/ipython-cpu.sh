@@ -23,6 +23,7 @@ docker run \
 # source activate py36
 
 <<COMMENT
+# if run with Python 2
 docker run \
   --rm \
   -it \

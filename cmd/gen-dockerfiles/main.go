@@ -150,6 +150,7 @@ RUN conda update conda \
   && conda config --system --add channels r \
   && conda info \
   && conda --version \
+  && conda install --yes nb_conda \
   && conda create --yes --name py27 \
   python=2.7 \
   ipykernel \
@@ -201,11 +202,8 @@ RUN conda update conda \
   'r-crayon=1.3*' \
   'r-randomforest=4.6*' \
   && conda clean -tipsy \
-  && source activate py27 \
-  && pip --no-cache-dir install keras==1.2.2 \
-  && source activate py36 \
-  && pip --no-cache-dir install keras==1.2.2 \
-  && source activate py27 \
+  && source activate py27 && pip --no-cache-dir install keras==1.2.2 \
+  && source activate py36 && pip --no-cache-dir install keras==1.2.2 \
   && echo $'[global]\n\
 device = {{.Device}}\n\
 floatX = float32\n\
@@ -222,9 +220,6 @@ root = /usr/local/cuda\n'\
 }\n'\
 > ${HOME}/.keras/keras.json \
   && cat ${HOME}/.keras/keras.json \
-  && which python \
-  && which python3 \
-  && which pip \
   && conda list
 
 {{.NVIDIAcuDNN}}

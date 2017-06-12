@@ -1,4 +1,4 @@
-# Last Updated at 2017-06-12 01:52:31.747466955 -0700 PDT
+# Last Updated at 2017-06-12 02:27:13.414572158 -0700 PDT
 # This Dockerfile contains everything needed for development and production use.
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile.gpu
@@ -79,6 +79,7 @@ RUN conda update conda \
   && conda config --system --add channels r \
   && conda info \
   && conda --version \
+  && conda install --yes nb_conda \
   && conda create --yes --name py27 \
   python=2.7 \
   ipykernel \
@@ -130,11 +131,8 @@ RUN conda update conda \
   'r-crayon=1.3*' \
   'r-randomforest=4.6*' \
   && conda clean -tipsy \
-  && source activate py27 \
-  && pip --no-cache-dir install keras==1.2.2 \
-  && source activate py36 \
-  && pip --no-cache-dir install keras==1.2.2 \
-  && source activate py27 \
+  && source activate py27 && pip --no-cache-dir install keras==1.2.2 \
+  && source activate py36 && pip --no-cache-dir install keras==1.2.2 \
   && echo $'[global]\n\
 device = gpu\n\
 floatX = float32\n\
@@ -151,9 +149,6 @@ root = /usr/local/cuda\n'\
 }\n'\
 > ${HOME}/.keras/keras.json \
   && cat ${HOME}/.keras/keras.json \
-  && which python \
-  && which python3 \
-  && which pip \
   && conda list
 
 # Tensorflow GPU image already includes https://developer.nvidia.com/cudnn
