@@ -353,7 +353,7 @@ func (srv *Server) watch(ctx context.Context, requestID string, ch <-chan *etcdq
 const (
 	imageCacheSize      = 100
 	imageCacheBucket    = "image-cache"
-	imageCacheSizeLimit = 20000000 // 20 MB
+	imageCacheSizeLimit = 15000000 // 15 MB
 )
 
 func cacheImage(cache lru.Cache, ep string) (string, error) {
@@ -389,9 +389,20 @@ func cacheImage(cache lru.Cache, ep string) (string, error) {
 		default:
 			return "", fmt.Errorf("not support %q in %q (must be jpg, jpeg, png)", filepath.Ext(rawPath), rawPath)
 		}
-		glog.Infof("downloading %q", u.String())
+
+		var hresp *http.Response
+		hresp, err = http.Head(rawPath)
+		if err != nil {
+			return "", err
+		}
+		hresp.Body.Close()
+		if hresp.ContentLength > imageCacheSizeLimit {
+			return "", fmt.Errorf("%q is too big; %s > %s(limit)", rawPath, humanize.Bytes(uint64(hresp.ContentLength)), humanize.Bytes(uint64(imageCacheSizeLimit)))
+		}
+
+		glog.Infof("downloading %q", rawPath)
 		var dresp *http.Response
-		dresp, err = http.Get(u.String())
+		dresp, err = http.Get(rawPath)
 		if err != nil {
 			return "", err
 		}
@@ -404,7 +415,7 @@ func cacheImage(cache lru.Cache, ep string) (string, error) {
 		if len(data) > imageCacheSizeLimit {
 			return "", fmt.Errorf("%q is too large (%s, limit %s)", rawPath, humanize.Bytes(uint64(len(data))), humanize.Bytes(uint64(imageCacheSizeLimit)))
 		}
-		glog.Infof("downloaded %q (%s)", u.String(), humanize.Bytes(uint64(len(data))))
+		glog.Infof("downloaded %q (%s)", rawPath, humanize.Bytes(uint64(len(data))))
 
 		fpath = filepath.Join("/tmp", base64.StdEncoding.EncodeToString([]byte(rawPath))+filepath.Ext(rawPath))
 
