@@ -1,6 +1,7 @@
 # https://gcr.io/tensorflow/tensorflow
+# https://github.com/tensorflow/tensorflow/tree/master/tensorflow/tools/docker
 device: cpu
-tensorflow-base-image: gcr.io/tensorflow/tensorflow:1.2.0-rc1
+tensorflow-base-image: gcr.io/tensorflow/tensorflow:1.2.0-rc2
 
 # https://golang.org/dl/
 go-version: 1.8.3
