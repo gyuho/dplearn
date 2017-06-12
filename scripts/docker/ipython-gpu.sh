@@ -17,4 +17,4 @@ nvidia-docker run \
   -p 8888:8888 \
   --volume=`pwd`/notebooks:/gopath/src/github.com/gyuho/deephardway/notebooks \
   gcr.io/deephardway/deephardway:latest-gpu \
-  /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && PASSWORD='' ./run_jupyter.sh -y --notebook-dir=./notebooks"
+  /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && PASSWORD='' ./run_jupyter.sh -y  --allow-root --notebook-dir=./notebooks"

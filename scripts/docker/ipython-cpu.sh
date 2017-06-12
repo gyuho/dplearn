@@ -18,18 +18,9 @@ docker run \
   -p 8888:8888 \
   --volume=`pwd`/notebooks:/gopath/src/github.com/gyuho/deephardway/notebooks \
   gcr.io/deephardway/deephardway:latest-cpu \
-  /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && PASSWORD='' ./run_jupyter.sh -y --notebook-dir=./notebooks"
-
-# source activate py36
+  /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && source activate r && PASSWORD='' ./run_jupyter.sh -y --allow-root --notebook-dir=./notebooks"
 
 <<COMMENT
-# if run with Python 2
-docker run \
-  --rm \
-  -it \
-  -p 8888:8888 \
-  --volume=`pwd`/notebooks:/gopath/src/github.com/gyuho/deephardway/notebooks \
-  gcr.io/deephardway/deephardway:latest-cpu \
-  /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && PASSWORD='' ./run_jupyter.sh -y --allow-root --notebook-dir=./notebooks"
+source activate r && PASSWORD='' ./run_jupyter.sh -y --allow-root --notebook-dir=./notebooks
+source activate py36 && PASSWORD='' ./run_jupyter.sh -y --allow-root --notebook-dir=./notebooks
 COMMENT
-
