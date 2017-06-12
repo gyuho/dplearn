@@ -412,9 +412,6 @@ func cacheImage(cache lru.Cache, ep string) (string, error) {
 			return "", err
 		}
 		dresp.Body.Close()
-		if len(data) > imageCacheSizeLimit {
-			return "", fmt.Errorf("%q is too large (%s, limit %s)", rawPath, humanize.Bytes(uint64(len(data))), humanize.Bytes(uint64(imageCacheSizeLimit)))
-		}
 		glog.Infof("downloaded %q (%s)", rawPath, humanize.Bytes(uint64(len(data))))
 
 		fpath = filepath.Join("/tmp", base64.StdEncoding.EncodeToString([]byte(rawPath))+filepath.Ext(rawPath))
