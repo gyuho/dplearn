@@ -2,6 +2,7 @@ package web
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -222,18 +223,17 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 
 		switch reqPath {
 		case "/cats-vs-dogs-request":
-			var rawPath string
-			var imageBytes []byte
-			rawPath, imageBytes, err = fetchImage(cache, creq.RawData)
+			var fpath string
+			fpath, err = cacheImage(cache, creq.RawData)
 			if err != nil {
 				err = fmt.Errorf("error %q while fetching %q", err.Error(), creq.RawData)
 				glog.Warning(err)
 				return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: err.Error()})
 			}
 
-			// TODO: decode or pass to worker
-			creq.RawData = string(imageBytes)
-			fmt.Println(rawPath, creq.RawData[:5])
+			// TODO: pass to worker
+			creq.RawData = fpath
+			fmt.Println(creq.RawData)
 
 		case "/mnist-request":
 
@@ -251,8 +251,8 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 		case false:
 			srv.requestCacheMu.Lock()
 			item, ok := srv.requestCache[requestID]
-			srv.requestCacheMu.Unlock()
 			if ok {
+				srv.requestCacheMu.Unlock()
 				return json.NewEncoder(w).Encode(item)
 			}
 
@@ -261,6 +261,9 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 			creq.Result = ""
 			rb, err = json.Marshal(creq)
 			if err != nil {
+				srv.requestCacheMu.Unlock()
+				err = fmt.Errorf("json.Marshal error %q at %s", err.Error(), time.Now().String()[:29])
+				glog.Warning(err)
 				return err
 			}
 			item = etcdqueue.CreateItem(reqPath, 100, string(rb))
@@ -270,14 +273,14 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 			glog.Infof("enqueue-ing a new item with request ID %s", requestID)
 			ch, err := qu.Add(ctx, item)
 			if err != nil {
-				err = fmt.Errorf("schedule error %q at %s", err.Error(), time.Now().String()[:29])
+				srv.requestCacheMu.Unlock()
+				err = fmt.Errorf("qu.Add error %q at %s", err.Error(), time.Now().String()[:29])
 				glog.Warning(err)
 				return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: err.Error()})
 			}
 			glog.Infof("enqueue-ed a new item with request ID %s", requestID)
 
 			// 3. watch for changes for later request polling
-			srv.requestCacheMu.Lock()
 			srv.requestCache[requestID] = item
 			srv.requestCacheMu.Unlock()
 
@@ -362,10 +365,10 @@ const (
 	imageCacheSizeLimit = 20000000 // 20 MB
 )
 
-func fetchImage(cache lru.Cache, ep string) (string, []byte, error) {
+func cacheImage(cache lru.Cache, ep string) (string, error) {
 	u, err := url.Parse(strings.TrimSpace(ep))
 	if err != nil {
-		return "", nil, err
+		return "", err
 	}
 
 	rawPath := strings.TrimSpace(u.String())
@@ -376,49 +379,71 @@ func fetchImage(cache lru.Cache, ep string) (string, []byte, error) {
 	var vi interface{}
 	vi, err = cache.Get(imageCacheBucket, rawPath)
 	if err != nil && err != lru.ErrKeyNotFound {
-		return rawPath, nil, err
+		return "", err
 	}
 
-	var data []byte
-	if err == lru.ErrKeyNotFound { // not exist in cache, download, and cache it!
+	var fpath string
+	if err != lru.ErrKeyNotFound { // exist in cache, just use the one from cache
+		glog.Infof("fetching %q from cache", rawPath)
+		var ok bool
+		fpath, ok = vi.(string)
+		if !ok {
+			return fpath, fmt.Errorf("expected bytes type in 'image-cache' bucket, got %v", reflect.TypeOf(vi))
+		}
+		glog.Infof("fetched %q from cache", rawPath)
+	} else { // not exist in cache, download, and cache it!
 		switch filepath.Ext(rawPath) {
 		case ".jpg", ".jpeg":
-
 		case ".png":
-
 		default:
-			return rawPath, nil, fmt.Errorf("not support %q in %q (must be jpg, jpeg, png)", filepath.Ext(rawPath), rawPath)
+			return "", fmt.Errorf("not support %q in %q (must be jpg, jpeg, png)", filepath.Ext(rawPath), rawPath)
 		}
 		glog.Infof("downloading %q", u.String())
 		var dresp *http.Response
 		dresp, err = http.Get(u.String())
 		if err != nil {
-			return rawPath, nil, err
+			return "", err
 		}
+		var data []byte
 		data, err = ioutil.ReadAll(dresp.Body)
 		if err != nil {
-			return rawPath, nil, err
+			return "", err
 		}
 		dresp.Body.Close()
 		if len(data) > imageCacheSizeLimit {
-			return rawPath, nil, fmt.Errorf("%q is too large (%s, limit %s)", rawPath, humanize.Bytes(uint64(len(data))), humanize.Bytes(uint64(imageCacheSizeLimit)))
+			return "", fmt.Errorf("%q is too large (%s, limit %s)", rawPath, humanize.Bytes(uint64(len(data))), humanize.Bytes(uint64(imageCacheSizeLimit)))
 		}
 		glog.Infof("downloaded %q (%s)", u.String(), humanize.Bytes(uint64(len(data))))
 
+		fpath = filepath.Join("/tmp", base64.StdEncoding.EncodeToString([]byte(rawPath))+filepath.Ext(rawPath))
+
+		glog.Infof("saving %q to %q", rawPath, fpath)
+		if err = toFile(data, fpath); err != nil {
+			return fpath, err
+		}
+		glog.Infof("saved %q to %q", rawPath, fpath)
+
 		glog.Infof("storing %q into cache", rawPath)
-		if err = cache.Put(imageCacheBucket, rawPath, data); err != nil {
-			return rawPath, nil, err
+		if err = cache.Put(imageCacheBucket, rawPath, fpath); err != nil {
+			return "", err
 		}
 		glog.Infof("stored %q into cache", rawPath)
-	} else { // exist in cache, just use the one from cache
-		glog.Infof("fetching %q from cache", rawPath)
-		var ok bool
-		data, ok = vi.([]byte)
-		if !ok {
-			return rawPath, nil, fmt.Errorf("expected bytes type in 'image-cache' bucket, got %v", reflect.TypeOf(vi))
-		}
-		glog.Infof("fetched %q from cache", rawPath)
 	}
 
-	return rawPath, data, nil
+	return fpath, nil
+}
+
+func toFile(data []byte, fpath string) error {
+	f, err := os.OpenFile(fpath, os.O_RDWR|os.O_TRUNC, 0777)
+	if err != nil {
+		f, err = os.Create(fpath)
+		if err != nil {
+			glog.Fatal(err)
+		}
+	}
+	defer f.Close()
+	if _, err := f.Write(data); err != nil {
+		glog.Fatal(err)
+	}
+	return f.Sync()
 }
