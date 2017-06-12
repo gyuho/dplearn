@@ -1,6 +1,7 @@
 package web
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -9,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -18,6 +20,7 @@ import (
 	etcdqueue "github.com/gyuho/deephardway/pkg/etcd-queue"
 	"github.com/gyuho/deephardway/pkg/lru"
 
+	"github.com/coreos/etcd/clientv3"
 	humanize "github.com/dustin/go-humanize"
 	"github.com/golang/glog"
 )
@@ -210,14 +213,13 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 
 		creq := Request{}
 		if err = json.Unmarshal(rb, &creq); err != nil {
-			err = fmt.Errorf("JSON parse error %q at %s", err.Error(), time.Now().String()[:29])
+			err = fmt.Errorf("JSON parse error %q", err.Error())
 			glog.Warning(err)
 			return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: err.Error()})
 		}
 
-		// TODO: bug in ngOnDestroy?
-		if creq.RawData == "" {
-			glog.Info("skipping empty request...")
+		if creq.RawData == "" { // TODO: bug in ngOnDestroy?
+			glog.Warning("skipping empty request...")
 			return nil
 		}
 
@@ -230,9 +232,9 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 				glog.Warning(err)
 				return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: err.Error()})
 			}
+			creq.RawData = fpath
 
 			// TODO: pass to worker
-			creq.RawData = fpath
 			fmt.Println(creq.RawData)
 
 		case "/mnist-request":
@@ -240,7 +242,7 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 		case "/word-predict-request":
 
 		default:
-			err = fmt.Errorf("unknown request %q at %s", reqPath, time.Now().String()[:29])
+			err = fmt.Errorf("unknown request %q", reqPath)
 			glog.Warning(err)
 			return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: err.Error()})
 		}
@@ -248,44 +250,6 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 		requestID := generateRequestID(reqPath, userID, creq.RawData)
 
 		switch creq.DeleteRequest {
-		case false:
-			srv.requestCacheMu.Lock()
-			item, ok := srv.requestCache[requestID]
-			if ok {
-				srv.requestCacheMu.Unlock()
-				return json.NewEncoder(w).Encode(item)
-			}
-
-			glog.Infof("creating a new item with request ID %s", requestID)
-			creq.UserID = userID
-			creq.Result = ""
-			rb, err = json.Marshal(creq)
-			if err != nil {
-				srv.requestCacheMu.Unlock()
-				err = fmt.Errorf("json.Marshal error %q at %s", err.Error(), time.Now().String()[:29])
-				glog.Warning(err)
-				return err
-			}
-			item = etcdqueue.CreateItem(reqPath, 100, string(rb))
-			glog.Infof("created a new item with request ID %s", requestID)
-
-			// 2. enqueue(schedule) the job
-			glog.Infof("enqueue-ing a new item with request ID %s", requestID)
-			ch, err := qu.Add(ctx, item)
-			if err != nil {
-				srv.requestCacheMu.Unlock()
-				err = fmt.Errorf("qu.Add error %q at %s", err.Error(), time.Now().String()[:29])
-				glog.Warning(err)
-				return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: err.Error()})
-			}
-			glog.Infof("enqueue-ed a new item with request ID %s", requestID)
-
-			// 3. watch for changes for later request polling
-			srv.requestCache[requestID] = item
-			srv.requestCacheMu.Unlock()
-
-			go srv.watch(ctx, requestID, item, creq, ch)
-
 		case true:
 			glog.Infof("requested to delete %q", requestID)
 			srv.requestCacheMu.Lock()
@@ -296,16 +260,56 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 				return nil
 			}
 			delete(srv.requestCache, requestID)
-			glog.Infof("deleted %q", requestID)
-			glog.Infof("canceling the item with request ID %q from the queue", requestID)
 			if err = qu.Delete(ctx, item); err != nil {
-				err = fmt.Errorf("schedule error %q at %s", err.Error(), time.Now().String()[:29])
+				err = fmt.Errorf("qu.Delete error %q", err.Error())
 				glog.Warning(err)
 				srv.requestCacheMu.Unlock()
 				return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: err.Error()})
 			}
-			glog.Infof("canceled the item with request ID %q from the queue", requestID)
 			srv.requestCacheMu.Unlock()
+			glog.Infof("deleted %q", requestID)
+
+		case false:
+			srv.requestCacheMu.Lock()
+			item, ok := srv.requestCache[requestID]
+			if ok {
+				srv.requestCacheMu.Unlock()
+				return json.NewEncoder(w).Encode(item)
+			}
+
+			glog.Infof("creating a item with request ID %s", requestID)
+			creq.UserID = userID
+			creq.Result = ""
+			rb, err = json.Marshal(creq)
+			if err != nil {
+				srv.requestCacheMu.Unlock()
+				err = fmt.Errorf("json.Marshal error %q", err.Error())
+				glog.Warning(err)
+				return err
+			}
+
+			// 2. enqueue(schedule) the job
+			item = etcdqueue.CreateItem(reqPath, 100, string(rb))
+			ch, err := qu.Add(ctx, item)
+			if err != nil {
+				srv.requestCacheMu.Unlock()
+				err = fmt.Errorf("qu.Add error %q", err.Error())
+				glog.Warning(err)
+				return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: err.Error()})
+			}
+
+			// 3. watch for changes from worker
+			// - now 'item' needs to wait until scheduled in 'path.Join(pfxWorker, bucket)'
+			// - waits until the worker processor computes the job
+			// - waits until the worker processor writes back to queue
+			// - queue watcher gets notified and writes back to 'path.Join(pfxScheduled, bucket)'
+			srv.requestCache[requestID] = item
+			srv.requestCacheMu.Unlock()
+			go srv.watch(ctx, requestID, ch)
+			glog.Infof("created a item with request ID %s", requestID)
+
+			// for testing, simulate worker process
+			go simulateTestWorker(qu, item)
 		}
 
 	default:
@@ -315,17 +319,9 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 	return nil
 }
 
-func (srv *Server) watch(ctx context.Context, requestID string, item *etcdqueue.Item, req Request, ch <-chan *etcdqueue.Item) {
-	cnt := 0
+func (srv *Server) watch(ctx context.Context, requestID string, ch <-chan *etcdqueue.Item) {
+	var item *etcdqueue.Item
 	for item.Progress < 100 {
-		select {
-		case <-srv.donec:
-			return
-		case <-ctx.Done():
-			return
-		default:
-		}
-
 		srv.requestCacheMu.Lock()
 		_, ok := srv.requestCache[requestID]
 		if !ok {
@@ -333,28 +329,19 @@ func (srv *Server) watch(ctx context.Context, requestID string, item *etcdqueue.
 			srv.requestCacheMu.Unlock()
 			return
 		}
-
-		// TODO: watch from queue until it's done, feed from queue service
-		time.Sleep(time.Second)
-		req.Result = fmt.Sprintf("Processing %+v at %s", req, time.Now().String()[:29])
-		rb, err := json.Marshal(req)
-		if err != nil {
-			panic(err)
-		}
-		item.Value = string(rb)
-		item.Progress = (cnt + 1) * 10
-		cnt++
-
-		srv.requestCache[requestID] = item
 		srv.requestCacheMu.Unlock()
-		glog.Infof("updated item with request ID %q", requestID)
 
+		// watch from queue until it's done, feed from queue service
 		select {
-		case <-srv.rootCtx.Done():
-			return
 		case <-srv.donec:
 			return
-		default:
+		case <-ctx.Done():
+			return
+		case item = <-ch:
+			srv.requestCacheMu.Lock()
+			srv.requestCache[requestID] = item
+			srv.requestCacheMu.Unlock()
+			glog.Infof("updated item with request ID %q", requestID)
 		}
 	}
 }
@@ -446,4 +433,77 @@ func toFile(data []byte, fpath string) error {
 		glog.Fatal(err)
 	}
 	return f.Sync()
+}
+
+func simulateTestWorker(qu etcdqueue.Queue, item *etcdqueue.Item) {
+	cli, err := clientv3.New(clientv3.Config{Endpoints: qu.ClientEndpoints()})
+	if err != nil {
+		panic(err)
+	}
+	defer cli.Close()
+
+	scheduleKey := item.Key
+	scheduleValue, err := json.Marshal(item)
+	if err != nil {
+		panic(err)
+	}
+
+	var newValue []byte
+	workerKey := path.Join("queue_worker", item.Bucket)
+	for {
+		gresp, err := cli.Get(context.Background(), workerKey)
+		if err != nil {
+			panic(err)
+		}
+		if len(gresp.Kvs) != 1 {
+			glog.Infof("%q is not yet scheduled for worker", workerKey)
+			time.Sleep(time.Second)
+			continue
+		}
+		if bytes.Equal(gresp.Kvs[0].Value, scheduleValue) {
+			glog.Infof("%q is now scheduled for worker (value: %q)", workerKey, string(scheduleValue))
+
+			var creq Request
+			if err = json.Unmarshal(gresp.Kvs[0].Value, &creq); err != nil {
+				panic(err)
+			}
+
+			// simulate that worker finishes computation
+			glog.Infof("updating %+v", creq)
+			creq.Result = "mocked result text at " + time.Now().String()[:26]
+			newValue, err = json.Marshal(creq)
+			if err != nil {
+				panic(err)
+			}
+			if _, err = cli.Put(context.Background(), workerKey, string(newValue)); err != nil {
+				panic(err)
+			}
+			glog.Infof("updated %q with %q", workerKey, string(newValue))
+			break
+		}
+
+		glog.Infof("%q is not yet scheduled; another job %q is in progress", workerKey, string(gresp.Kvs[0].Value))
+		time.Sleep(time.Second)
+	}
+	// scheduler catches this write and writes back to scheduleKey
+	for {
+		gresp, err := cli.Get(context.Background(), scheduleKey)
+		if err != nil {
+			panic(err)
+		}
+		if len(gresp.Kvs) != 1 {
+			glog.Fatalf("%q must have 1 KV (got %+v)", scheduleKey, gresp.Kvs)
+		}
+		if !bytes.Equal(gresp.Kvs[0].Value, newValue) {
+			if !bytes.Equal(gresp.Kvs[0].Value, scheduleValue) {
+				glog.Fatalf("%q must have old value %q if not new value, but got %q", scheduleKey, scheduleValue, gresp.Kvs[0].Value)
+			}
+			glog.Infof("%q has not yet received new value, still has %q", scheduleKey, gresp.Kvs[0].Value)
+			time.Sleep(time.Second)
+			continue
+		}
+
+		glog.Infof("%q now has new value (old value %q)", newValue, scheduleValue)
+		break
+	}
 }

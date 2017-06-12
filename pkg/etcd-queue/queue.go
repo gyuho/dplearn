@@ -269,11 +269,11 @@ func (qu *queue) Delete(ctx context.Context, it *Item) error {
 
 func (qu *queue) Add(ctx context.Context, it *Item) (ItemWatcher, error) {
 	key := it.Key
-	v, err := json.Marshal(it)
+	data, err := json.Marshal(it)
 	if err != nil {
 		return nil, err
 	}
-	val := string(v)
+	val := string(data)
 
 	qu.mu.Lock()
 	defer qu.mu.Unlock()
