@@ -49,8 +49,7 @@ func (g *Compute) ListMachines(ctx context.Context, zone string) ([]*compute.Ins
 	if err != nil {
 		return nil, err
 	}
-	l, err := compute.
-		NewInstancesService(csrv).
+	l, err := csrv.Instances.
 		List(g.projectID, zone).
 		Context(ctx).
 		Do()
@@ -79,8 +78,7 @@ func (g *Compute) CreateMacine(ctx context.Context, cfg InstanceConfig) (st *com
 	cfg.needDelete = false
 	instanceToCreate := cfg.genInstance()
 
-	_, err = compute.
-		NewInstancesService(csrv).
+	_, err = csrv.Instances.
 		Insert(g.projectID, cfg.Zone, &instanceToCreate).
 		Context(ctx).
 		Do()
@@ -108,11 +106,26 @@ func (g *Compute) SetMetadata(ctx context.Context, cfg InstanceConfig) error {
 	}
 	metadata := &compute.Metadata{Items: items}
 
-	_, err = compute.
-		NewInstancesService(csrv).
+	var op *compute.Operation
+	op, err = csrv.Instances.
 		SetMetadata(g.projectID, cfg.Zone, cfg.Name, metadata).
 		Context(ctx).
 		Do()
+	if err != nil {
+		return err
+	}
+
+	// call is asynchronous; poll for the completion of op
+	for {
+		op, err = csrv.ZoneOperations.Get(g.projectID, cfg.Zone, op.Name).Context(ctx).Do()
+		if err != nil {
+			return err
+		}
+		if op.Status == "DONE" {
+			break
+		}
+		time.Sleep(1 * time.Second)
+	}
 
 	glog.Infof("finished setting %d metadata on %q", len(cfg.MetadataItems), cfg.Name)
 	return err
@@ -127,8 +140,7 @@ func (g *Compute) StopMachine(ctx context.Context, cfg InstanceConfig) (st *comp
 		return nil, err
 	}
 
-	_, err = compute.
-		NewInstancesService(csrv).
+	_, err = csrv.Instances.
 		Stop(g.projectID, cfg.Zone, cfg.Name).
 		Context(ctx).
 		Do()
@@ -153,8 +165,7 @@ func (g *Compute) StartMachine(ctx context.Context, cfg InstanceConfig) (st *com
 		return nil, err
 	}
 
-	_, err = compute.
-		NewInstancesService(csrv).
+	_, err = csrv.Instances.
 		Start(g.projectID, cfg.Zone, cfg.Name).
 		Context(ctx).
 		Do()
@@ -178,8 +189,7 @@ func (g *Compute) DeleteMachine(ctx context.Context, cfg InstanceConfig) (st *co
 	if err != nil {
 		return nil, err
 	}
-	_, err = compute.
-		NewInstancesService(csrv).
+	_, err = csrv.Instances.
 		Delete(g.projectID, cfg.Zone, cfg.Name).
 		Context(ctx).
 		Do()
