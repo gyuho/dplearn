@@ -98,13 +98,21 @@ func (g *Compute) SetMetadata(ctx context.Context, cfg InstanceConfig) error {
 		return err
 	}
 
+	inst, err := csrv.Instances.Get(g.projectID, cfg.Zone, cfg.Name).Context(ctx).Do()
+	if err != nil {
+		return err
+	}
+
 	items := make([]*compute.MetadataItems, 0, len(cfg.MetadataItems))
 	for k, v := range cfg.MetadataItems {
 		// make sure to copy as value before passing as reference!
 		copied := v
 		items = append(items, &compute.MetadataItems{Key: k, Value: &copied})
 	}
-	metadata := &compute.Metadata{Items: items}
+	metadata := &compute.Metadata{
+		Items:       items,
+		Fingerprint: inst.Metadata.Fingerprint,
+	}
 
 	var op *compute.Operation
 	op, err = csrv.Instances.
