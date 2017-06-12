@@ -1,4 +1,4 @@
-# Last Updated at 2017-06-11 22:01:08.967838079 -0700 PDT
+# Last Updated at 2017-06-12 01:52:31.754639722 -0700 PDT
 # This Dockerfile contains everything needed for development and production use.
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile.gpu
@@ -79,9 +79,37 @@ RUN conda update conda \
   && conda config --system --add channels r \
   && conda info \
   && conda --version \
-  && conda install --yes \
+  && conda create --yes --name py27 \
+  python=2.7 \
+  ipykernel \
   pip \
   requests \
+  humanize \
+  bcolz \
+  theano \
+  r \
+  r-essentials \
+  'r-base=3.3.2' \
+  'r-irkernel=0.7*' \
+  'r-plyr=1.8*' \
+  'r-devtools=1.12*' \
+  'r-tidyverse=1.0*' \
+  'r-shiny=0.14*' \
+  'r-rmarkdown=1.2*' \
+  'r-forecast=7.3*' \
+  'r-rsqlite=1.1*' \
+  'r-reshape2=1.4*' \
+  'r-nycflights13=0.2*' \
+  'r-caret=6.0*' \
+  'r-rcurl=1.95*' \
+  'r-crayon=1.3*' \
+  'r-randomforest=4.6*' \
+  && conda create --yes --name py36 \
+  python=3.6 \
+  ipykernel \
+  pip \
+  requests \
+  humanize \
   bcolz \
   theano \
   r \
@@ -102,6 +130,11 @@ RUN conda update conda \
   'r-crayon=1.3*' \
   'r-randomforest=4.6*' \
   && conda clean -tipsy \
+  && source activate py27 \
+  && pip --no-cache-dir install keras==1.2.2 \
+  && source activate py36 \
+  && pip --no-cache-dir install keras==1.2.2 \
+  && source activate py27 \
   && echo $'[global]\n\
 device = cpu\n\
 floatX = float32\n\
@@ -109,11 +142,6 @@ floatX = float32\n\
 root = /usr/local/cuda\n'\
 > ${HOME}/.theanorc \
   && cat ${HOME}/.theanorc \
-  && conda create --name py27 python=2.7 ipykernel \
-  && conda create --name py36 python=3.6 ipykernel \
-  && conda list \
-  && source activate py27 && pip --no-cache-dir install keras==1.2.2 \
-  && source activate py36 && pip --no-cache-dir install keras==1.2.2 \
   && mkdir -p ${HOME}/.keras \
   && echo $'{\n\
   "image_dim_ordering": "th",\n\
@@ -125,7 +153,8 @@ root = /usr/local/cuda\n'\
   && cat ${HOME}/.keras/keras.json \
   && which python \
   && which python3 \
-  && which pip
+  && which pip \
+  && conda list
 
 # Built for CPU, no need to install 'cuda'
 
