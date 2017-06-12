@@ -41,7 +41,7 @@ type key int
 const (
 	serverKey key = iota
 	queueKey
-	lruCacheKey
+	cacheKey
 	userKey
 )
 
@@ -49,9 +49,8 @@ func with(h ContextHandler, srv *Server, qu etcdqueue.Queue, cache lru.Cache) Co
 	return ContextHandlerFunc(func(ctx context.Context, w http.ResponseWriter, req *http.Request) error {
 		ctx = context.WithValue(ctx, serverKey, srv)
 		ctx = context.WithValue(ctx, queueKey, qu)
-		ctx = context.WithValue(ctx, lruCacheKey, cache)
+		ctx = context.WithValue(ctx, cacheKey, cache)
 		ctx = context.WithValue(ctx, userKey, generateUserID(req))
-
 		return h.ServeHTTPContext(ctx, w, req)
 	})
 }
@@ -194,7 +193,7 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 	reqPath := req.URL.Path
 	srv := ctx.Value(serverKey).(*Server)
 	qu := ctx.Value(queueKey).(etcdqueue.Queue)
-	cache := ctx.Value(lruCacheKey).(lru.Cache)
+	cache := ctx.Value(cacheKey).(lru.Cache)
 	userID := ctx.Value(userKey).(string)
 
 	switch req.Method {
@@ -380,12 +379,13 @@ func fetchImage(cache lru.Cache, ep string) (string, []byte, error) {
 		return rawPath, nil, err
 	}
 
-	var ibt []byte
+	var data []byte
 	if err == lru.ErrKeyNotFound { // not exist in cache, download, and cache it!
 		switch filepath.Ext(rawPath) {
-		case ".jpg":
-		case ".jpeg":
+		case ".jpg", ".jpeg":
+
 		case ".png":
+
 		default:
 			return rawPath, nil, fmt.Errorf("not support %q in %q (must be jpg, jpeg, png)", filepath.Ext(rawPath), rawPath)
 		}
@@ -395,30 +395,30 @@ func fetchImage(cache lru.Cache, ep string) (string, []byte, error) {
 		if err != nil {
 			return rawPath, nil, err
 		}
-		ibt, err = ioutil.ReadAll(dresp.Body)
+		data, err = ioutil.ReadAll(dresp.Body)
 		if err != nil {
 			return rawPath, nil, err
 		}
 		dresp.Body.Close()
-		if len(ibt) > imageCacheSizeLimit {
-			return rawPath, nil, fmt.Errorf("%q is too large (%s, limit %s)", rawPath, humanize.Bytes(uint64(len(ibt))), humanize.Bytes(uint64(imageCacheSizeLimit)))
+		if len(data) > imageCacheSizeLimit {
+			return rawPath, nil, fmt.Errorf("%q is too large (%s, limit %s)", rawPath, humanize.Bytes(uint64(len(data))), humanize.Bytes(uint64(imageCacheSizeLimit)))
 		}
-		glog.Infof("downloaded %q (%s)", u.String(), humanize.Bytes(uint64(len(ibt))))
+		glog.Infof("downloaded %q (%s)", u.String(), humanize.Bytes(uint64(len(data))))
 
 		glog.Infof("storing %q into cache", rawPath)
-		if err = cache.Put(imageCacheBucket, rawPath, ibt); err != nil {
+		if err = cache.Put(imageCacheBucket, rawPath, data); err != nil {
 			return rawPath, nil, err
 		}
 		glog.Infof("stored %q into cache", rawPath)
 	} else { // exist in cache, just use the one from cache
 		glog.Infof("fetching %q from cache", rawPath)
 		var ok bool
-		ibt, ok = vi.([]byte)
+		data, ok = vi.([]byte)
 		if !ok {
 			return rawPath, nil, fmt.Errorf("expected bytes type in 'image-cache' bucket, got %v", reflect.TypeOf(vi))
 		}
 		glog.Infof("fetched %q from cache", rawPath)
 	}
 
-	return rawPath, ibt, nil
+	return rawPath, data, nil
 }
