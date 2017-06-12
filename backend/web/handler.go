@@ -309,7 +309,7 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 			glog.Infof("created a item with request ID %s", requestID)
 
 			// for testing, simulate worker process
-			go simulateTestWorker(qu, item)
+			go simulateWorker(qu, item)
 		}
 
 	default:
@@ -320,7 +320,7 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 }
 
 func (srv *Server) watch(ctx context.Context, requestID string, ch <-chan *etcdqueue.Item) {
-	var item *etcdqueue.Item
+	item := &etcdqueue.Item{Progress: 0}
 	for item.Progress < 100 {
 		srv.requestCacheMu.Lock()
 		_, ok := srv.requestCache[requestID]
@@ -338,6 +338,10 @@ func (srv *Server) watch(ctx context.Context, requestID string, ch <-chan *etcdq
 		case <-ctx.Done():
 			return
 		case item = <-ch:
+			if item.Canceled {
+				glog.Infof("%q is canceld; exiting watch routine", item.Key)
+				return
+			}
 			srv.requestCacheMu.Lock()
 			srv.requestCache[requestID] = item
 			srv.requestCacheMu.Unlock()
@@ -435,21 +439,25 @@ func toFile(data []byte, fpath string) error {
 	return f.Sync()
 }
 
-func simulateTestWorker(qu etcdqueue.Queue, item *etcdqueue.Item) {
+func simulateWorker(qu etcdqueue.Queue, item *etcdqueue.Item) {
+	origItem := item
+	time.Sleep(15 * time.Second)
+
 	cli, err := clientv3.New(clientv3.Config{Endpoints: qu.ClientEndpoints()})
 	if err != nil {
 		panic(err)
 	}
 	defer cli.Close()
 
-	scheduleKey := item.Key
-	scheduleValue, err := json.Marshal(item)
+	workerKey := path.Join("_wokr", origItem.Bucket)
+	scheduleKey := origItem.Key
+
+	scheduleValue, err := json.Marshal(origItem)
 	if err != nil {
 		panic(err)
 	}
 
 	var newValue []byte
-	workerKey := path.Join("queue_worker", item.Bucket)
 	for {
 		gresp, err := cli.Get(context.Background(), workerKey)
 		if err != nil {
@@ -471,7 +479,15 @@ func simulateTestWorker(qu etcdqueue.Queue, item *etcdqueue.Item) {
 			// simulate that worker finishes computation
 			glog.Infof("updating %+v", creq)
 			creq.Result = "mocked result text at " + time.Now().String()[:26]
-			newValue, err = json.Marshal(creq)
+			var rb []byte
+			rb, err = json.Marshal(creq)
+			if err != nil {
+				panic(err)
+			}
+			copied := *origItem
+			copied.Progress = 100
+			copied.Value = string(rb)
+			newValue, err = json.Marshal(copied)
 			if err != nil {
 				panic(err)
 			}
@@ -490,6 +506,11 @@ func simulateTestWorker(qu etcdqueue.Queue, item *etcdqueue.Item) {
 		gresp, err := cli.Get(context.Background(), scheduleKey)
 		if err != nil {
 			panic(err)
+		}
+		if len(gresp.Kvs) == 0 {
+			glog.Infof("%q has not been written to etcd yet", scheduleKey)
+			time.Sleep(time.Second)
+			continue
 		}
 		if len(gresp.Kvs) != 1 {
 			glog.Fatalf("%q must have 1 KV (got %+v)", scheduleKey, gresp.Kvs)

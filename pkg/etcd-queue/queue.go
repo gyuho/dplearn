@@ -89,9 +89,9 @@ type Queue interface {
 type ItemWatcher <-chan *Item
 
 const (
-	pfxWorker    = "queue_worker"    // ready/in-progress in worker process
-	pfxScheduled = "queue_scheduled" // requested by client, added on queue
-	pfxCompleted = "queue_completed" // finished by worker
+	pfxWorker    = "_wokr" // ready/in-progress in worker process
+	pfxScheduled = "_schd" // requested by client, added on queue
+	pfxCompleted = "_cmpl" // finished by worker
 
 	// progress value 100 means that the job is done!
 	maxProgress = 100
