@@ -24,10 +24,9 @@
                 </md-card>
             </div>
             <div class="block block-copy half">
-                <b>Results</b>
                 <p>
-                    <md-progress-spinner *ngIf="inProgress" [color]="spinnerColor" [mode]="spinnerMode" [value]="spinnerValue">
-                    </md-progress-spinner>
+                    <md-progress-spinner *ngIf="progress === 0" [color]="spinnerColor" [mode]="spinnerMode"></md-progress-spinner>
+                    <md-icon *ngIf="progress === 100" svgIcon="thumbs-up"></md-icon>
                     {{result}}
                 </p>
             </div>

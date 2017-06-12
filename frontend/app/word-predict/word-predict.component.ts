@@ -39,10 +39,9 @@ export class WordPredictComponent implements OnDestroy {
   srespError: string;
   result: string;
 
-  inProgress = false;
+  progress = 0;
   spinnerColor = 'primary';
-  spinnerMode = 'determinate';
-  spinnerValue = 0;
+  spinnerMode = 'indeterminate';
 
   pollingHandler;
 
@@ -53,10 +52,9 @@ export class WordPredictComponent implements OnDestroy {
   }
 
   ngOnDestroy() {
-    console.log('Disconnected (user left the page)!');
+    console.log('User left the page!');
     clearInterval(this.pollingHandler);
 
-    // DELETE request to backend
     console.log('sending DELETE');
     let creq = new Request(this.inputValue, true);
     let responseFromSubscribe: Item;
@@ -87,11 +85,8 @@ export class WordPredictComponent implements OnDestroy {
       this.result += ' - canceled!';
     }
 
-    this.inProgress = resp.progress < 100;
-    this.spinnerValue = resp.progress;
-
-    if (resp.progress === 100) {
-      console.log('Finished', resp);
+    this.progress = resp.progress;
+    if (this.progress === 100) {
       clearInterval(this.pollingHandler);
     }
   }
@@ -138,12 +133,10 @@ export class WordPredictComponent implements OnDestroy {
   }
 
   clickProcessRequest() {
-    this.snackBar.open('Predicting correct words...', 'Requested!', {
+    this.snackBar.open('Job scheduled! Waiting...', 'Requested!', {
       duration: 5000,
     });
-    this.inProgress = true;
-    this.spinnerMode = 'determinate';
-    this.spinnerValue = 0;
-    this.pollingHandler = setInterval(() => this.processRequest(), 1000);
+    this.progress = 0;
+    this.pollingHandler = setInterval(() => this.processRequest(), 5000);
   }
 }
