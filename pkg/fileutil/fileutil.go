@@ -2,6 +2,7 @@
 package fileutil
 
 import (
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
@@ -121,6 +122,15 @@ type FileInfo struct {
 	SizeTxt string
 }
 
+// GetFileInfo returns the file info of a single file.
+func GetFileInfo(fpath string) (FileInfo, error) {
+	s, err := os.Stat(fpath)
+	if err != nil {
+		return FileInfo{}, err
+	}
+	return FileInfo{Path: fpath, Size: uint64(s.Size()), SizeTxt: humanize.Bytes(uint64(s.Size()))}, nil
+}
+
 // FileInfoSlice is a slice of FileInfo.
 type FileInfoSlice []FileInfo
 
@@ -147,4 +157,28 @@ func WalkDir(dir string) ([]FileInfo, error) {
 	sort.Sort(FileInfoSlice(fs))
 
 	return fs, nil
+}
+
+// IsDirWriteable checks if dir is writable by writing and removing a file
+// to dir. It returns nil if dir is writable.
+func IsDirWriteable(dir string) error {
+	f := filepath.Join(dir, ".touch")
+	if err := ioutil.WriteFile(f, []byte(""), PrivateFileMode); err != nil {
+		return err
+	}
+	return os.Remove(f)
+}
+
+// TouchDirAll is similar to os.MkdirAll. It creates directories with 0700 permission if any directory
+// does not exists. TouchDirAll also ensures the given directory is writable.
+func TouchDirAll(dir string) error {
+	// If path is already a directory, MkdirAll does nothing
+	// and returns nil.
+	err := os.MkdirAll(dir, PrivateDirMode)
+	if err != nil {
+		// if mkdirAll("a/text") and "text" is not
+		// a directory, this will return syscall.ENOTDIR
+		return err
+	}
+	return IsDirWriteable(dir)
 }
