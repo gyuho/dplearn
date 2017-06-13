@@ -54,6 +54,12 @@
   version = "v3.0.0"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/dsnet/compress"
+  packages = [".","bzip2","bzip2/internal/sais","internal","internal/errors","internal/prefix"]
+  revision = "0ae8e136a5df9e3caf6c0f69983608b07438411b"
+
+[[projects]]
   name = "github.com/dustin/go-humanize"
   packages = ["."]
   revision = "259d2a102b871d17f30e3cd9881a642961a1e486"
@@ -80,6 +86,12 @@
   name = "github.com/golang/protobuf"
   packages = ["jsonpb","proto","protoc-gen-go/descriptor","ptypes/any","ptypes/struct"]
   revision = "5a0f697c9ed9d68fef0116532c6e05cfeae00e55"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/golang/snappy"
+  packages = ["."]
+  revision = "553a641470496b2327abcac10b36396bd98e45c9"
 
 [[projects]]
   branch = "master"
@@ -118,10 +130,33 @@
   version = "v1.0.0"
 
 [[projects]]
+  name = "github.com/mholt/archiver"
+  packages = ["."]
+  revision = "8056d511471250e54a2aac38f21de091e1a8dc32"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/nwaples/rardecode"
+  packages = ["."]
+  revision = "f22b7ef81a0afac9ce1447d37e5ab8e99fbd2f73"
+
+[[projects]]
   branch = "master"
   name = "github.com/petar/GoLLRB"
   packages = ["llrb"]
   revision = "53be0d36a84c2a886ca057d34b6aa4468df9ccb4"
+
+[[projects]]
+  name = "github.com/pierrec/lz4"
+  packages = ["."]
+  revision = "5c9560bfa9ace2bf86080bf40d46b34ae44604df"
+  version = "v1.0"
+
+[[projects]]
+  name = "github.com/pierrec/xxHash"
+  packages = ["xxHash32"]
+  revision = "f051bb7f1d1aaf1b5a665d74fb6b0217712c69f7"
+  version = "v0.1.1"
 
 [[projects]]
   name = "github.com/prometheus/client_golang"
@@ -154,6 +189,12 @@
   revision = "708a42d246822952f38190a8d8c4e6b16a0e600c"
 
 [[projects]]
+  name = "github.com/ulikunitz/xz"
+  packages = [".","internal/hash","internal/xlog","lzma"]
+  revision = "0c6b41e72360850ca4f98dc341fd999726ea007f"
+  version = "v0.5.4"
+
+[[projects]]
   branch = "master"
   name = "github.com/xiang90/probing"
   packages = ["."]
@@ -169,7 +210,7 @@
   branch = "master"
   name = "golang.org/x/net"
   packages = ["context","context/ctxhttp","http2","http2/hpack","idna","internal/timeseries","lex/httplex","trace"]
-  revision = "1a68b1313cf4ad7778376e82641197b60c02f65c"
+  revision = "9c9a3f3e9f9c5c5b124354c89f615e418c7d3537"
 
 [[projects]]
   name = "golang.org/x/oauth2"
@@ -225,6 +266,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "748f3c67407c9a4c116a57db5d9ffed211abcfe5cd4a686c843a0970d7a86f47"
+  inputs-digest = "02767ac16ef9e44977ba23afb45af3ff4000ed90e4bd1aef05b4e49cb0f62129"
   solver-name = "gps-cdcl"
   solver-version = 1
