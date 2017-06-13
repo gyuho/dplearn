@@ -18,6 +18,8 @@ func main() {
 	targetPath := flag.String("target-path", "", "Specify the file path to store.")
 	outputDir := flag.String("output-dir", "", "Specify the output directory to unarchive.")
 	outputDirOverwrite := flag.Bool("output-dir-overwrite", false, "'true' to delete output directory before unarchive.")
+	smartRename := flag.Bool("smart-rename", false, "'true' to update redundant directory hierarchy.")
+	verbose := flag.Bool("verbose", false, "'true' to run with 'verbose' mode.")
 	flag.Parse()
 
 	size, sizet, err := urlutil.GetContentLength(*sourcePath)
@@ -67,12 +69,13 @@ func main() {
 	}
 
 	if ff != nil {
-		if !fileutil.Exist(*outputDir) {
-			glog.Infof("creating %q", *outputDir)
-			if err := fileutil.TouchDirAll(*outputDir); err != nil {
+		parentDir := filepath.Dir(*outputDir)
+		if !fileutil.Exist(parentDir) {
+			glog.Infof("creating %q", parentDir)
+			if err := fileutil.TouchDirAll(parentDir); err != nil {
 				glog.Fatal(err)
 			}
-			glog.Infof("created %q", *outputDir)
+			glog.Infof("created %q", parentDir)
 		}
 
 		if *outputDirOverwrite {
@@ -87,13 +90,61 @@ func main() {
 		}
 		glog.Infof("unarchived %q", *targetPath)
 
-		glog.Infof("%q:", *outputDir)
-		fis, err := fileutil.WalkDir(*outputDir)
-		if err != nil {
-			glog.Fatal(err)
+		if *smartRename {
+			glog.Infof("parent directory: %q (base %s)", parentDir, filepath.Base(parentDir))
+			glog.Infof("output directory: %q (base %s)", *outputDir, filepath.Base(*outputDir))
+			dirs, err := fileutil.WalkDirectories(*outputDir)
+			if err != nil {
+				glog.Fatal(err)
+			}
+			if len(dirs) == 0 {
+				glog.Fatalf("got no contents in %q (%v)", *outputDir, dirs)
+			}
+			lvl1Cnt := 0
+			var lvl1 fileutil.FileInfo
+			for _, d := range dirs {
+				if d.Level == 0 {
+					continue
+				}
+				if d.Level == 1 {
+					lvl1Cnt++
+					lvl1 = d
+				}
+			}
+			if lvl1Cnt == 1 {
+				glog.Infof("found redundancy... cleaning up... %+v", lvl1)
+
+				tmpPath := *outputDir + ".tmp"
+				glog.Infof("renaming %q to %q", lvl1.Path, tmpPath)
+				if err = os.Rename(lvl1.Path, tmpPath); err != nil {
+					glog.Fatal(err)
+				}
+				glog.Infof("renamed %q to %q", lvl1.Path, tmpPath)
+
+				glog.Infof("removing %q", *outputDir)
+				if err = os.RemoveAll(*outputDir); err != nil {
+					glog.Fatal(err)
+				}
+				glog.Infof("removed %q", *outputDir)
+
+				glog.Infof("renaming %q to %q", tmpPath, *outputDir)
+				if err = os.Rename(tmpPath, *outputDir); err != nil {
+					glog.Fatal(err)
+				}
+				glog.Infof("renamed %q to %q", tmpPath, *outputDir)
+
+				glog.Infof("updated to %q", *outputDir)
+			}
 		}
-		for _, v := range fis {
-			fmt.Printf("%q : %s\n", v.Path, v.SizeTxt)
+		if *verbose {
+			glog.Infof("%q:", *outputDir)
+			fis, err := fileutil.WalkFiles(*outputDir)
+			if err != nil {
+				glog.Fatal(err)
+			}
+			for _, v := range fis {
+				fmt.Printf("%q : %s\n", v.Path, v.SizeTxt)
+			}
 		}
 	} else {
 		glog.Infof("%q cannot be unarchived", *targetPath)
