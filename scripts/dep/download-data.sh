@@ -2,8 +2,8 @@
 set -e
 
 if ! [[ "$0" =~ "./scripts/dep/download-data.sh" ]]; then
-    echo "must be run from repository root"
-    exit 255
+  echo "must be run from repository root"
+  exit 255
 fi
 
 go install -v ./cmd/download-data

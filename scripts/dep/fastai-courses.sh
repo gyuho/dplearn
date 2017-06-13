@@ -2,8 +2,8 @@
 set -e
 
 if ! [[ "$0" =~ "./scripts/dep/fastai-courses.sh" ]]; then
-    echo "must be run from repository root"
-    exit 255
+  echo "must be run from repository root"
+  exit 255
 fi
 
 rm -rf ./courses

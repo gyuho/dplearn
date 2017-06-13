@@ -12,14 +12,14 @@ TESTS=`find . -name \*_test.go | while read a; do dirname $a; done | sort | uniq
 echo "Checking gofmt..." $TESTS
 fmtRes=$(gofmt -l -s -d $TESTS)
 if [ -n "${fmtRes}" ]; then
-	echo -e "gofmt checking failed:\n${fmtRes}"
-	exit 255
+  echo -e "gofmt checking failed:\n${fmtRes}"
+  exit 255
 fi
 echo "Checking govet..." $TESTS
 vetRes=$(go vet $TESTS 2>&1 >/dev/null)
 if [ -n "${vetRes}" ]; then
-	echo -e "govet checking failed:\n${vetRes}"
-	exit 255
+  echo -e "govet checking failed:\n${vetRes}"
+  exit 255
 fi
 
 echo "Running tests..." $TESTS
