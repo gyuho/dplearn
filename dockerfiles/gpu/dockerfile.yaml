@@ -15,6 +15,3 @@ node-version: 7.10.0
 
 dockerfile-paths:
 - ./dockerfiles/gpu/Dockerfile
-
-files-to-download: []
-download-directory: /var/lib/sample-data

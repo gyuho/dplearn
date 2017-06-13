@@ -15,11 +15,3 @@ node-version: 7.10.0
 
 dockerfile-paths:
 - ./Dockerfile
-
-files-to-download:
-- http://files.fast.ai/data/dogscats.zip
-- http://files.fast.ai/models/vgg16.h5
-
-download-directory: /var/lib/sample-data
-
-

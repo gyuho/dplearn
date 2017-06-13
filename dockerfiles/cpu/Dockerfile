@@ -1,4 +1,4 @@
-# Last Updated at 2017-06-13 01:25:51.20299317 -0700 PDT
+# Last Updated at 2017-06-13 02:15:26.774452798 -0700 PDT
 # This Dockerfile contains everything needed for development and production use.
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile.gpu
@@ -125,8 +125,6 @@ root = /usr/local/cuda\n'\
 
 # built for CPU, no need to install 'cuda'
 
-# no files to download
-
 # Configure Jupyter
 ADD ./jupyter_notebook_config.py /root/.jupyter/
 
@@ -173,7 +171,7 @@ RUN ln -s /gopath/src/github.com/gyuho/deephardway /git-deep \
   && go build -o ./backend-web-server -v ./cmd/backend-web-server \
   && go build -o ./gen-nginx-conf -v ./cmd/gen-nginx-conf \
   && go build -o ./gen-package-json -v ./cmd/gen-package-json \
-  && go install -v ./cmd/unarchiver \
+  && go install -v ./cmd/download-data \
   && popd
 ##########################
 
