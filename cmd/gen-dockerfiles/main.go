@@ -3,11 +3,9 @@ package main
 import (
 	"bytes"
 	"flag"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
 	"text/template"
 	"time"
 
@@ -41,19 +39,6 @@ func main() {
 # RUN ls /usr/local/cuda/include/`
 	}
 
-	if len(cfg.FilesToDownload) > 0 {
-		lineBreak := ` \
-  && `
-		rootCommand := fmt.Sprintf("RUN mkdir -p %s", cfg.DownloadDirectory)
-		commands := []string{rootCommand}
-		for _, ep := range cfg.FilesToDownload {
-			commands = append(commands, fmt.Sprintf("wget %s -O %s", ep, filepath.Join(cfg.DownloadDirectory, filepath.Base(ep))))
-		}
-		cfg.FileDownloadCommand = strings.Join(commands, lineBreak)
-	} else {
-		cfg.FileDownloadCommand = "# no files to download"
-	}
-
 	buf := new(bytes.Buffer)
 	tp := template.Must(template.New("tmplDockerfile").Parse(tmplDockerfile))
 	if err = tp.Execute(buf, &cfg); err != nil {
@@ -84,10 +69,6 @@ type configuration struct {
 	NodeVersion     string   `yaml:"node-version"`
 	GoVersion       string   `yaml:"go-version"`
 	DockerfilePaths []string `yaml:"dockerfile-paths"`
-
-	FilesToDownload     []string `yaml:"files-to-download"`
-	FileDownloadCommand string
-	DownloadDirectory   string `yaml:"download-directory"`
 }
 
 const tmplDockerfile = `# Last Updated at {{.Updated}}
@@ -217,8 +198,6 @@ root = /usr/local/cuda\n'\
 
 {{.NVIDIAcuDNN}}
 
-{{.FileDownloadCommand}}
-
 # Configure Jupyter
 ADD ./jupyter_notebook_config.py /root/.jupyter/
 
@@ -265,7 +244,7 @@ RUN ln -s /gopath/src/github.com/gyuho/deephardway /git-deep \
   && go build -o ./backend-web-server -v ./cmd/backend-web-server \
   && go build -o ./gen-nginx-conf -v ./cmd/gen-nginx-conf \
   && go build -o ./gen-package-json -v ./cmd/gen-package-json \
-  && go install -v ./cmd/unarchiver \
+  && go install -v ./cmd/download-data \
   && popd
 ##########################
 
@@ -367,3 +346,21 @@ func nowPST() time.Time {
 	}
 	return time.Now().In(tzone)
 }
+
+/*
+// FilesToDownload     []string `yaml:"files-to-download"`
+// FileDownloadCommand string
+// DownloadDirectory   string `yaml:"download-directory"`
+if len(cfg.FilesToDownload) > 0 {
+	lineBreak := ` \
+&& `
+	rootCommand := fmt.Sprintf("RUN mkdir -p %s", cfg.DownloadDirectory)
+	commands := []string{rootCommand}
+	for _, ep := range cfg.FilesToDownload {
+		commands = append(commands, fmt.Sprintf("wget %s -O %s", ep, filepath.Join(cfg.DownloadDirectory, filepath.Base(ep))))
+	}
+	cfg.FileDownloadCommand = strings.Join(commands, lineBreak)
+} else {
+	cfg.FileDownloadCommand = "# no files to download"
+}
+*/
