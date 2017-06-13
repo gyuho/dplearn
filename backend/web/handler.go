@@ -13,13 +13,13 @@ import (
 	"path"
 	"path/filepath"
 	"reflect"
-	"strings"
 	"sync"
 	"time"
 
 	etcdqueue "github.com/gyuho/deephardway/pkg/etcd-queue"
 	"github.com/gyuho/deephardway/pkg/fileutil"
 	"github.com/gyuho/deephardway/pkg/lru"
+	"github.com/gyuho/deephardway/pkg/urlutil"
 
 	"github.com/coreos/etcd/clientv3"
 	humanize "github.com/dustin/go-humanize"
@@ -351,18 +351,9 @@ const (
 )
 
 func cacheImage(cache lru.Cache, ep string) (string, error) {
-	u, err := url.Parse(strings.TrimSpace(ep))
-	if err != nil {
-		return "", err
-	}
+	rawPath := urlutil.TrimQuery(ep)
 
-	rawPath := strings.TrimSpace(u.String())
-	if u.RawQuery != "" {
-		rawPath = strings.Replace(rawPath, "?"+u.RawQuery, "", -1)
-	}
-
-	var vi interface{}
-	vi, err = cache.Get(imageCacheBucket, rawPath)
+	vi, err := cache.Get(imageCacheBucket, rawPath)
 	if err != nil && err != lru.ErrKeyNotFound {
 		return "", err
 	}
@@ -384,28 +375,20 @@ func cacheImage(cache lru.Cache, ep string) (string, error) {
 			return "", fmt.Errorf("not support %q in %q (must be jpg, jpeg, png)", filepath.Ext(rawPath), rawPath)
 		}
 
-		var hresp *http.Response
-		hresp, err = http.Head(rawPath)
+		size, sizet, err := urlutil.GetContentLength(rawPath)
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("error when fetching %q", rawPath)
 		}
-		hresp.Body.Close()
-		if hresp.ContentLength > imageCacheSizeLimit {
-			return "", fmt.Errorf("%q is too big; %s > %s(limit)", rawPath, humanize.Bytes(uint64(hresp.ContentLength)), humanize.Bytes(uint64(imageCacheSizeLimit)))
+		if size > imageCacheSizeLimit {
+			return "", fmt.Errorf("%q is too big; %s > %s(limit)", rawPath, sizet, humanize.Bytes(uint64(imageCacheSizeLimit)))
 		}
 
 		glog.Infof("downloading %q", rawPath)
-		var dresp *http.Response
-		dresp, err = http.Get(rawPath)
-		if err != nil {
-			return "", err
-		}
 		var data []byte
-		data, err = ioutil.ReadAll(dresp.Body)
+		data, err = urlutil.Get(rawPath)
 		if err != nil {
 			return "", err
 		}
-		dresp.Body.Close()
 		glog.Infof("downloaded %q (%s)", rawPath, humanize.Bytes(uint64(len(data))))
 
 		fpath = filepath.Join("/tmp", base64.StdEncoding.EncodeToString([]byte(rawPath))+filepath.Ext(rawPath))
