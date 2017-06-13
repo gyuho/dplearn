@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"flag"
 
 	"github.com/gyuho/deephardway/backend/web"
+	etcdqueue "github.com/gyuho/deephardway/pkg/etcd-queue"
 
 	"github.com/golang/glog"
 )
@@ -15,8 +17,17 @@ func main() {
 	dataDir := flag.String("data-dir", "/var/lib/etcd", "Specify the etcd data directory.")
 	flag.Parse()
 
+	rootCtx, rootCancel := context.WithCancel(context.Background())
+	defer rootCancel()
+
+	qu, err := etcdqueue.NewEmbeddedQueue(rootCtx, *queuePortClient, *queuePortPeer, *dataDir)
+	if err != nil {
+		glog.Fatal(err)
+	}
+	defer qu.Stop()
+
 	glog.Infof("starting web server with :%d (queue :%d/:%d, data-dir %q)", *webPort, *queuePortClient, *queuePortPeer, *dataDir)
-	srv, err := web.StartServer(*webPort, *queuePortClient, *queuePortPeer, *dataDir)
+	srv, err := web.StartServer(*webPort, qu)
 	if err != nil {
 		glog.Fatal(err)
 	}

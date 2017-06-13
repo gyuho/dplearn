@@ -60,16 +60,9 @@ func with(h ContextHandler, srv *Server, qu etcdqueue.Queue, cache lru.Cache) Co
 }
 
 // StartServer starts a backend webserver with stoppable listener.
-func StartServer(webPort, queuePortClient, queuePortPeer int, dataDir string) (*Server, error) {
+func StartServer(webPort int, qu etcdqueue.Queue) (*Server, error) {
 	rootCtx, rootCancel := context.WithCancel(context.Background())
-	qu, err := etcdqueue.NewEmbeddedQueue(rootCtx, queuePortClient, queuePortPeer, dataDir)
-	if err != nil {
-		rootCancel()
-		return nil, err
-	}
-
 	mux := http.NewServeMux()
-
 	webURL := url.URL{Scheme: "http", Host: fmt.Sprintf("localhost:%d", webPort)}
 	srv := &Server{
 		rootCtx:      rootCtx,

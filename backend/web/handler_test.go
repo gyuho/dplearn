@@ -1,10 +1,13 @@
 package web
 
 import (
+	"context"
 	"io/ioutil"
 	"os"
 	"testing"
 	"time"
+
+	etcdqueue "github.com/gyuho/deephardway/pkg/etcd-queue"
 )
 
 /*
@@ -18,7 +21,16 @@ func TestServer(t *testing.T) {
 	}
 	defer os.RemoveAll(dataDir)
 
-	srv, err := StartServer(0, 5555, 5556, dataDir)
+	rootCtx, rootCancel := context.WithCancel(context.Background())
+	defer rootCancel()
+
+	qu, err := etcdqueue.NewEmbeddedQueue(rootCtx, 5555, 5556, dataDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer qu.Stop()
+
+	srv, err := StartServer(0, qu)
 	if err != nil {
 		t.Fatal(err)
 	}
