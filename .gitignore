@@ -3,10 +3,13 @@
 /node_modules
 /backend-web-server
 /gen-package-json
-/notebooks/.ipynb_checkpoints
-/notebooks/sample-notebooks
+
 /backend/deep/*.pyc
 /backend/deep/etcd/*.pyc
+
+/notebooks/.ipynb_checkpoints
+/notebooks/data
+/notebooks/sample-notebooks
 
 # Ignore everything in vendor/, except for *.go files,
 # LICENSE and COPYING. Ignore Go tests.
