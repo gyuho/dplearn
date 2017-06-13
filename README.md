@@ -20,5 +20,5 @@ It is a set of small projects on [Deep Learning](https://en.wikipedia.org/wiki/D
 
 Notes:
 
-- Why is the queue service needed? Users requests are concurrent, while worker has only limited computing power. Requests are serialized into the queue, so that worker performance can be maximized for each job.
-- How is this deployed? This is a simple project for learning purposes, mostly running in my local machine. With limited budget on public serving, everything is run in one container. In production, `etcd` should be distributed as a separate cluster, and [Tensorflow/serving](https://tensorflow.github.io/serving/) should be considered. Root [`Dockerfile`](./Dockerfile) container image could be broken into smaller ones.
+- *Why is the queue service needed?* Users requests are concurrent, while worker has only limited computing power. Requests are serialized into the queue, so that worker performance can be maximized for each job.
+- *How is this deployed?* This is a simple project for learning purposes, mostly running in my local machine. With limited budget on public serving, everything is run in one container. In production, `etcd` should be distributed as a separate cluster, and [Tensorflow/serving](https://tensorflow.github.io/serving/) should be considered. Root [`Dockerfile`](./Dockerfile) container image could be broken into smaller ones.
