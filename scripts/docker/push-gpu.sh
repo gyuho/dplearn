@@ -6,8 +6,11 @@ if ! [[ "$0" =~ "./scripts/docker/push-gpu.sh" ]]; then
   exit 255
 fi
 
-gcloud docker -- push gcr.io/deephardway/deephardway:latest-gpu
+# gcloud auth login
 
-<<COMMENT
-gcloud docker -- login -u _json_key -p "$(cat ${HOME}/gcp-key-deephardway.json)" https://gcr.io
-COMMENT
+go get -v github.com/GoogleCloudPlatform/docker-credential-gcr
+
+gcloud docker -- login -u _json_key -p "$(cat ${GCP_KEY_PATH})" https://gcr.io
+# docker login -u oauth2accesstoken -p "$(gcloud auth application-default print-access-token)" https://gcr.io
+
+gcloud docker -- push gcr.io/deephardway/deephardway:latest-gpu
