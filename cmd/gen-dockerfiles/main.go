@@ -9,6 +9,8 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/gyuho/deephardway/pkg/fileutil"
+
 	"github.com/golang/glog"
 	yaml "gopkg.in/yaml.v2"
 )
@@ -42,15 +44,15 @@ func main() {
 	if err = tp.Execute(buf, &cfg); err != nil {
 		glog.Fatal(err)
 	}
-	txt := buf.String()
+	d := buf.Bytes()
 
 	for _, fpath := range cfg.DockerfilePaths {
-		if !exist(filepath.Dir(fpath)) {
+		if !fileutil.Exist(filepath.Dir(fpath)) {
 			if err = os.MkdirAll(filepath.Dir(fpath), os.ModePerm); err != nil {
 				glog.Fatal(err)
 			}
 		}
-		if err = toFile(txt, fpath); err != nil {
+		if err = fileutil.WriteToFile(fpath, d); err != nil {
 			glog.Fatal(err)
 		}
 		glog.Infof("wrote %q", fpath)
@@ -335,40 +337,6 @@ RUN cat /etc/lsb-release >> /container-version.txt \
   && cat /container-version.txt
 ##########################
 `
-
-func toFile(txt, fpath string) error {
-	f, err := os.OpenFile(fpath, os.O_RDWR|os.O_TRUNC, 0777)
-	if err != nil {
-		f, err = os.Create(fpath)
-		if err != nil {
-			glog.Fatal(err)
-		}
-	}
-	defer f.Close()
-	if _, err := f.WriteString(txt); err != nil {
-		glog.Fatal(err)
-	}
-	return nil
-}
-
-// exist returns true if the file or directory exists.
-func exist(fpath string) bool {
-	st, err := os.Stat(fpath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return false
-		}
-	}
-	if st.IsDir() {
-		return true
-	}
-	if _, err := os.Stat(fpath); err != nil {
-		if os.IsNotExist(err) {
-			return false
-		}
-	}
-	return true
-}
 
 func nowPST() time.Time {
 	tzone, err := time.LoadLocation("America/Los_Angeles")

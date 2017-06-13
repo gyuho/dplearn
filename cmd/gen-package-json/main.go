@@ -3,11 +3,11 @@ package main
 import (
 	"bytes"
 	"flag"
-	"os"
 	"strings"
 	"text/template"
 	"time"
 
+	"github.com/gyuho/deephardway/pkg/fileutil"
 	"github.com/gyuho/deephardway/pkg/gcp"
 
 	"github.com/golang/glog"
@@ -51,9 +51,9 @@ func main() {
 	if err := tp.Execute(buf, &cfg); err != nil {
 		glog.Fatal(err)
 	}
-	txt := buf.String()
+	d := buf.Bytes()
 
-	if err := toFile(txt, *outputPath); err != nil {
+	if err := fileutil.WriteToFile(*outputPath, d); err != nil {
 		glog.Fatal(err)
 	}
 	glog.Infof("wrote %q", *outputPath)
@@ -136,18 +136,3 @@ const tmplPackageJSON = `{
     "author": "Gyu-Ho Lee <gyuhox@gmail.com>"
 }
 `
-
-func toFile(txt, fpath string) error {
-	f, err := os.OpenFile(fpath, os.O_RDWR|os.O_TRUNC, 0777)
-	if err != nil {
-		f, err = os.Create(fpath)
-		if err != nil {
-			glog.Fatal(err)
-		}
-	}
-	defer f.Close()
-	if _, err := f.WriteString(txt); err != nil {
-		glog.Fatal(err)
-	}
-	return nil
-}
