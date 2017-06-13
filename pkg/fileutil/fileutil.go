@@ -92,24 +92,53 @@ func Exist(fpath string) bool {
 	return true
 }
 
-func walk(targetDir string) (map[string]os.FileInfo, error) {
+type walkMode int
+
+const (
+	fileOnly walkMode = iota
+	directoryOnly
+	all
+)
+
+func getLevel(targetDir, dir string) int {
+	return _getLevel(targetDir, dir, 0)
+}
+
+func _getLevel(targetDir, dir string, lvl int) int {
+	if len(dir) == 0 {
+		return -1
+	}
+	if targetDir == dir {
+		return lvl
+	}
+	return _getLevel(targetDir, filepath.Dir(dir), lvl+1)
+}
+
+func walk(targetDir string, mode walkMode) (map[string]os.FileInfo, error) {
 	rm := make(map[string]os.FileInfo)
 	visit := func(path string, f os.FileInfo, err error) error {
-		if f != nil {
-			if !f.IsDir() {
-				if !filepath.HasPrefix(path, ".") && !strings.Contains(path, "/.") {
-					wd, err := os.Getwd()
-					if err != nil {
-						return err
-					}
-					rm[filepath.Join(wd, strings.Replace(path, wd, "", -1))] = f
-				}
-			}
+		if f == nil {
+			return nil
 		}
+		ok := false
+		switch mode {
+		case fileOnly:
+			ok = !f.IsDir()
+		case directoryOnly:
+			ok = f.IsDir()
+		case all:
+			ok = true
+		}
+		if !ok {
+			return nil
+		}
+		if filepath.HasPrefix(path, ".") || strings.Contains(path, "/.") {
+			return nil
+		}
+		rm[path] = f
 		return nil
 	}
-	err := filepath.Walk(targetDir, visit)
-	if err != nil {
+	if err := filepath.Walk(targetDir, visit); err != nil {
 		return nil, err
 	}
 	return rm, nil
@@ -120,6 +149,7 @@ type FileInfo struct {
 	Path    string
 	Size    uint64
 	SizeTxt string
+	Level   int
 }
 
 // GetFileInfo returns the file info of a single file.
@@ -134,13 +164,37 @@ func GetFileInfo(fpath string) (FileInfo, error) {
 // FileInfoSlice is a slice of FileInfo.
 type FileInfoSlice []FileInfo
 
-func (f FileInfoSlice) Len() int           { return len(f) }
-func (f FileInfoSlice) Swap(i, j int)      { f[i], f[j] = f[j], f[i] }
-func (f FileInfoSlice) Less(i, j int) bool { return f[i].Size < f[j].Size }
+func (f FileInfoSlice) Len() int      { return len(f) }
+func (f FileInfoSlice) Swap(i, j int) { f[i], f[j] = f[j], f[i] }
+func (f FileInfoSlice) Less(i, j int) bool {
+	return f[i].Level < f[j].Level || (f[i].Level == f[j].Level && f[i].Path < f[j].Path)
+}
 
-// WalkDir walks the directory and returns the file infos.
-func WalkDir(dir string) ([]FileInfo, error) {
-	rm, err := walk(dir)
+// WalkDirectories walks the directory and returns the directory file infos.
+func WalkDirectories(dir string) ([]FileInfo, error) {
+	rm, err := walk(dir, directoryOnly)
+	if err != nil {
+		return nil, err
+	}
+
+	var fs []FileInfo
+	for k, v := range rm {
+		fv := FileInfo{
+			Path:    k,
+			Size:    uint64(v.Size()),
+			SizeTxt: humanize.Bytes(uint64(v.Size())),
+			Level:   getLevel(dir, k),
+		}
+		fs = append(fs, fv)
+	}
+	sort.Sort(FileInfoSlice(fs))
+
+	return fs, nil
+}
+
+// WalkFiles walks the directory and returns the file infos.
+func WalkFiles(dir string) ([]FileInfo, error) {
+	rm, err := walk(dir, fileOnly)
 	if err != nil {
 		return nil, err
 	}
