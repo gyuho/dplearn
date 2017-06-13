@@ -1,4 +1,4 @@
-# Last Updated at 2017-06-13 01:10:58.796902785 -0700 PDT
+# Last Updated at 2017-06-13 01:17:53.183838506 -0700 PDT
 # This Dockerfile contains everything needed for development and production use.
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile.gpu
@@ -128,9 +128,9 @@ root = /usr/local/cuda\n'\
 # RUN ls /usr/local/cuda/lib64/
 # RUN ls /usr/local/cuda/include/
 
-RUN mkdir -p /var/lib \
-  && wget http://files.fast.ai/data/dogscats.zip -O /var/lib/dogscats.zip \
-  && wget http://files.fast.ai/models/vgg16.h5 -O /var/lib/vgg16.h5
+RUN mkdir -p /var/lib/sample-data \
+  && wget http://files.fast.ai/data/dogscats.zip -O /var/lib/sample-data/dogscats.zip \
+  && wget http://files.fast.ai/models/vgg16.h5 -O /var/lib/sample-data/vgg16.h5
 
 # Configure Jupyter
 ADD ./jupyter_notebook_config.py /root/.jupyter/

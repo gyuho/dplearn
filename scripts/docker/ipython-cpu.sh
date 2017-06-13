@@ -16,6 +16,7 @@ docker run \
   --rm \
   -it \
   -p 8888:8888 \
+  --volume=/var/lib/sample-data:/var/lib/sample-data \
   --volume=`pwd`/notebooks:/gopath/src/github.com/gyuho/deephardway/notebooks \
   gcr.io/deephardway/deephardway:latest-cpu \
   /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && PASSWORD='' ./run_jupyter.sh -y --allow-root --notebook-dir=./notebooks"

@@ -17,4 +17,4 @@ dockerfile-paths:
 - ./dockerfiles/cpu/Dockerfile
 
 files-to-download: []
-download-directory: /var/lib
+download-directory: /var/lib/sample-data

@@ -20,5 +20,6 @@ files-to-download:
 - http://files.fast.ai/data/dogscats.zip
 - http://files.fast.ai/models/vgg16.h5
 
-download-directory: /var/lib
+download-directory: /var/lib/sample-data
+
 
