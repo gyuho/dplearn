@@ -44,3 +44,40 @@ func main() {
 		fmt.Printf("%q : %s\n", v.Path, v.SizeTxt)
 	}
 }
+
+/*
+import os
+import sys
+import glob
+import zipfile
+
+import requests
+import humanize
+
+print('Current working directory:', os.getcwd())
+print('Python/System version:', sys.version)
+
+def get_filesize(ep):
+    return humanize.naturalsize(requests.head(ep).headers.get('content-length', None))
+
+data_files = glob.glob("data/*")
+
+dogscats_path = 'data/dogscats.zip'
+dogscats_url = 'http://files.fast.ai/data/dogscats.zip'
+vgg16_path = 'data/vgg16.h5'
+vgg16_url = 'http://files.fast.ai/models/vgg16.h5'
+
+if dogscats_path not in data_files:
+    print(get_filesize(dogscats_url))
+else:
+    print(dogscats_path, 'exists')
+    zip_ref = zipfile.ZipFile(dogscats_path, 'r')
+    zip_ref.extractall('data/')
+    zip_ref.close()
+    print(dogscats_path, 'unzipped')
+
+if vgg16_path not in data_files:
+    print(get_filesize(vgg16_url))
+else:
+    print(vgg16_path, 'exists')
+*/
