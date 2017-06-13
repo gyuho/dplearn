@@ -7,4 +7,5 @@ if ! [[ "$0" =~ "./scripts/gen-package-json.sh" ]]; then
 fi
 
 go install -v ./cmd/gen-package-json
+
 gen-package-json --output package.json --logtostderr
