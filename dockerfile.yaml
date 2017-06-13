@@ -1,7 +1,7 @@
 # https://gcr.io/tensorflow/tensorflow
 # https://github.com/tensorflow/tensorflow/tree/master/tensorflow/tools/docker
-device: cpu
-tensorflow-base-image: gcr.io/tensorflow/tensorflow:1.2.0-rc2
+device: gpu
+tensorflow-base-image: gcr.io/tensorflow/tensorflow:1.2.0-rc2-gpu
 
 # https://golang.org/dl/
 go-version: 1.8.3
@@ -14,4 +14,11 @@ nvm-version: 0.33.2
 node-version: 7.10.0
 
 dockerfile-paths:
-- ./dockerfiles/cpu/Dockerfile
+- ./Dockerfile
+
+files-to-download:
+- http://files.fast.ai/data/dogscats.zip
+- http://files.fast.ai/models/vgg16.h5
+
+download-directory: /var/lib
+

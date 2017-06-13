@@ -8,7 +8,6 @@
 /backend/deep/etcd/*.pyc
 
 /notebooks/.ipynb_checkpoints
-/notebooks/data
 /notebooks/sample-notebooks
 
 # Ignore everything in vendor/, except for *.go files,

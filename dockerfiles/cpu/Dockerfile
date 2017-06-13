@@ -1,4 +1,4 @@
-# Last Updated at 2017-06-13 00:46:18.948392119 -0700 PDT
+# Last Updated at 2017-06-13 01:10:58.813301063 -0700 PDT
 # This Dockerfile contains everything needed for development and production use.
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile.gpu
@@ -123,7 +123,9 @@ root = /usr/local/cuda\n'\
 > ${HOME}/.keras/keras.json \
   && cat ${HOME}/.keras/keras.json
 
-# Built for CPU, no need to install 'cuda'
+# built for CPU, no need to install 'cuda'
+
+# no files to download
 
 # Configure Jupyter
 ADD ./jupyter_notebook_config.py /root/.jupyter/

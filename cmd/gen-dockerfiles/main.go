@@ -3,9 +3,11 @@ package main
 import (
 	"bytes"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"text/template"
 	"time"
 
@@ -31,12 +33,25 @@ func main() {
 
 	switch cfg.Device {
 	case "cpu":
-		cfg.NVIDIAcuDNN = "# Built for CPU, no need to install 'cuda'"
+		cfg.NVIDIAcuDNN = "# built for CPU, no need to install 'cuda'"
 	case "gpu":
 		cfg.NVIDIAcuDNN = `# Tensorflow GPU image already includes https://developer.nvidia.com/cudnn
 # https://github.com/fastai/courses/blob/master/setup/install-gpu.sh
 # RUN ls /usr/local/cuda/lib64/
 # RUN ls /usr/local/cuda/include/`
+	}
+
+	if len(cfg.FilesToDownload) > 0 {
+		lineBreak := ` \
+  && `
+		rootCommand := fmt.Sprintf("RUN mkdir -p %s", cfg.DownloadDirectory)
+		commands := []string{rootCommand}
+		for _, ep := range cfg.FilesToDownload {
+			commands = append(commands, fmt.Sprintf("wget %s -O %s", ep, filepath.Join(cfg.DownloadDirectory, filepath.Base(ep))))
+		}
+		cfg.FileDownloadCommand = strings.Join(commands, lineBreak)
+	} else {
+		cfg.FileDownloadCommand = "# no files to download"
 	}
 
 	buf := new(bytes.Buffer)
@@ -69,6 +84,10 @@ type configuration struct {
 	NodeVersion     string   `yaml:"node-version"`
 	GoVersion       string   `yaml:"go-version"`
 	DockerfilePaths []string `yaml:"dockerfile-paths"`
+
+	FilesToDownload     []string `yaml:"files-to-download"`
+	FileDownloadCommand string
+	DownloadDirectory   string `yaml:"download-directory"`
 }
 
 const tmplDockerfile = `# Last Updated at {{.Updated}}
@@ -197,6 +216,8 @@ root = /usr/local/cuda\n'\
   && cat ${HOME}/.keras/keras.json
 
 {{.NVIDIAcuDNN}}
+
+{{.FileDownloadCommand}}
 
 # Configure Jupyter
 ADD ./jupyter_notebook_config.py /root/.jupyter/
