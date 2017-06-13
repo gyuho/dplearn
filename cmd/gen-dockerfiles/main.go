@@ -244,6 +244,7 @@ RUN ln -s /gopath/src/github.com/gyuho/deephardway /git-deep \
   && go build -o ./backend-web-server -v ./cmd/backend-web-server \
   && go build -o ./gen-nginx-conf -v ./cmd/gen-nginx-conf \
   && go build -o ./gen-package-json -v ./cmd/gen-package-json \
+  && go install -v ./cmd/unarchiver \
   && popd
 ##########################
 
