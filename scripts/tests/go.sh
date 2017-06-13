@@ -23,4 +23,4 @@ if [ -n "${vetRes}" ]; then
 fi
 
 echo "Running tests..." $TESTS
-go test -v $TESTS -logtostderr=true;
+go test -v $TESTS;

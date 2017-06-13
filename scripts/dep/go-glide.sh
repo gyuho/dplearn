@@ -19,6 +19,8 @@ if [ ! $(command -v glide) ]; then
   exit 1
 fi
 
+glide update --strip-vendor
+
 DEP_ROOT="$GOPATH/src/github.com/sgotti/glide-vc"
 go get -d -u github.com/sgotti/glide-vc
 pushd "${DEP_ROOT}"
@@ -30,5 +32,4 @@ if [ ! $(command -v glide-vc) ]; then
   exit 1
 fi
 
-glide update --strip-vendor
 glide-vc --only-code --no-tests
