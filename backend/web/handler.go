@@ -18,6 +18,7 @@ import (
 	"time"
 
 	etcdqueue "github.com/gyuho/deephardway/pkg/etcd-queue"
+	"github.com/gyuho/deephardway/pkg/fileutil"
 	"github.com/gyuho/deephardway/pkg/lru"
 
 	"github.com/coreos/etcd/clientv3"
@@ -410,7 +411,7 @@ func cacheImage(cache lru.Cache, ep string) (string, error) {
 		fpath = filepath.Join("/tmp", base64.StdEncoding.EncodeToString([]byte(rawPath))+filepath.Ext(rawPath))
 
 		glog.Infof("saving %q to %q", rawPath, fpath)
-		if err = toFile(data, fpath); err != nil {
+		if err = fileutil.WriteToFile(fpath, data); err != nil {
 			return fpath, err
 		}
 		glog.Infof("saved %q to %q", rawPath, fpath)
@@ -423,21 +424,6 @@ func cacheImage(cache lru.Cache, ep string) (string, error) {
 	}
 
 	return fpath, nil
-}
-
-func toFile(data []byte, fpath string) error {
-	f, err := os.OpenFile(fpath, os.O_RDWR|os.O_TRUNC, 0777)
-	if err != nil {
-		f, err = os.Create(fpath)
-		if err != nil {
-			glog.Fatal(err)
-		}
-	}
-	defer f.Close()
-	if _, err := f.Write(data); err != nil {
-		glog.Fatal(err)
-	}
-	return f.Sync()
 }
 
 func simulateWorker(qu etcdqueue.Queue, item *etcdqueue.Item) {
