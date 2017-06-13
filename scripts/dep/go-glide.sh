@@ -6,6 +6,8 @@ if ! [[ "$0" =~ "./scripts/dep/go-glide.sh" ]]; then
   exit 255
 fi
 
+rm -rf ./vendor
+
 echo "Updating Go dependencies"
 DEP_ROOT="$GOPATH/src/github.com/Masterminds/glide"
 go get -d -u github.com/Masterminds/glide

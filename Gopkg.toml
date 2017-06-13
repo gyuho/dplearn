@@ -67,12 +67,8 @@
 
 
 [[constraint]]
-  name = "cloud.google.com/go"
-  revision = "69931d826ffbbcb4f8451b42d5cf7fc2ac6c7443"
-
-[[constraint]]
   name = "github.com/coreos/etcd"
-  revision = "933aa09b73ef0b3556a1c663f9bd2bd92b714be9"
+  revision = "4445996a3831e2353df8e1c348d565f15c472ef4"
 
 [[constraint]]
   name = "github.com/dustin/go-humanize"
@@ -87,12 +83,24 @@
   revision = "53be0d36a84c2a886ca057d34b6aa4468df9ccb4"
 
 [[constraint]]
-  name = "golang.org/x/oauth2"
-  revision = "f047394b6d14284165300fd82dad67edb3a4d7f6"
+  name = "gopkg.in/yaml.v2"
+  revision = "cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b"
+
+[[constraint]]
+  name = "github.com/mholt/archiver"
+  revision = "8056d511471250e54a2aac38f21de091e1a8dc32"
 
 [[constraint]]
   name = "golang.org/x/sys"
   revision = "0b25a408a50076fbbcae6b7ac0ea5fbb0b085e79"
+
+[[constraint]]
+  name = "golang.org/x/oauth2"
+  revision = "f047394b6d14284165300fd82dad67edb3a4d7f6"
+
+[[constraint]]
+  name = "cloud.google.com/go"
+  revision = "69931d826ffbbcb4f8451b42d5cf7fc2ac6c7443"
 
 [[constraint]]
   name = "google.golang.org/api"
@@ -101,11 +109,3 @@
 [[constraint]]
   name = "google.golang.org/appengine"
   revision = "a2f4131514e563cedfdb6e7d267df9ad48591e93"
-
-[[constraint]]
-  name = "gopkg.in/yaml.v2"
-  revision = "cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b"
-
-[[constraint]]
-  name = "github.com/mholt/archiver"
-  revision = "8056d511471250e54a2aac38f21de091e1a8dc32"

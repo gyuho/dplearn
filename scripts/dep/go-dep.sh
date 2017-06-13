@@ -6,6 +6,9 @@ if ! [[ "$0" =~ "./scripts/dep/go-dep.sh" ]]; then
   exit 255
 fi
 
+rm -rf ./vendor
+rm -rf ./vendor.orig
+
 echo "Updating Go dependencies"
 DEP_ROOT="$GOPATH/src/github.com/golang/dep"
 go get -d -u github.com/golang/dep
