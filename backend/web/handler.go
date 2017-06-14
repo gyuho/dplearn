@@ -302,7 +302,7 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 			go srv.watch(ctx, requestID, ch)
 			glog.Infof("created a item with request ID %s", requestID)
 
-			// for testing, simulate worker process
+			// TODO: this is just for testing, remove this later
 			go simulateWorker(qu, item)
 		}
 
@@ -505,7 +505,7 @@ func simulateWorker(qu etcdqueue.Queue, item *etcdqueue.Item) {
 			continue
 		}
 
-		glog.Infof("%q now has new value (old value %q)", newValue, scheduleValue)
+		glog.Infof("%q now has new value (old value %q) -- finished!", scheduledKey, newValue)
 		break
 	}
 }
