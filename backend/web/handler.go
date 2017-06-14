@@ -471,6 +471,9 @@ func simulateWorker(qu etcdqueue.Queue, item *etcdqueue.Item) {
 		glog.Infof("%q is not yet scheduled; another job %q is in progress", workerKey, string(gresp.Kvs[0].Value))
 		time.Sleep(time.Second)
 	}
+
+	time.Sleep(time.Second)
+
 	// scheduler catches this write and writes back to scheduledKey
 	for {
 		gresp, err := cli.Get(context.Background(), scheduledKey)
@@ -478,9 +481,17 @@ func simulateWorker(qu etcdqueue.Queue, item *etcdqueue.Item) {
 			panic(err)
 		}
 		if len(gresp.Kvs) == 0 {
-			glog.Infof("%q has not been written to etcd yet", scheduledKey)
+			glog.Infof("%q has not been written to etcd yet or already deleted", scheduledKey)
+
 			time.Sleep(time.Second)
-			continue
+			scheduledKey = path.Join("_cmpl", origItem.Key)
+			gresp, err = cli.Get(context.Background(), scheduledKey)
+			if err != nil {
+				panic(err)
+			}
+			if len(gresp.Kvs) == 0 {
+				glog.Fatalf("%q has not been completed yet", scheduledKey)
+			}
 		}
 		if len(gresp.Kvs) != 1 {
 			glog.Fatalf("%q must have 1 KV (got %+v)", scheduledKey, gresp.Kvs)
