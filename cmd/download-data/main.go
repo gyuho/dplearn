@@ -147,8 +147,9 @@ func main() {
 			}
 		}
 	} else {
-		glog.Infof("%q cannot be unarchived", *targetPath)
+		glog.Infof("no need to unarchive %q", *targetPath)
 	}
+	glog.Info("success!")
 }
 
 /*
