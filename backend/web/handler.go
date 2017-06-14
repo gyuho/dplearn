@@ -420,7 +420,7 @@ func simulateWorker(qu etcdqueue.Queue, item *etcdqueue.Item) {
 	defer cli.Close()
 
 	workerKey := path.Join("_wokr", origItem.Bucket)
-	scheduleKey := origItem.Key
+	scheduledKey := path.Join("_schd", origItem.Key)
 
 	scheduleValue, err := json.Marshal(origItem)
 	if err != nil {
@@ -471,25 +471,25 @@ func simulateWorker(qu etcdqueue.Queue, item *etcdqueue.Item) {
 		glog.Infof("%q is not yet scheduled; another job %q is in progress", workerKey, string(gresp.Kvs[0].Value))
 		time.Sleep(time.Second)
 	}
-	// scheduler catches this write and writes back to scheduleKey
+	// scheduler catches this write and writes back to scheduledKey
 	for {
-		gresp, err := cli.Get(context.Background(), scheduleKey)
+		gresp, err := cli.Get(context.Background(), scheduledKey)
 		if err != nil {
 			panic(err)
 		}
 		if len(gresp.Kvs) == 0 {
-			glog.Infof("%q has not been written to etcd yet", scheduleKey)
+			glog.Infof("%q has not been written to etcd yet", scheduledKey)
 			time.Sleep(time.Second)
 			continue
 		}
 		if len(gresp.Kvs) != 1 {
-			glog.Fatalf("%q must have 1 KV (got %+v)", scheduleKey, gresp.Kvs)
+			glog.Fatalf("%q must have 1 KV (got %+v)", scheduledKey, gresp.Kvs)
 		}
 		if !bytes.Equal(gresp.Kvs[0].Value, newValue) {
 			if !bytes.Equal(gresp.Kvs[0].Value, scheduleValue) {
-				glog.Fatalf("%q must have old value %q if not new value, but got %q", scheduleKey, scheduleValue, gresp.Kvs[0].Value)
+				glog.Fatalf("%q must have old value %q if not new value, but got %q", scheduledKey, scheduleValue, gresp.Kvs[0].Value)
 			}
-			glog.Infof("%q has not yet received new value, still has %q", scheduleKey, gresp.Kvs[0].Value)
+			glog.Infof("%q has not yet received new value, still has %q", scheduledKey, gresp.Kvs[0].Value)
 			time.Sleep(time.Second)
 			continue
 		}
