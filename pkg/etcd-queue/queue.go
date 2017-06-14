@@ -56,7 +56,7 @@ func CreateItem(bucket string, weight uint64, value string) *Item {
 	return &Item{
 		Bucket:    bucket,
 		CreatedAt: time.Now(),
-		Key:       path.Join(pfxScheduled, bucket, fmt.Sprintf("%05d%035X", weight, time.Now().UnixNano())),
+		Key:       path.Join(bucket, fmt.Sprintf("%05d%035X", weight, time.Now().UnixNano())),
 		Value:     value,
 		Progress:  0,
 		Error:     "",
@@ -233,8 +233,9 @@ func (qu *queue) Delete(ctx context.Context, it *Item) error {
 	// current worker key slot to watch
 	workerKey := path.Join(pfxWorker, it.Bucket)
 
-	// key is already prefixed with 'path.Join(pfxScheduled, bucket, ...'
-	key := it.Key
+	// inside the queue, key is already prefixed
+	// with 'path.Join(pfxScheduled, bucket, ...'
+	key := path.Join(pfxScheduled, it.Key)
 	v, err := json.Marshal(it)
 	if err != nil {
 		return err
@@ -268,7 +269,7 @@ func (qu *queue) Delete(ctx context.Context, it *Item) error {
 }
 
 func (qu *queue) Add(ctx context.Context, it *Item) (ItemWatcher, error) {
-	key := it.Key
+	key := path.Join(pfxScheduled, it.Key)
 	data, err := json.Marshal(it)
 	if err != nil {
 		return nil, err
@@ -392,20 +393,20 @@ func (qu *queue) run(ctx context.Context, bucket string) error {
 
 			// 2. notify the client back with the new results on the key (ID field in Item)
 			glog.Infof("scheduler: %q is done", item.Key)
-			if err := qu.put(ctx, item.Key, string(v)); err != nil {
+			if err := qu.put(ctx, path.Join(pfxScheduled, item.Key), string(v)); err != nil {
 				return err
 			}
 
 			// 3. delete the DONE key from the queue, and move to pfxCompleted + Key for logging
-			glog.Infof("scheduler: %q is deleted", item.Key)
-			if err := qu.delete(ctx, item.Key); err != nil {
+			glog.Infof("scheduler: %q is deleted after completion", item.Key)
+			if err := qu.delete(ctx, path.Join(pfxScheduled, item.Key)); err != nil {
 				return err
 			}
 			cKey := path.Join(pfxCompleted, item.Key)
 			if err := qu.put(ctx, cKey, string(v)); err != nil {
 				return err
 			}
-			glog.Infof("scheduler: %q is written", cKey)
+			glog.Infof("scheduler: %q is written after completion", cKey)
 
 			// 4. fetch one new job from path.Join(pfxScheduled, bucket)
 			resp, err := qu.cli.Get(ctx, scheduledKey, append(clientv3.WithFirstKey(), clientv3.WithPrefix())...)
@@ -512,14 +513,14 @@ func (qu *queue) runScheduler(ctx context.Context, bucket string, errc chan erro
 
 			// 2. notify the client back with the new results on the key (ID field in Item)
 			glog.Infof("scheduler: %q is done", item.Key)
-			if err := qu.put(ctx, item.Key, string(v)); err != nil {
+			if err := qu.put(ctx, path.Join(pfxScheduled, item.Key), string(v)); err != nil {
 				errc <- err
 				return
 			}
 
 			// 3. delete the DONE key from the queue, and move to pfxCompleted + Key for logging
 			glog.Infof("scheduler: %q is deleted", item.Key)
-			if err := qu.delete(ctx, item.Key); err != nil {
+			if err := qu.delete(ctx, path.Join(pfxScheduled, item.Key)); err != nil {
 				errc <- err
 				return
 			}

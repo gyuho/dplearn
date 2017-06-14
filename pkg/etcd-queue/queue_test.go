@@ -63,12 +63,12 @@ func TestQueue(t *testing.T) {
 		t.Fatalf("value expected 'bar', got %q", string(resp.Kvs[0].Value))
 	}
 
-	item1 := CreateItem("my-job", 1500, "my text goes here... 1")
+	item1 := CreateItem("mybucket", 1500, "my text goes here... 1")
 	wch1, err := qu.Add(context.Background(), item1)
 	if err != nil {
 		t.Fatal(err)
 	}
-	item2 := CreateItem("my-job", 15000, "my text goes here... 2")
+	item2 := CreateItem("mybucket", 15000, "my text goes here... 2")
 	wch2, err := qu.Add(context.Background(), item2)
 	if err != nil {
 		t.Fatal(err)
@@ -77,7 +77,7 @@ func TestQueue(t *testing.T) {
 	time.Sleep(3 * time.Second)
 
 	// expects 'item1' to be scheduled
-	todoKey := path.Join(pfxWorker, "my-job")
+	todoKey := path.Join(pfxWorker, "mybucket")
 	resp, err = cli.Get(context.Background(), todoKey)
 	if err != nil {
 		t.Fatal(err)
@@ -216,7 +216,7 @@ func TestQueue(t *testing.T) {
 		t.Fatalf("took too long to receive event on item2 %s", item2.Key)
 	}
 
-	item3 := CreateItem("my-job", 99999, "my text goes here... 3")
+	item3 := CreateItem("mybucket", 99999, "my text goes here... 3")
 	wch3, err := qu.Add(context.Background(), item3)
 	if err != nil {
 		t.Fatal(err)
