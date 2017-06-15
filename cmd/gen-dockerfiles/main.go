@@ -196,6 +196,9 @@ root = /usr/local/cuda\n'\
 > ${HOME}/.keras/keras.json \
   && cat ${HOME}/.keras/keras.json
 
+# "image_dim_ordering": "tf"
+# "backend": "tensorflow"
+
 {{.NVIDIAcuDNN}}
 
 # Configure Jupyter

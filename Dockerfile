@@ -1,4 +1,4 @@
-# Last Updated at 2017-06-15 03:49:24.379065194 -0700 PDT
+# Last Updated at 2017-06-15 04:08:36.798918899 -0700 PDT
 # This Dockerfile contains everything needed for development and production use.
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile.gpu
@@ -122,6 +122,9 @@ root = /usr/local/cuda\n'\
 }\n'\
 > ${HOME}/.keras/keras.json \
   && cat ${HOME}/.keras/keras.json
+
+# "image_dim_ordering": "tf"
+# "backend": "tensorflow"
 
 # Tensorflow GPU image already includes https://developer.nvidia.com/cudnn
 # https://github.com/fastai/courses/blob/master/setup/install-gpu.sh
