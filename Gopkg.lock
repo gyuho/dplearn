@@ -174,7 +174,7 @@
   branch = "master"
   name = "github.com/prometheus/common"
   packages = ["expfmt","internal/bitbucket.org/ww/goautoneg","model"]
-  revision = "13ba4ddd0caa9c28ca7b7bffe1dfa9ed8d5ef207"
+  revision = "3233b24a36715a2fe36d162260457857a56d672d"
 
 [[projects]]
   branch = "master"
@@ -210,7 +210,7 @@
   branch = "master"
   name = "golang.org/x/net"
   packages = ["context","context/ctxhttp","http2","http2/hpack","idna","internal/timeseries","lex/httplex","trace"]
-  revision = "dfe83d419c9403b40b19d08cdba2afec27b002f7"
+  revision = "ddf80d0970594e2e4cccf5a98861cad3d9eaa4cd"
 
 [[projects]]
   name = "golang.org/x/oauth2"
@@ -221,7 +221,7 @@
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix"]
-  revision = "0b25a408a50076fbbcae6b7ac0ea5fbb0b085e79"
+  revision = "fb4cac33e3196ff7f507ab9b2d2a44b0142f5b5a"
 
 [[projects]]
   branch = "master"
@@ -255,8 +255,8 @@
 [[projects]]
   name = "google.golang.org/grpc"
   packages = [".","codes","credentials","credentials/oauth","grpclb/grpc_lb_v1","grpclog","internal","keepalive","metadata","naming","peer","stats","status","tap","transport"]
-  revision = "d8960bd63c6743defa6d54926e5edfa8e4a28e43"
-  version = "v1.4.0"
+  revision = "42c095b6c9bdd80d4435b064508c398afdb0ec99"
+  version = "v1.4.1"
 
 [[projects]]
   name = "gopkg.in/yaml.v2"
