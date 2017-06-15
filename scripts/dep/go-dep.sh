@@ -23,7 +23,4 @@ if [ ! $(command -v dep) ]; then
 fi
 
 dep ensure -update -v
-
-# TODO: this removes all deps for other archs
-# dep prune -v
-
+dep prune -v
