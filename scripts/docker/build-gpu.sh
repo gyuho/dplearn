@@ -10,3 +10,12 @@ docker build \
   --tag gcr.io/deephardway/deephardway:latest-gpu \
   --file ./dockerfiles/gpu/Dockerfile \
   .
+
+<<COMMENT
+sudo groupadd docker
+sudo gpasswd -a $USER docker
+sudo usermod -aG docker $USER
+newgrp docker
+
+sudo chmod +x /home/gyuho/.docker/config.json
+COMMENT
