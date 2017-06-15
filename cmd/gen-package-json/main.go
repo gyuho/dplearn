@@ -97,7 +97,7 @@ const tmplPackageJSON = `{
         "@angular/tsc-wrapped": "4.2.2",
         "@angular/upgrade": "4.2.2",
         "core-js": "2.4.1",
-        "rxjs": "6.0.0-alpha.0",
+        "rxjs": "5.4.1",
         "ts-helpers": "1.1.2",
         "zone.js": "0.8.12"
     },
