@@ -8,9 +8,8 @@ fi
 
 # gcloud auth login
 
-go get -v github.com/GoogleCloudPlatform/docker-credential-gcr
-
-gcloud docker -- login -u _json_key -p "$(cat ${GCP_KEY_PATH})" https://gcr.io
-# docker login -u oauth2accesstoken -p "$(gcloud auth application-default print-access-token)" https://gcr.io
+# go get -v github.com/GoogleCloudPlatform/docker-credential-gcr
+# gcloud docker -- login -u _json_key -p "$(cat ${GCP_KEY_PATH})" https://gcr.io
+gcloud docker -- login -u oauth2accesstoken -p "$(gcloud auth application-default print-access-token)" https://us.gcr.io
 
 gcloud docker -- push gcr.io/deephardway/deephardway:latest-gpu
