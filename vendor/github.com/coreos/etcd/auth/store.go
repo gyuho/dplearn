@@ -995,13 +995,17 @@ func (as *authStore) AuthInfoFromTLS(ctx context.Context) *AuthInfo {
 }
 
 func (as *authStore) AuthInfoFromCtx(ctx context.Context) (*AuthInfo, error) {
-	md, ok := metadata.FromContext(ctx)
+	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return nil, nil
 	}
 
-	ts, tok := md["token"]
-	if !tok {
+	//TODO(mitake|hexfusion) review unifying key names
+	ts, ok := md["token"]
+	if !ok {
+		ts, ok = md["authorization"]
+	}
+	if !ok {
 		return nil, nil
 	}
 
@@ -1011,6 +1015,7 @@ func (as *authStore) AuthInfoFromCtx(ctx context.Context) (*AuthInfo, error) {
 		plog.Warningf("invalid auth token: %s", token)
 		return nil, ErrInvalidAuthToken
 	}
+
 	return authInfo, nil
 }
 

@@ -68,7 +68,7 @@
 
 [[constraint]]
   name = "github.com/coreos/etcd"
-  revision = "ee0c805de2fa046f545f303cfef4cda89f91fe9b"
+  revision = "1acc8090e33c2f6505112e7b305d34996fb46dd9"
 
 [[constraint]]
   name = "github.com/dustin/go-humanize"
