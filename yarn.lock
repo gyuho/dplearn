@@ -8,12 +8,12 @@
   dependencies:
     tslib "^1.7.1"
 
-"@angular/cli@1.2.0-beta.0":
-  version "1.2.0-beta.0"
-  resolved "https://registry.yarnpkg.com/@angular/cli/-/cli-1.2.0-beta.0.tgz#b014ee34a1d2d32e0dd96ec7cf42f55e1fdc5a32"
+"@angular/cli@1.2.0-beta.1":
+  version "1.2.0-beta.1"
+  resolved "https://registry.yarnpkg.com/@angular/cli/-/cli-1.2.0-beta.1.tgz#2644e2f12c81924075117a6bac8977f489c7fc52"
   dependencies:
     "@ngtools/json-schema" "1.1.0"
-    "@ngtools/webpack" "1.4.0"
+    "@ngtools/webpack" "1.5.0-beta.1"
     autoprefixer "^6.5.3"
     chalk "^1.1.3"
     common-tags "^1.3.1"
@@ -38,6 +38,7 @@
     json-loader "^0.5.4"
     less "^2.7.2"
     less-loader "^4.0.2"
+    license-webpack-plugin "^0.4.2"
     lodash "^4.11.1"
     memory-fs "^0.4.1"
     minimatch "^3.0.3"
@@ -150,55 +151,61 @@
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@ngtools/json-schema/-/json-schema-1.1.0.tgz#c3a0c544d62392acc2813a42c8a0dc6f58f86922"
 
-"@ngtools/webpack@1.4.0":
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/@ngtools/webpack/-/webpack-1.4.0.tgz#dce8ac7e959e97bdfe583b5c355d7c9935214efa"
+"@ngtools/webpack@1.5.0-beta.1":
+  version "1.5.0-beta.1"
+  resolved "https://registry.yarnpkg.com/@ngtools/webpack/-/webpack-1.5.0-beta.1.tgz#88f0ec50d499cbd03c788373a7bcb4312b10b24a"
   dependencies:
     enhanced-resolve "^3.1.0"
     loader-utils "^1.0.2"
     magic-string "^0.19.0"
     source-map "^0.5.6"
 
-"@types/angular-animate@1.5.6":
-  version "1.5.6"
-  resolved "https://registry.yarnpkg.com/@types/angular-animate/-/angular-animate-1.5.6.tgz#43b095185b19e37339bb9d61b1b970461266730e"
+"@types/angular-animate@1.5.7":
+  version "1.5.7"
+  resolved "https://registry.yarnpkg.com/@types/angular-animate/-/angular-animate-1.5.7.tgz#bf062864b6021f3c9533fcb330d348c598398abf"
   dependencies:
     "@types/angular" "*"
     "@types/jquery" "*"
 
-"@types/angular-cookies@1.4.3":
-  version "1.4.3"
-  resolved "https://registry.yarnpkg.com/@types/angular-cookies/-/angular-cookies-1.4.3.tgz#13056d07532945be74e1a63b081e92b0262c6a59"
+"@types/angular-cookies@1.4.4":
+  version "1.4.4"
+  resolved "https://registry.yarnpkg.com/@types/angular-cookies/-/angular-cookies-1.4.4.tgz#ec0d7ca9ee658290f51e7d73c20ff0a92c5b2a26"
   dependencies:
     "@types/angular" "*"
 
-"@types/angular-mocks@1.5.9":
+"@types/angular-mocks@1.5.10":
+  version "1.5.10"
+  resolved "https://registry.yarnpkg.com/@types/angular-mocks/-/angular-mocks-1.5.10.tgz#bb3728bfc156a3bc35dfbfcc2d332e175284fba6"
+  dependencies:
+    "@types/angular" "*"
+
+"@types/angular-resource@1.5.9":
   version "1.5.9"
-  resolved "https://registry.yarnpkg.com/@types/angular-mocks/-/angular-mocks-1.5.9.tgz#4d91bb71a5cfb000d02b02133bc98c20f57101fd"
+  resolved "https://registry.yarnpkg.com/@types/angular-resource/-/angular-resource-1.5.9.tgz#54af443836e495cd3ddd1827319bd9cd4d1f4625"
   dependencies:
     "@types/angular" "*"
 
-"@types/angular-resource@1.5.8":
-  version "1.5.8"
-  resolved "https://registry.yarnpkg.com/@types/angular-resource/-/angular-resource-1.5.8.tgz#39033ae67d1012aae68a2aa1650d89bb404d35ce"
-  dependencies:
-    "@types/angular" "*"
-
-"@types/angular-route@1.3.3":
-  version "1.3.3"
-  resolved "https://registry.yarnpkg.com/@types/angular-route/-/angular-route-1.3.3.tgz#3dac9edba1c44ea75b696b08fc8b4cd5466b96ff"
-  dependencies:
-    "@types/angular" "*"
-
-"@types/angular-sanitize@1.3.4":
+"@types/angular-route@1.3.4":
   version "1.3.4"
-  resolved "https://registry.yarnpkg.com/@types/angular-sanitize/-/angular-sanitize-1.3.4.tgz#aa63bd32a1c3c8846e16d66be891a5bdb3b0fc65"
+  resolved "https://registry.yarnpkg.com/@types/angular-route/-/angular-route-1.3.4.tgz#10d3f7eb313fb8a4b832041f9401869803dcd4df"
   dependencies:
     "@types/angular" "*"
 
-"@types/angular@*", "@types/angular@1.6.18":
+"@types/angular-sanitize@1.3.5":
+  version "1.3.5"
+  resolved "https://registry.yarnpkg.com/@types/angular-sanitize/-/angular-sanitize-1.3.5.tgz#e80f8c63d87c9f46a710dca230b9c10f5dcbeb0f"
+  dependencies:
+    "@types/angular" "*"
+
+"@types/angular@*":
   version "1.6.18"
   resolved "https://registry.yarnpkg.com/@types/angular/-/angular-1.6.18.tgz#1df57e3c8b1f1fe629f58f4f1f2269bf57be91a8"
+  dependencies:
+    "@types/jquery" "*"
+
+"@types/angular@1.6.19":
+  version "1.6.19"
+  resolved "https://registry.yarnpkg.com/@types/angular/-/angular-1.6.19.tgz#a81137c2c5b046495bf2bc794cd4c30b349e2edd"
   dependencies:
     "@types/jquery" "*"
 
@@ -1344,17 +1351,17 @@ dateformat@^1.0.11:
     get-stdin "^4.0.1"
     meow "^3.3.0"
 
-debug@*, debug@2.2.0, debug@^2.1.3, debug@^2.2.0, debug@~2.2.0:
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/debug/-/debug-2.2.0.tgz#f87057e995b1a1f6ae6a4960664137bc56f039da"
-  dependencies:
-    ms "0.7.1"
-
-debug@2, debug@2.6.7:
+debug@*, debug@2, debug@2.6.7, debug@^2.1.3, debug@^2.2.0:
   version "2.6.7"
   resolved "https://registry.yarnpkg.com/debug/-/debug-2.6.7.tgz#92bad1f6d05bbb6bba22cca88bcd0ec894c2861e"
   dependencies:
     ms "2.0.0"
+
+debug@2.2.0, debug@~2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/debug/-/debug-2.2.0.tgz#f87057e995b1a1f6ae6a4960664137bc56f039da"
+  dependencies:
+    ms "0.7.1"
 
 debug@2.3.3:
   version "2.3.3"
@@ -2877,6 +2884,12 @@ levn@~0.3.0:
     prelude-ls "~1.1.2"
     type-check "~0.3.2"
 
+license-webpack-plugin@^0.4.2:
+  version "0.4.3"
+  resolved "https://registry.yarnpkg.com/license-webpack-plugin/-/license-webpack-plugin-0.4.3.tgz#f9d88d4ebc04407a0061e8ccac26571f88e51a16"
+  dependencies:
+    object-assign "^4.1.0"
+
 load-json-file@^1.0.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/load-json-file/-/load-json-file-1.1.0.tgz#956905708d58b4bab4c2261b04f59f31c99374c0"
@@ -3173,25 +3186,15 @@ miller-rabin@^4.0.0:
     bn.js "^4.0.0"
     brorand "^1.0.1"
 
-"mime-db@>= 1.23.0 < 2", mime-db@~1.24.0:
-  version "1.24.0"
-  resolved "https://registry.yarnpkg.com/mime-db/-/mime-db-1.24.0.tgz#e2d13f939f0016c6e4e9ad25a8652f126c467f0c"
-
-mime-db@~1.27.0:
+"mime-db@>= 1.23.0 < 2", mime-db@~1.27.0:
   version "1.27.0"
   resolved "https://registry.yarnpkg.com/mime-db/-/mime-db-1.27.0.tgz#820f572296bbd20ec25ed55e5b5de869e5436eb1"
 
-mime-types@^2.1.12, mime-types@~2.1.15:
+mime-types@^2.1.12, mime-types@~2.1.11, mime-types@~2.1.15, mime-types@~2.1.7:
   version "2.1.15"
   resolved "https://registry.yarnpkg.com/mime-types/-/mime-types-2.1.15.tgz#a4ebf5064094569237b8cf70046776d09fc92aed"
   dependencies:
     mime-db "~1.27.0"
-
-mime-types@~2.1.11, mime-types@~2.1.7:
-  version "2.1.12"
-  resolved "https://registry.yarnpkg.com/mime-types/-/mime-types-2.1.12.tgz#152ba256777020dd4663f54c2e7bc26381e71729"
-  dependencies:
-    mime-db "~1.24.0"
 
 mime@1.2.x:
   version "1.2.11"
@@ -3209,13 +3212,13 @@ minimalistic-assert@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/minimalistic-assert/-/minimalistic-assert-1.0.0.tgz#702be2dda6b37f4836bcb3f5db56641b64a1d3d3"
 
-"minimatch@2 || 3", minimatch@^3.0.0, minimatch@^3.0.4, minimatch@~3.0.0:
+"minimatch@2 || 3", minimatch@^3.0.0, minimatch@^3.0.3, minimatch@^3.0.4, minimatch@~3.0.0:
   version "3.0.4"
   resolved "https://registry.yarnpkg.com/minimatch/-/minimatch-3.0.4.tgz#5166e286457f03306064be5497e8dbb0c3d32083"
   dependencies:
     brace-expansion "^1.1.7"
 
-minimatch@^3.0.2, minimatch@^3.0.3:
+minimatch@^3.0.2:
   version "3.0.3"
   resolved "https://registry.yarnpkg.com/minimatch/-/minimatch-3.0.3.tgz#2a4e4090b96b2db06a9d7df01055a62a77c9b774"
   dependencies:
@@ -4399,21 +4402,21 @@ right-align@^0.1.1:
   dependencies:
     align-text "^0.1.1"
 
-rimraf@2, rimraf@^2.2.8, rimraf@^2.5.2, rimraf@^2.5.4, rimraf@^2.6.0:
+rimraf@2, rimraf@^2.2.8, rimraf@^2.5.2, rimraf@^2.5.3, rimraf@^2.5.4, rimraf@^2.6.0:
   version "2.6.1"
   resolved "https://registry.yarnpkg.com/rimraf/-/rimraf-2.6.1.tgz#c2338ec643df7a1b7fe5c54fa86f57428a55f33d"
-  dependencies:
-    glob "^7.0.5"
-
-rimraf@^2.5.3, rimraf@~2.5.0, rimraf@~2.5.1:
-  version "2.5.4"
-  resolved "https://registry.yarnpkg.com/rimraf/-/rimraf-2.5.4.tgz#96800093cbf1a0c86bd95b4625467535c29dfa04"
   dependencies:
     glob "^7.0.5"
 
 rimraf@~2.2.6:
   version "2.2.8"
   resolved "https://registry.yarnpkg.com/rimraf/-/rimraf-2.2.8.tgz#e439be2aaee327321952730f99a8929e4fc50582"
+
+rimraf@~2.5.0, rimraf@~2.5.1:
+  version "2.5.4"
+  resolved "https://registry.yarnpkg.com/rimraf/-/rimraf-2.5.4.tgz#96800093cbf1a0c86bd95b4625467535c29dfa04"
+  dependencies:
+    glob "^7.0.5"
 
 ripemd160@^1.0.0:
   version "1.0.1"
@@ -4433,9 +4436,9 @@ rx@^4.1.0:
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/rx/-/rx-4.1.0.tgz#a5f13ff79ef3b740fe30aa803fb09f98805d4782"
 
-rxjs@5.4.0, rxjs@^5.0.1:
-  version "5.4.0"
-  resolved "https://registry.yarnpkg.com/rxjs/-/rxjs-5.4.0.tgz#a7db14ab157f9d7aac6a56e655e7a3860d39bf26"
+rxjs@5.4.1, rxjs@^5.0.1:
+  version "5.4.1"
+  resolved "https://registry.yarnpkg.com/rxjs/-/rxjs-5.4.1.tgz#b62f757f279445d265a18a58fb0a70dc90e91626"
   dependencies:
     symbol-observable "^1.0.1"
 
