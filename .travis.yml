@@ -1,0 +1,13 @@
+language: shell
+
+sudo: required
+
+services:
+- docker
+
+# set DOCKER_BASE in travis
+before_install:
+- docker pull ${DOCKER_BASE}
+
+script:
+- ./scripts/tests/docker-cpu.sh
