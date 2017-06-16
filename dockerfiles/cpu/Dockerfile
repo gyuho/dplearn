@@ -1,11 +1,9 @@
-# Last Updated at 2017-06-16 04:00:57.002439383 -0700 PDT
-# This Dockerfile contains everything needed for development and production use.
+# Last updated at 2017-06-16 04:14:59.836518234 -0700 PDT
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile.gpu
 # https://gcr.io/tensorflow/tensorflow
 
 ##########################
-# Base image to build upon
 FROM gcr.io/tensorflow/tensorflow:1.2.0
 ##########################
 
