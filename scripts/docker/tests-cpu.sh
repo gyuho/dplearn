@@ -16,4 +16,4 @@ docker run \
   --rm \
   --volume=`pwd`:/gopath/src/github.com/gyuho/deephardway \
   gcr.io/deephardway/deephardway:latest-cpu \
-  /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && ETCD_TEST_EXEC=/etcd ./scripts/tests/python.sh"
+  /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && ETCD_EXEC=/etcd ./scripts/tests/python.sh"

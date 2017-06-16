@@ -6,9 +6,9 @@ if ! [[ "$0" =~ "./tests.sh" ]]; then
   exit 255
 fi
 
-if [ -z "$ETCD_TEST_EXEC" ]; then
-  echo ETCD_TEST_EXEC is not defined!
+if [[ -z "${ETCD_EXEC}" ]]; then
+  echo ETCD_EXEC is not defined!
   exit 255
 fi
 
-ETCD_TEST_EXEC=${ETCD_TEST_EXEC} python -m unittest discover --pattern=*.py -v
+ETCD_EXEC=${ETCD_EXEC} python -m unittest discover --pattern=*.py -v

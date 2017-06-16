@@ -6,8 +6,8 @@ if ! [[ "$0" =~ "./scripts/tests/python.sh" ]]; then
   exit 255
 fi
 
-if [ -z "$ETCD_TEST_EXEC" ]; then
-  echo ETCD_TEST_EXEC is not defined!
+if [[ -z "${ETCD_EXEC}" ]]; then
+  echo ETCD_EXEC is not defined!
   exit 255
 fi
 

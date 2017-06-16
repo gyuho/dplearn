@@ -67,7 +67,7 @@ class TestETCDMethods(unittest.TestCase):
         """
         etcd test function
         """
-        exec_path = os.environ['ETCD_TEST_EXEC']
+        exec_path = os.environ['ETCD_EXEC']
         if exec_path == '':
             print('Got empty etcd path')
             sys.exit(0)

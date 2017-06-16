@@ -6,6 +6,11 @@ if ! [[ "$0" =~ "./scripts/docker/push-cpu.sh" ]]; then
   exit 255
 fi
 
+if [[ -z "${GCP_KEY_PATH}" ]]; then
+  echo GCP_KEY_PATH is not defined!
+  exit 255
+fi
+
 # go get -v github.com/GoogleCloudPlatform/docker-credential-gcr
 gcloud docker -- login -u _json_key -p "$(cat ${GCP_KEY_PATH})" https://gcr.io
 

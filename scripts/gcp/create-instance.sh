@@ -6,7 +6,7 @@ if ! [[ "$0" =~ "./scripts/gcp/create-instance.sh" ]]; then
   exit 255
 fi
 
-if [ -z "$GCP_KEY_PATH" ]; then
+if [[ -z "${GCP_KEY_PATH}" ]]; then
   GCP_KEY_PATH="fmt bom dep compile build unit"
   echo GCP_KEY_PATH is not defined
   exit 255

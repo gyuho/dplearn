@@ -7,8 +7,8 @@ if ! [[ "$0" =~ "./scripts/docker/deephardway-cpu.sh" ]]; then
 fi
 
 LOCAL_DIR=/var/lib/etcd
-if [ $(uname) = "Darwin" ]; then
-  echo "Running on MacOS"
+if [[ $(uname) = "Darwin" ]]; then
+  echo "Running locally with MacOS"
   LOCAL_DIR=${HOME}/etcd
 fi
 

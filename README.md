@@ -46,7 +46,7 @@ To update dependencies:
 To update [`Dockerfile`](Dockerfile):
 
 ```bash
-# update 'cmd/gen-dockerfiles' and then
+# after updating '*/Dockerfile.yaml', 'cmd/gen-dockerfiles'
 ./scripts/docker/gen.sh
 ```
 
@@ -61,7 +61,7 @@ To run tests:
 
 ```bash
 ./scripts/tests/go.sh
-ETCD_TEST_EXEC=/etcd ./scripts/tests/python.sh
+ETCD_EXEC=/etcd ./scripts/tests/python.sh
 
 # run tests inside container
 ./scripts/docker/tests-cpu.sh
@@ -77,6 +77,7 @@ To run [IPython Notebook](https://ipython.org/notebook.html) locally:
 # Add 'source activate r' to run with R kernel.
 # It uses Tensorflow base image, so need to
 # manually configure the R Anaconda workspace.
+ACTIVATE_COMMAND="source activate r &&" ./scripts/docker/ipython-cpu.sh
 ```
 
 To run `deephardway` application (backend, web UI, worker) locally:
@@ -86,8 +87,12 @@ To run `deephardway` application (backend, web UI, worker) locally:
 ./scripts/docker/deephardway-gpu.sh
 ```
 
-To deploy `deephardway` application to Google Cloud Platform, first update [`Ansible Playbooks`](./scripts/gcp/ubuntu-gpu.ansible.sh) for GPU provisioning, and then:
+To deploy `deephardway` application to Google Cloud Platform:
 
 ```bash
 GCP_KEY_PATH=/etc/gcp-key-deephardway.json ./scripts/gcp/create-instance.sh
+
+# this creates a Google Cloud Platform Compute Engine VM with a start-up
+# script that provisions GPUs, init systems, reverse proxy, and others
+# see ./scripts/gcp/ubuntu-gpu.ansible.sh for more detail
 ```
