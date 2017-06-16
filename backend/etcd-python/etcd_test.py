@@ -1,5 +1,6 @@
 """
 This script tests etcd clients.
+Requires Python 3.
 """
 
 from __future__ import print_function
@@ -11,6 +12,7 @@ import shutil
 import subprocess
 import threading
 import unittest
+
 from etcd import put
 from etcd import get
 from etcd import watch
@@ -59,7 +61,7 @@ class TestETCDMethods(unittest.TestCase):
         """
         test watch API
         """
-        self.assertEqual(watch('http://localhost:2379', 'foo'), 'bar')
+        self.assertEqual(watch('http://localhost:2379', 'foo'), b'bar')
 
     def test_etcd(self):
         """
@@ -90,7 +92,7 @@ class TestETCDMethods(unittest.TestCase):
 
         print('Launching client requests...')
         print(put('http://localhost:2379', 'foo', 'bar'))
-        self.assertEqual(get('http://localhost:2379', 'foo'), 'bar')
+        self.assertEqual(get('http://localhost:2379', 'foo'), b'bar')
 
         print('Waing for watch...')
         watch_thread.join()
