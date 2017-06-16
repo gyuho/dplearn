@@ -8,6 +8,7 @@ Learn Deep Learning The Hard Way.
 
 It is a set of small projects on [Deep Learning](https://en.wikipedia.org/wiki/Deep_learning).
 
+
 ### System Overview
 
 <img src="./architecture.png" alt="architecture" width="620">
@@ -22,3 +23,70 @@ Notes:
 
 - **Why is the queue service needed?** Users requests are concurrent, while worker has only limited computing power. Requests should be serialized into the queue, so that worker performance is maximized for each queue item.
 - **How is this deployed?** I have limited budget on public serving, thus everything is run in *one container*. In production, [etcd](https://github.com/coreos/etcd) can be distributed for higher availability, and [Tensorflow/serving](https://tensorflow.github.io/serving/) can serve the pre-trained models.
+
+
+### Development Workflow
+
+To update dependencies:
+
+```bash
+# update 'Gopkg.toml',
+# this is necessary, whether run with/without container
+# since docker build copies 'vendor' directory to the container image
+./scripts/dep/go-dep.sh
+
+# update 'cmd/gen-package-json' and then
+./scripts/dep/package-json.sh
+
+# not needed if run inside container
+# docker build fetches all frontend dependencies
+./scripts/dep/frontend.sh
+```
+
+To update [`Dockerfile`](Dockerfile):
+
+```bash
+# update 'cmd/gen-dockerfiles' and then
+./scripts/docker/gen.sh
+```
+
+To build Docker container image:
+
+```bash
+./scripts/docker/build-cpu.sh
+./scripts/docker/build-gpu.sh
+```
+
+To run tests:
+
+```bash
+./scripts/tests/go.sh
+ETCD_TEST_EXEC=/etcd ./scripts/tests/python.sh
+
+# test inside container
+./scripts/tests/docker.sh
+```
+
+To run [IPython Notebook](https://ipython.org/notebook.html) locally:
+
+```bash
+./scripts/docker/ipython-cpu.sh
+./scripts/docker/ipython-gpu.sh
+
+# Add 'source activate r' to run with R kernel
+# It uses Tensorflow base image, so need to
+# manually configure the R Anaconda workspace
+```
+
+To run `deephardway` application (backend, web UI, worker) locally:
+
+```bash
+./scripts/docker/deephardway-cpu.sh
+./scripts/docker/deephardway-gpu.sh
+```
+
+To deploy `deephardway` application to Google Cloud Platform:
+
+```bash
+GCP_KEY_PATH=/etc/gcp-key-deephardway.json ./scripts/gcp/create-instance.sh
+```
