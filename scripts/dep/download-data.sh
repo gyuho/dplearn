@@ -12,6 +12,7 @@ download-data -source-path http://files.fast.ai/data/dogscats.zip \
   -target-path $HOME/data/deephardway.data/dogscats.zip \
   -output-dir $HOME/data/deephardway.data/dogscats \
   -output-dir-overwrite \
+  -verbose \
   -smart-rename \
   -logtostderr
 

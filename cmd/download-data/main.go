@@ -85,7 +85,11 @@ func main() {
 		}
 
 		glog.Infof("unarchiving %q", *targetPath)
-		if err := ff.Open(*targetPath, *outputDir, archiver.WithVerbose()); err != nil {
+		var opts []archiver.OpOption
+		if *verbose {
+			opts = append(opts, archiver.WithVerbose())
+		}
+		if err := ff.Open(*targetPath, *outputDir, opts...); err != nil {
 			glog.Fatal(err)
 		}
 		glog.Infof("unarchived %q", *targetPath)
