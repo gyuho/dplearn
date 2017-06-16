@@ -8,6 +8,6 @@ fi
 
 go install -v ./cmd/gen-dockerfiles
 
-gen-dockerfiles -config=./dockerfile.yaml -logtostderr=true
-gen-dockerfiles -config=./dockerfiles/gpu/dockerfile.yaml -logtostderr=true
-gen-dockerfiles -config=./dockerfiles/cpu/dockerfile.yaml -logtostderr=true
+gen-dockerfiles -config=./Dockerfile.yaml -logtostderr=true
+gen-dockerfiles -config=./dockerfiles/gpu/Dockerfile.yaml -logtostderr=true
+gen-dockerfiles -config=./dockerfiles/cpu/Dockerfile.yaml -logtostderr=true
