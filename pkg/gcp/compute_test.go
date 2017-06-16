@@ -8,24 +8,39 @@ import (
 	"testing"
 	"time"
 
+	"strconv"
+
 	"github.com/golang/glog"
 	compute "google.golang.org/api/compute/v1"
 )
 
 /*
-GCP_TEST_KEY_PATH=/etc/gcp-key-deephardway.json go test -v -run TestComputeUbuntu -logtostderr=true
-GCP_TEST_KEY_PATH=/etc/gcp-key-deephardway.json go test -v -run TestComputeContainerLinux -logtostderr=true
+GCP_TEST_KEY_PATH=/etc/gcp-key-deephardway.json SKIP_DELETE=false \
+  go test -v -run TestComputeUbuntu -logtostderr=true
+
+GCP_TEST_KEY_PATH=/etc/gcp-key-deephardway.json SKIP_DELETE=false \
+  go test -v -run TestComputeContainerLinux -logtostderr=true
 
 curl -L http://metadata.google.internal/computeMetadata/v1/instance/attributes/gcp-key -H 'Metadata-Flavor:Google'
 curl -L http://metadata.google.internal/computeMetadata/v1/instance/attributes/startup-script -H 'Metadata-Flavor:Google'
 curl -L http://metadata.google.internal/computeMetadata/v1/instance/attributes/test-key -H 'Metadata-Flavor:Google'
 */
-func TestComputeUbuntu(t *testing.T)         { testCompute(t, "ubuntu", false) }
-func TestComputeContainerLinux(t *testing.T) { testCompute(t, "container-linux", true) }
-func testCompute(t *testing.T, osType string, skip bool) {
+func TestComputeUbuntu(t *testing.T)         { testCompute(t, "ubuntu") }
+func TestComputeContainerLinux(t *testing.T) { testCompute(t, "container-linux") }
+func testCompute(t *testing.T, osType string) {
 	testKeyPath := os.Getenv("GCP_TEST_KEY_PATH")
 	if testKeyPath == "" {
-		t.Skip("GCP_TEST_KEY_PATH is not set; skipping")
+		t.Skip("'GCP_TEST_KEY_PATH' is not set; skipping")
+	}
+
+	skipDelete := os.Getenv("SKIP_DELETE")
+	skip := false
+	if skipDelete != "" {
+		var err error
+		skip, err = strconv.ParseBool(skipDelete)
+		if err != nil {
+			t.Fatal(err)
+		}
 	}
 
 	testKey, err := ioutil.ReadFile(testKeyPath)

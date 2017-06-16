@@ -42,15 +42,15 @@ func NewCompute(ctx context.Context, scope string, key []byte) (*Compute, error)
 }
 
 // ListMachines lists virtual machines in a zone.
-func (g *Compute) ListMachines(ctx context.Context, zone string) ([]*compute.Instance, error) {
+func (c *Compute) ListMachines(ctx context.Context, zone string) ([]*compute.Instance, error) {
 	glog.Infof("listing machines in %q", zone)
 
-	csrv, err := compute.New(g.client)
+	csrv, err := compute.New(c.client)
 	if err != nil {
 		return nil, err
 	}
 	l, err := csrv.Instances.
-		List(g.projectID, zone).
+		List(c.projectID, zone).
 		Context(ctx).
 		Do()
 	if err != nil {
@@ -63,23 +63,23 @@ func (g *Compute) ListMachines(ctx context.Context, zone string) ([]*compute.Ins
 
 // CreateMacine creates a virtual machines in the zone.
 // 'memory' is the number of GBs for RAM.
-func (g *Compute) CreateMacine(ctx context.Context, cfg InstanceConfig) (st *compute.Instance, err error) {
+func (c *Compute) CreateMacine(ctx context.Context, cfg InstanceConfig) (st *compute.Instance, err error) {
 	glog.Infof("creating %q", cfg.Name)
 
-	csrv, err := compute.New(g.client)
+	csrv, err := compute.New(c.client)
 	if err != nil {
 		return nil, err
 	}
 
 	cfg.ctx = ctx
 	cfg.csrv = csrv
-	cfg.projectID = g.projectID
+	cfg.projectID = c.projectID
 	cfg.expectStatus = "RUNNING"
 	cfg.needDelete = false
 	instanceToCreate := cfg.genInstance()
 
 	_, err = csrv.Instances.
-		Insert(g.projectID, cfg.Zone, &instanceToCreate).
+		Insert(c.projectID, cfg.Zone, &instanceToCreate).
 		Context(ctx).
 		Do()
 	if err != nil {
@@ -90,14 +90,14 @@ func (g *Compute) CreateMacine(ctx context.Context, cfg InstanceConfig) (st *com
 }
 
 // SetMetadata sets metadata to the instance.
-func (g *Compute) SetMetadata(ctx context.Context, cfg InstanceConfig) error {
+func (c *Compute) SetMetadata(ctx context.Context, cfg InstanceConfig) error {
 	glog.Infof("setting %d metadata on %q", len(cfg.MetadataItems), cfg.Name)
-	csrv, err := compute.New(g.client)
+	csrv, err := compute.New(c.client)
 	if err != nil {
 		return err
 	}
 
-	inst, err := csrv.Instances.Get(g.projectID, cfg.Zone, cfg.Name).Context(ctx).Do()
+	inst, err := csrv.Instances.Get(c.projectID, cfg.Zone, cfg.Name).Context(ctx).Do()
 	if err != nil {
 		return err
 	}
@@ -115,7 +115,7 @@ func (g *Compute) SetMetadata(ctx context.Context, cfg InstanceConfig) error {
 
 	var op *compute.Operation
 	op, err = csrv.Instances.
-		SetMetadata(g.projectID, cfg.Zone, cfg.Name, metadata).
+		SetMetadata(c.projectID, cfg.Zone, cfg.Name, metadata).
 		Context(ctx).
 		Do()
 	if err != nil {
@@ -124,7 +124,7 @@ func (g *Compute) SetMetadata(ctx context.Context, cfg InstanceConfig) error {
 
 	// call is asynchronous; poll for the completion of op
 	for {
-		op, err = csrv.ZoneOperations.Get(g.projectID, cfg.Zone, op.Name).Context(ctx).Do()
+		op, err = csrv.ZoneOperations.Get(c.projectID, cfg.Zone, op.Name).Context(ctx).Do()
 		if err != nil {
 			return err
 		}
@@ -139,16 +139,16 @@ func (g *Compute) SetMetadata(ctx context.Context, cfg InstanceConfig) error {
 }
 
 // StopMachine stops a virtual machines in the zone.
-func (g *Compute) StopMachine(ctx context.Context, cfg InstanceConfig) (st *compute.Instance, err error) {
+func (c *Compute) StopMachine(ctx context.Context, cfg InstanceConfig) (st *compute.Instance, err error) {
 	glog.Infof("stopping %q", cfg.Name)
 
-	csrv, err := compute.New(g.client)
+	csrv, err := compute.New(c.client)
 	if err != nil {
 		return nil, err
 	}
 
 	_, err = csrv.Instances.
-		Stop(g.projectID, cfg.Zone, cfg.Name).
+		Stop(c.projectID, cfg.Zone, cfg.Name).
 		Context(ctx).
 		Do()
 	if err != nil {
@@ -157,23 +157,23 @@ func (g *Compute) StopMachine(ctx context.Context, cfg InstanceConfig) (st *comp
 
 	cfg.ctx = ctx
 	cfg.csrv = csrv
-	cfg.projectID = g.projectID
+	cfg.projectID = c.projectID
 	cfg.expectStatus = "TERMINATED"
 	cfg.needDelete = false
 	return cfg.watchStatus()
 }
 
 // StartMachine starts a virtual machines in the zone.
-func (g *Compute) StartMachine(ctx context.Context, cfg InstanceConfig) (st *compute.Instance, err error) {
+func (c *Compute) StartMachine(ctx context.Context, cfg InstanceConfig) (st *compute.Instance, err error) {
 	glog.Infof("starting %q", cfg.Name)
 
-	csrv, err := compute.New(g.client)
+	csrv, err := compute.New(c.client)
 	if err != nil {
 		return nil, err
 	}
 
 	_, err = csrv.Instances.
-		Start(g.projectID, cfg.Zone, cfg.Name).
+		Start(c.projectID, cfg.Zone, cfg.Name).
 		Context(ctx).
 		Do()
 	if err != nil {
@@ -182,22 +182,22 @@ func (g *Compute) StartMachine(ctx context.Context, cfg InstanceConfig) (st *com
 
 	cfg.ctx = ctx
 	cfg.csrv = csrv
-	cfg.projectID = g.projectID
+	cfg.projectID = c.projectID
 	cfg.expectStatus = "RUNNING"
 	cfg.needDelete = false
 	return cfg.watchStatus()
 }
 
 // DeleteMachine deletes a virtual machines in the zone.
-func (g *Compute) DeleteMachine(ctx context.Context, cfg InstanceConfig) (st *compute.Instance, err error) {
+func (c *Compute) DeleteMachine(ctx context.Context, cfg InstanceConfig) (st *compute.Instance, err error) {
 	glog.Infof("deleting %q", cfg.Name)
 
-	csrv, err := compute.New(g.client)
+	csrv, err := compute.New(c.client)
 	if err != nil {
 		return nil, err
 	}
 	_, err = csrv.Instances.
-		Delete(g.projectID, cfg.Zone, cfg.Name).
+		Delete(c.projectID, cfg.Zone, cfg.Name).
 		Context(ctx).
 		Do()
 	if err != nil {
@@ -206,7 +206,7 @@ func (g *Compute) DeleteMachine(ctx context.Context, cfg InstanceConfig) (st *co
 
 	cfg.ctx = ctx
 	cfg.csrv = csrv
-	cfg.projectID = g.projectID
+	cfg.projectID = c.projectID
 	cfg.expectStatus = "TERMINATED"
 	cfg.needDelete = true
 	return cfg.watchStatus()

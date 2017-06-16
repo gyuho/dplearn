@@ -16,12 +16,12 @@ import (
 )
 
 /*
-GCP_TEST_KEY_PATH=/etc/gcp-key-deephardway.json go test -v -run TestGCS -logtostderr=true
+GCP_TEST_KEY_PATH=/etc/gcp-key-deephardway.json go test -v -run TestStorage -logtostderr=true
 */
-func TestGCS(t *testing.T) {
+func TestStorage(t *testing.T) {
 	testKeyPath := os.Getenv("GCP_TEST_KEY_PATH")
 	if testKeyPath == "" {
-		t.Skip("GCP_TEST_KEY_PATH is not set; skipping")
+		t.Skip("'GCP_TEST_KEY_PATH' is not set; skipping")
 	}
 
 	testKey, err := ioutil.ReadFile(testKeyPath)
@@ -33,7 +33,7 @@ func TestGCS(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	g1, err := NewGCS(ctx, bucketName, storage.ScopeFullControl, testKey, "namespace-1")
+	g1, err := NewStorage(ctx, bucketName, storage.ScopeFullControl, testKey, "namespace-1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -89,8 +89,8 @@ func TestGCS(t *testing.T) {
 	// time.Sleep(30 * time.Second)
 
 	// create a new namespace
-	var g2 *GCS
-	g2, err = NewGCS(ctx, bucketName, storage.ScopeFullControl, testKey, "namespace-2")
+	var g2 *Storage
+	g2, err = NewStorage(ctx, bucketName, storage.ScopeFullControl, testKey, "namespace-2")
 	if err != nil {
 		t.Fatal(err)
 	}
