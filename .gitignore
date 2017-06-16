@@ -5,8 +5,9 @@
 /gen-package-json
 /vendor.orig
 
-/backend/deep/*.pyc
-/backend/deep/etcd/*.pyc
+/backend/etcd-python/*.pyc
+/backend/etcd-python/__pycache__/
+/backend/etcd-python/etcd-test-data/
 
 /notebooks/.ipynb_checkpoints
 /notebooks/sample-notebooks
