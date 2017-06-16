@@ -3,6 +3,7 @@
 /node_modules
 /backend-web-server
 /gen-package-json
+/vendor.orig
 
 /backend/deep/*.pyc
 /backend/deep/etcd/*.pyc
