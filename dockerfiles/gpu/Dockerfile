@@ -1,4 +1,4 @@
-# Last Updated at 2017-06-16 03:36:25.253288513 -0700 PDT
+# Last Updated at 2017-06-16 03:41:41.779671294 -0700 PDT
 # This Dockerfile contains everything needed for development and production use.
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile.gpu
@@ -103,7 +103,9 @@ root = /usr/local/cuda\n'\
 > ${HOME}/.keras/keras.json \
   && cat ${HOME}/.keras/keras.json \
   && conda update conda \
-  && conda create --yes --name r python=2.7 ipykernel \
+  && conda create --yes --name r \
+  python=2.7 \
+  ipykernel \
   r \
   r-essentials \
   'r-base=3.3.2' \
@@ -121,11 +123,14 @@ root = /usr/local/cuda\n'\
   'r-rcurl=1.95*' \
   'r-crayon=1.3*' \
   'r-randomforest=4.6*' \
-  && conda create --yes --name py36 python=3.6 ipykernel \
+  && conda create --yes --name py36 \
+  python=3.6 \
+  ipykernel \
+  requests \
   && conda clean -tipsy \
   && conda list \
   && python -V \
-  && pip list
+  && pip freeze --all
 
 # "image_dim_ordering": "tf"
 # "backend": "tensorflow"
