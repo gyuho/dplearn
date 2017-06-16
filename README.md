@@ -63,9 +63,9 @@ To run tests:
 ./scripts/tests/go.sh
 ETCD_TEST_EXEC=/etcd ./scripts/tests/python.sh
 
-# test inside container
-./scripts/tests/docker-cpu.sh
-./scripts/tests/docker-gpu.sh
+# run tests inside container
+./scripts/docker/tests-cpu.sh
+./scripts/docker/tests-gpu.sh
 ```
 
 To run [IPython Notebook](https://ipython.org/notebook.html) locally:
@@ -74,9 +74,9 @@ To run [IPython Notebook](https://ipython.org/notebook.html) locally:
 ./scripts/docker/ipython-cpu.sh
 ./scripts/docker/ipython-gpu.sh
 
-# Add 'source activate r' to run with R kernel
+# Add 'source activate r' to run with R kernel.
 # It uses Tensorflow base image, so need to
-# manually configure the R Anaconda workspace
+# manually configure the R Anaconda workspace.
 ```
 
 To run `deephardway` application (backend, web UI, worker) locally:
