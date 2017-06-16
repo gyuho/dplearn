@@ -53,7 +53,10 @@ func isTarBz2(tarbz2Path string) bool {
 // can be those of regular files or directories. Regular
 // files are stored at the 'root' of the archive, and
 // directories are recursively added.
-func (tarBz2Format) Make(tarbz2Path string, filePaths []string) error {
+func (tarBz2Format) Make(tarbz2Path string, filePaths []string, opts ...OpOption) error {
+	ret := Op{verbose: false}
+	ret.applyOpts(opts)
+
 	out, err := os.Create(tarbz2Path)
 	if err != nil {
 		return fmt.Errorf("error creating %s: %v", tarbz2Path, err)
@@ -69,11 +72,14 @@ func (tarBz2Format) Make(tarbz2Path string, filePaths []string) error {
 	tarWriter := tar.NewWriter(bz2Writer)
 	defer tarWriter.Close()
 
-	return tarball(filePaths, tarWriter, tarbz2Path)
+	return tarball(filePaths, tarWriter, tarbz2Path, ret.verbose)
 }
 
 // Open untars source and decompresses the contents into destination.
-func (tarBz2Format) Open(source, destination string) error {
+func (tarBz2Format) Open(source, destination string, opts ...OpOption) error {
+	ret := Op{verbose: false}
+	ret.applyOpts(opts)
+
 	f, err := os.Open(source)
 	if err != nil {
 		return fmt.Errorf("%s: failed to open archive: %v", source, err)
@@ -86,5 +92,5 @@ func (tarBz2Format) Open(source, destination string) error {
 	}
 	defer bz2r.Close()
 
-	return untar(tar.NewReader(bz2r), destination)
+	return untar(tar.NewReader(bz2r), destination, ret.verbose)
 }

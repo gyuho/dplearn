@@ -46,7 +46,10 @@ func isTarSz(tarszPath string) bool {
 // can be those of regular files or directories. Regular
 // files are stored at the 'root' of the archive, and
 // directories are recursively added.
-func (tarSzFormat) Make(tarszPath string, filePaths []string) error {
+func (tarSzFormat) Make(tarszPath string, filePaths []string, opts ...OpOption) error {
+	ret := Op{verbose: false}
+	ret.applyOpts(opts)
+
 	out, err := os.Create(tarszPath)
 	if err != nil {
 		return fmt.Errorf("error creating %s: %v", tarszPath, err)
@@ -59,11 +62,14 @@ func (tarSzFormat) Make(tarszPath string, filePaths []string) error {
 	tarWriter := tar.NewWriter(szWriter)
 	defer tarWriter.Close()
 
-	return tarball(filePaths, tarWriter, tarszPath)
+	return tarball(filePaths, tarWriter, tarszPath, ret.verbose)
 }
 
 // Open untars source and decompresses the contents into destination.
-func (tarSzFormat) Open(source, destination string) error {
+func (tarSzFormat) Open(source, destination string, opts ...OpOption) error {
+	ret := Op{verbose: false}
+	ret.applyOpts(opts)
+
 	f, err := os.Open(source)
 	if err != nil {
 		return fmt.Errorf("%s: failed to open archive: %v", source, err)
@@ -71,5 +77,5 @@ func (tarSzFormat) Open(source, destination string) error {
 	defer f.Close()
 
 	szr := snappy.NewReader(f)
-	return untar(tar.NewReader(szr), destination)
+	return untar(tar.NewReader(szr), destination, ret.verbose)
 }

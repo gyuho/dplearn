@@ -118,6 +118,11 @@
   version = "v1.2.2"
 
 [[projects]]
+  name = "github.com/gyuho/archiver"
+  packages = ["."]
+  revision = "9498f426722d1e0f1c4d5801b282ba7a8720f717"
+
+[[projects]]
   name = "github.com/jonboulle/clockwork"
   packages = ["."]
   revision = "2eee05ed794112d45db504eb05aa693efd2b8b09"
@@ -128,11 +133,6 @@
   packages = ["pbutil"]
   revision = "3247c84500bff8d9fb6d579d800f20b3e091582c"
   version = "v1.0.0"
-
-[[projects]]
-  name = "github.com/mholt/archiver"
-  packages = ["."]
-  revision = "8056d511471250e54a2aac38f21de091e1a8dc32"
 
 [[projects]]
   branch = "master"
@@ -266,6 +266,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "1c353fb87038f9bc20685db9ae7ac60c53c2e65e0150e4d856c3e2e10e32cc0d"
+  inputs-digest = "2488e599b166ae32e93214de2cdcbc80f60418980231bde488a047f858695e0a"
   solver-name = "gps-cdcl"
   solver-version = 1

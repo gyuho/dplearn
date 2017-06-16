@@ -14,9 +14,9 @@ type Archiver interface {
 	// Match checks supported files
 	Match(filename string) bool
 	// Make makes an archive.
-	Make(destination string, sources []string) error
+	Make(destination string, sources []string, opts ...OpOption) error
 	// Open extracts an archive.
-	Open(source, destination string) error
+	Open(source, destination string, opts ...OpOption) error
 }
 
 // SupportedFormats contains all supported archive formats

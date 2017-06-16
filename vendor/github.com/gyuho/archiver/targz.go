@@ -50,7 +50,10 @@ func isTarGz(targzPath string) bool {
 // Make creates a .tar.gz file at targzPath containing
 // the contents of files listed in filePaths. It works
 // the same way Tar does, but with gzip compression.
-func (tarGzFormat) Make(targzPath string, filePaths []string) error {
+func (tarGzFormat) Make(targzPath string, filePaths []string, opts ...OpOption) error {
+	ret := Op{verbose: false}
+	ret.applyOpts(opts)
+
 	out, err := os.Create(targzPath)
 	if err != nil {
 		return fmt.Errorf("error creating %s: %v", targzPath, err)
@@ -63,11 +66,14 @@ func (tarGzFormat) Make(targzPath string, filePaths []string) error {
 	tarWriter := tar.NewWriter(gzWriter)
 	defer tarWriter.Close()
 
-	return tarball(filePaths, tarWriter, targzPath)
+	return tarball(filePaths, tarWriter, targzPath, ret.verbose)
 }
 
 // Open untars source and decompresses the contents into destination.
-func (tarGzFormat) Open(source, destination string) error {
+func (tarGzFormat) Open(source, destination string, opts ...OpOption) error {
+	ret := Op{verbose: false}
+	ret.applyOpts(opts)
+
 	f, err := os.Open(source)
 	if err != nil {
 		return fmt.Errorf("%s: failed to open archive: %v", source, err)
@@ -80,5 +86,5 @@ func (tarGzFormat) Open(source, destination string) error {
 	}
 	defer gzr.Close()
 
-	return untar(tar.NewReader(gzr), destination)
+	return untar(tar.NewReader(gzr), destination, ret.verbose)
 }

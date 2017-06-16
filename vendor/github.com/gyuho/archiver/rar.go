@@ -45,13 +45,19 @@ func isRar(rarPath string) bool {
 // Make makes a .rar archive, but this is not implemented because
 // RAR is a proprietary format. It is here only for symmetry with
 // the other archive formats in this package.
-func (rarFormat) Make(rarPath string, filePaths []string) error {
+func (rarFormat) Make(rarPath string, filePaths []string, opts ...OpOption) error {
+	ret := Op{verbose: false}
+	ret.applyOpts(opts)
+
 	return fmt.Errorf("make %s: RAR not implemented (proprietary format)", rarPath)
 }
 
 // Open extracts the RAR file at source and puts the contents
 // into destination.
-func (rarFormat) Open(source, destination string) error {
+func (rarFormat) Open(source, destination string, opts ...OpOption) error {
+	ret := Op{verbose: false}
+	ret.applyOpts(opts)
+
 	f, err := os.Open(source)
 	if err != nil {
 		return fmt.Errorf("%s: failed to open archive: %v", source, err)

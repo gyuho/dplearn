@@ -11,6 +11,8 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+
+	"github.com/golang/glog"
 )
 
 // Zip is for Zip format
@@ -51,7 +53,10 @@ func isZip(zipPath string) bool {
 //
 // Files with an extension for formats that are already
 // compressed will be stored only, not compressed.
-func (zipFormat) Make(zipPath string, filePaths []string) error {
+func (zipFormat) Make(zipPath string, filePaths []string, opts ...OpOption) error {
+	ret := Op{verbose: false}
+	ret.applyOpts(opts)
+
 	out, err := os.Create(zipPath)
 	if err != nil {
 		return fmt.Errorf("error creating %s: %v", zipPath, err)
@@ -60,6 +65,9 @@ func (zipFormat) Make(zipPath string, filePaths []string) error {
 
 	w := zip.NewWriter(out)
 	for _, fpath := range filePaths {
+		if ret.verbose {
+			glog.Infof("zipping %q", fpath)
+		}
 		err = zipFile(w, fpath)
 		if err != nil {
 			w.Close()
@@ -138,7 +146,10 @@ func zipFile(w *zip.Writer, source string) error {
 }
 
 // Open unzips the .zip file at source into destination.
-func (zipFormat) Open(source, destination string) error {
+func (zipFormat) Open(source, destination string, opts ...OpOption) error {
+	ret := Op{verbose: false}
+	ret.applyOpts(opts)
+
 	r, err := zip.OpenReader(source)
 	if err != nil {
 		return err
@@ -146,6 +157,9 @@ func (zipFormat) Open(source, destination string) error {
 	defer r.Close()
 
 	for _, zf := range r.File {
+		if ret.verbose {
+			glog.Infof("unzipping %q", zf.Name)
+		}
 		if err := unzipFile(zf, destination); err != nil {
 			return err
 		}

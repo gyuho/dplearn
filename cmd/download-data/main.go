@@ -10,7 +10,7 @@ import (
 	"github.com/gyuho/deephardway/pkg/urlutil"
 
 	"github.com/golang/glog"
-	"github.com/mholt/archiver"
+	"github.com/gyuho/archiver"
 )
 
 func main() {

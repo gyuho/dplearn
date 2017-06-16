@@ -53,7 +53,10 @@ func isTarXz(tarxzPath string) bool {
 // paths can be those of regular files or directories.
 // Regular files are stored at the 'root' of the
 // archive, and directories are recursively added.
-func (xzFormat) Make(xzPath string, filePaths []string) error {
+func (xzFormat) Make(xzPath string, filePaths []string, opts ...OpOption) error {
+	ret := Op{verbose: false}
+	ret.applyOpts(opts)
+
 	out, err := os.Create(xzPath)
 	if err != nil {
 		return fmt.Errorf("error creating %s: %v", xzPath, err)
@@ -69,11 +72,14 @@ func (xzFormat) Make(xzPath string, filePaths []string) error {
 	tarWriter := tar.NewWriter(xzWriter)
 	defer tarWriter.Close()
 
-	return tarball(filePaths, tarWriter, xzPath)
+	return tarball(filePaths, tarWriter, xzPath, ret.verbose)
 }
 
 // Open untars source and decompresses the contents into destination.
-func (xzFormat) Open(source, destination string) error {
+func (xzFormat) Open(source, destination string, opts ...OpOption) error {
+	ret := Op{verbose: false}
+	ret.applyOpts(opts)
+
 	f, err := os.Open(source)
 	if err != nil {
 		return fmt.Errorf("%s: failed to open archive: %v", source, err)
@@ -85,5 +91,5 @@ func (xzFormat) Open(source, destination string) error {
 		return fmt.Errorf("error decompressing %s: %v", source, err)
 	}
 
-	return untar(tar.NewReader(xzReader), destination)
+	return untar(tar.NewReader(xzReader), destination, ret.verbose)
 }

@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/golang/glog"
 )
 
 // Tar is for Tar format
@@ -41,7 +43,6 @@ func isTar(tarPath string) bool {
 	}
 
 	return hasTarHeader(buf)
-
 }
 
 // hasTarHeader checks passed bytes has a valid tar header or not. buf must
@@ -85,7 +86,10 @@ func hasTarHeader(buf []byte) bool {
 // be those of regular files or directories. Regular
 // files are stored at the 'root' of the archive, and
 // directories are recursively added.
-func (tarFormat) Make(tarPath string, filePaths []string) error {
+func (tarFormat) Make(tarPath string, filePaths []string, opts ...OpOption) error {
+	ret := Op{verbose: false}
+	ret.applyOpts(opts)
+
 	out, err := os.Create(tarPath)
 	if err != nil {
 		return fmt.Errorf("error creating %s: %v", tarPath, err)
@@ -95,13 +99,16 @@ func (tarFormat) Make(tarPath string, filePaths []string) error {
 	tarWriter := tar.NewWriter(out)
 	defer tarWriter.Close()
 
-	return tarball(filePaths, tarWriter, tarPath)
+	return tarball(filePaths, tarWriter, tarPath, ret.verbose)
 }
 
 // tarball writes all files listed in filePaths into tarWriter, which is
 // writing into a file located at dest.
-func tarball(filePaths []string, tarWriter *tar.Writer, dest string) error {
+func tarball(filePaths []string, tarWriter *tar.Writer, dest string, verbose bool) error {
 	for _, fpath := range filePaths {
+		if verbose {
+			glog.Infof("tar %q", fpath)
+		}
 		err := tarFile(tarWriter, fpath, dest)
 		if err != nil {
 			return err
@@ -172,18 +179,21 @@ func tarFile(tarWriter *tar.Writer, source, dest string) error {
 }
 
 // Open untars source and puts the contents into destination.
-func (tarFormat) Open(source, destination string) error {
+func (tarFormat) Open(source, destination string, opts ...OpOption) error {
+	ret := Op{verbose: false}
+	ret.applyOpts(opts)
+
 	f, err := os.Open(source)
 	if err != nil {
 		return fmt.Errorf("%s: failed to open archive: %v", source, err)
 	}
 	defer f.Close()
 
-	return untar(tar.NewReader(f), destination)
+	return untar(tar.NewReader(f), destination, ret.verbose)
 }
 
 // untar un-tarballs the contents of tr into destination.
-func untar(tr *tar.Reader, destination string) error {
+func untar(tr *tar.Reader, destination string, verbose bool) error {
 	for {
 		header, err := tr.Next()
 		if err == io.EOF {
@@ -192,6 +202,9 @@ func untar(tr *tar.Reader, destination string) error {
 			return err
 		}
 
+		if verbose {
+			glog.Infof("untar %q", header.Name)
+		}
 		if err := untarFile(tr, header, destination); err != nil {
 			return err
 		}
