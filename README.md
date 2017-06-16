@@ -64,7 +64,8 @@ To run tests:
 ETCD_TEST_EXEC=/etcd ./scripts/tests/python.sh
 
 # test inside container
-./scripts/tests/docker.sh
+./scripts/tests/docker-cpu.sh
+./scripts/tests/docker-gpu.sh
 ```
 
 To run [IPython Notebook](https://ipython.org/notebook.html) locally:
@@ -85,7 +86,7 @@ To run `deephardway` application (backend, web UI, worker) locally:
 ./scripts/docker/deephardway-gpu.sh
 ```
 
-To deploy `deephardway` application to Google Cloud Platform:
+To deploy `deephardway` application to Google Cloud Platform, first update [`Ansible Playbooks`](./scripts/gcp/ubuntu-gpu.ansible.sh) for GPU provisioning, and then:
 
 ```bash
 GCP_KEY_PATH=/etc/gcp-key-deephardway.json ./scripts/gcp/create-instance.sh
