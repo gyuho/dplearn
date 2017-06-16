@@ -129,8 +129,8 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
   && wget http://repo.continuum.io/miniconda/Miniconda3-3.7.0-Linux-x86_64.sh -O /root/miniconda.sh \
   && bash /root/miniconda.sh -b -p /root/miniconda
 
-ENV PATH /root/miniconda/bin:${PATH}
-RUN conda list
+# do not overwrite default '/usr/bin/python'
+ENV PATH ${PATH}:/root/miniconda/bin
 
 # Configure reverse proxy
 RUN mkdir -p /etc/nginx/sites-available/
@@ -147,33 +147,13 @@ WORKDIR ${ROOT_DIR}
 # Install additional Python libraries
 ENV HOME /root
 
-# https://github.com/Anaconda-Platform/nb_conda
-# https://github.com/jupyter/docker-stacks/blob/master/r-notebook/Dockerfile
+# install 'pip --no-cache-dir install' with default python
+# use vanilla python from tensorflow base image, as much as possible
 # install 'conda install --name r ...' just for R (source activate r)
 # install 'conda install --name py36 ...' just for Python 3 (source activate py36)
-# use vanilla python from tensorflow base image, as much as possible
-RUN conda update conda \
-  && conda create --yes --name r python=2.7 ipykernel \
-  r \
-  r-essentials \
-  'r-base=3.3.2' \
-  'r-irkernel=0.7*' \
-  'r-plyr=1.8*' \
-  'r-devtools=1.12*' \
-  'r-tidyverse=1.0*' \
-  'r-shiny=0.14*' \
-  'r-rmarkdown=1.2*' \
-  'r-forecast=7.3*' \
-  'r-rsqlite=1.1*' \
-  'r-reshape2=1.4*' \
-  'r-nycflights13=0.2*' \
-  'r-caret=6.0*' \
-  'r-rcurl=1.95*' \
-  'r-crayon=1.3*' \
-  'r-randomforest=4.6*' \
-  && conda create --yes --name py36 python=3.6 ipykernel \
-  && conda clean -tipsy \
-  && pip --no-cache-dir install \
+# https://github.com/Anaconda-Platform/nb_conda
+# https://github.com/jupyter/docker-stacks/blob/master/r-notebook/Dockerfile
+RUN pip --no-cache-dir install \
   requests \
   humanize \
   bcolz \
@@ -194,7 +174,31 @@ root = /usr/local/cuda\n'\
   "backend": "theano"\n\
 }\n'\
 > ${HOME}/.keras/keras.json \
-  && cat ${HOME}/.keras/keras.json
+  && cat ${HOME}/.keras/keras.json \
+  && conda update conda \
+  && conda create --yes --name r python=2.7 ipykernel \
+  r \
+  r-essentials \
+  'r-base=3.3.2' \
+  'r-irkernel=0.7*' \
+  'r-plyr=1.8*' \
+  'r-devtools=1.12*' \
+  'r-tidyverse=1.0*' \
+  'r-shiny=0.14*' \
+  'r-rmarkdown=1.2*' \
+  'r-forecast=7.3*' \
+  'r-rsqlite=1.1*' \
+  'r-reshape2=1.4*' \
+  'r-nycflights13=0.2*' \
+  'r-caret=6.0*' \
+  'r-rcurl=1.95*' \
+  'r-crayon=1.3*' \
+  'r-randomforest=4.6*' \
+  && conda create --yes --name py36 python=3.6 ipykernel \
+  && conda clean -tipsy \
+  && conda list \
+  && python -V \
+  && pip list
 
 # "image_dim_ordering": "tf"
 # "backend": "tensorflow"
