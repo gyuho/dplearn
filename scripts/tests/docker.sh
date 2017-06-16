@@ -16,7 +16,7 @@ docker run \
   --rm \
   --volume=`pwd`:/gopath/src/github.com/gyuho/deephardway \
   gcr.io/deephardway/deephardway:latest \
-  /bin/sh -c "ETCD_TEST_PATH='/etcd' ./scripts/tests/python.sh"
+  /bin/sh -c "ETCD_TEST_PATH=/etcd ./scripts/tests/python.sh"
 
 <<COMMENT
 docker run --rm \
