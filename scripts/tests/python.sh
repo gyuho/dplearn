@@ -11,6 +11,6 @@ if [ -z "$ETCD_TEST_EXEC" ]; then
   exit 255
 fi
 
-pushd ./backend/deep/etcd-python >/dev/null
+pushd ./backend/etcd-python >/dev/null
 ./tests.sh
 popd >/dev/null
