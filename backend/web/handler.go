@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -205,6 +206,7 @@ func queueHandler(ctx context.Context, w http.ResponseWriter, req *http.Request)
 		if err != nil {
 			return err
 		}
+		io.Copy(ioutil.Discard, req.Body)
 		req.Body.Close()
 
 		var item etcdqueue.Item
@@ -214,6 +216,7 @@ func queueHandler(ctx context.Context, w http.ResponseWriter, req *http.Request)
 		if _, err := qu.Enqueue(ctx, &item); err != nil {
 			return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: err.Error()})
 		}
+		return json.NewEncoder(w).Encode(&item)
 
 	default:
 		http.Error(w, "Method Not Allowed", 405)
@@ -244,6 +247,7 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 		if err != nil {
 			return err
 		}
+		io.Copy(ioutil.Discard, req.Body)
 		req.Body.Close()
 
 		creq := Request{}
@@ -320,7 +324,7 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 				return err
 			}
 
-			// 2. enqueue(schedule) the job
+			// enqueue(schedule) the job
 			item = etcdqueue.CreateItem(reqPath, 100, string(rb))
 			ch, err := qu.Enqueue(ctx, item)
 			if err != nil {
@@ -330,7 +334,7 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 				return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: err.Error()})
 			}
 
-			// 3. watch for changes from worker
+			// watch for changes from worker
 			// - waits until the worker processor computes the job
 			// - waits until the worker processor writes back to queue
 			// - queue watcher gets notified and writes back to 'path.Join(pfxScheduled, bucket)'
@@ -339,8 +343,8 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 			go srv.watch(ctx, requestID, ch)
 			glog.Infof("created a item with request ID %s", requestID)
 
-			// TODO: this is just for testing, remove this later
-			go simulateWorker(srv, reqPath, item)
+			// for testing, remove this later
+			go testWorker(srv.webURL.String()+reqPath+"/queue", item)
 		}
 
 	default:
@@ -446,10 +450,8 @@ func cacheImage(cache lru.Cache, ep string) (string, error) {
 	return fpath, nil
 }
 
-func simulateWorker(srv *Server, reqPath string, item *etcdqueue.Item) {
-	ep := srv.webURL.String() + reqPath + "/queue"
+func testWorker(ep string, item *etcdqueue.Item) {
 	orig := *item
-
 	time.Sleep(10 * time.Second)
 
 	glog.Infof("[TEST] fetching from %q", ep)
@@ -457,11 +459,14 @@ func simulateWorker(srv *Server, reqPath string, item *etcdqueue.Item) {
 	if err != nil {
 		panic(err)
 	}
+
 	rb, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		panic(err)
 	}
+	io.Copy(ioutil.Discard, resp.Body)
 	resp.Body.Close()
+
 	var front etcdqueue.Item
 	if err = json.Unmarshal(rb, &front); err != nil {
 		panic(err)
@@ -481,5 +486,5 @@ func simulateWorker(srv *Server, reqPath string, item *etcdqueue.Item) {
 	if _, err := http.Post(ep, "application/json", bytes.NewReader(bts)); err != nil {
 		panic(err)
 	}
-	glog.Infof("[TEST] posting to %q", ep)
+	glog.Infof("[TEST] posted to %q", ep)
 }

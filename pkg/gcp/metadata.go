@@ -2,6 +2,7 @@ package gcp
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -40,6 +41,7 @@ func GetComputeMetadata(key string, try int, interval time.Duration) ([]byte, er
 			time.Sleep(interval)
 			continue
 		}
+		io.Copy(ioutil.Discard, resp.Body)
 		resp.Body.Close()
 		return data, nil
 	}
