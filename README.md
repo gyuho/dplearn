@@ -23,9 +23,9 @@ It is a set of small projects on [Deep Learning](https://en.wikipedia.org/wiki/D
 
 Notes:
 
-- **Why is the queue service needed?** Users requests are concurrent, while worker has only limited computing power. Requests should be serialized into the queue, so that worker performance is maximized for each queue item.
+- **Why is the queue service needed?** To process concurrent users requests. Worker has limited resources. Requests can be serialized into the queue, so that worker performance is maximized for each task.
 - **Why Go?** To natively use [`embedded etcd`](https://github.com/coreos/etcd/tree/master/embed).
-- **How is this deployed?** I have limited budget on public serving, thus everything is run in *one container*. In production, [`etcd`](https://github.com/coreos/etcd) can be distributed for higher availability, and [Tensorflow/serving](https://tensorflow.github.io/serving/) can serve the pre-trained models.
+- **How is this deployed?** everything is run in *one container*, since I have limited budget on public serving. In production, [`etcd`](https://github.com/coreos/etcd) can be distributed for higher availability, and [Tensorflow/serving](https://tensorflow.github.io/serving/) can serve the pre-trained models.
 
 
 ### Development Workflow
