@@ -1,7 +1,6 @@
 package web
 
 import (
-	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -21,7 +20,8 @@ import (
 	"github.com/gyuho/deephardway/pkg/lru"
 	"github.com/gyuho/deephardway/pkg/urlutil"
 
-	"github.com/coreos/etcd/clientv3"
+	"bytes"
+
 	humanize "github.com/dustin/go-humanize"
 	"github.com/golang/glog"
 )
@@ -82,6 +82,10 @@ func StartServer(webPort int, qu etcdqueue.Queue) (*Server, error) {
 		ctx:     rootCtx,
 		handler: with(ContextHandlerFunc(clientRequestHandler), srv, qu, cache),
 	})
+	mux.Handle("/cats-vs-dogs-request/queue", &ContextAdapter{
+		ctx:     rootCtx,
+		handler: with(ContextHandlerFunc(queueHandler), srv, qu, cache),
+	})
 	// mux.Handle("/mnist-request", &ContextAdapter{
 	// 	ctx:     rootCtx,
 	// 	handler: with(ContextHandlerFunc(clientRequestHandler), srv, qu, cache),
@@ -89,6 +93,10 @@ func StartServer(webPort int, qu etcdqueue.Queue) (*Server, error) {
 	mux.Handle("/word-predict-request", &ContextAdapter{
 		ctx:     rootCtx,
 		handler: with(ContextHandlerFunc(clientRequestHandler), srv, qu, cache),
+	})
+	mux.Handle("/word-predict-request/queue", &ContextAdapter{
+		ctx:     rootCtx,
+		handler: with(ContextHandlerFunc(queueHandler), srv, qu, cache),
 	})
 
 	gcPeriod := 5 * time.Minute
@@ -179,6 +187,42 @@ func (srv *Server) StopNotify() <-chan struct{} {
 	return srv.donec
 }
 
+func queueHandler(ctx context.Context, w http.ResponseWriter, req *http.Request) error {
+	reqPath := req.URL.Path
+	bucket := path.Dir(reqPath)
+	qu := ctx.Value(queueKey).(etcdqueue.Queue)
+
+	glog.Infof("[%s] client request on %q", req.Method, reqPath)
+	switch req.Method {
+	case http.MethodGet:
+		item, err := qu.Front(ctx, bucket)
+		if err != nil {
+			return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: err.Error()})
+		}
+		return json.NewEncoder(w).Encode(item)
+
+	case http.MethodPost:
+		rb, err := ioutil.ReadAll(req.Body)
+		if err != nil {
+			return err
+		}
+		req.Body.Close()
+
+		var item etcdqueue.Item
+		if err = json.Unmarshal(rb, &item); err != nil {
+			return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: err.Error()})
+		}
+		if _, err := qu.Enqueue(ctx, &item); err != nil {
+			return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: err.Error()})
+		}
+
+	default:
+		http.Error(w, "Method Not Allowed", 405)
+	}
+
+	return nil
+}
+
 // Request defines common requests.
 type Request struct {
 	UserID        string `json:"user_id"`
@@ -194,11 +238,9 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 	cache := ctx.Value(cacheKey).(lru.Cache)
 	userID := ctx.Value(userKey).(string)
 
+	glog.Infof("[%s] client request on %q", req.Method, reqPath)
 	switch req.Method {
 	case http.MethodPost:
-		// TODO: glog.V(2).Infof
-		glog.Infof("client request on %q", reqPath)
-
 		rb, err := ioutil.ReadAll(req.Body)
 		if err != nil {
 			return err
@@ -254,7 +296,7 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 				return nil
 			}
 			delete(srv.requestCache, requestID)
-			if err = qu.Delete(ctx, item); err != nil {
+			if err = qu.Dequeue(ctx, item); err != nil {
 				err = fmt.Errorf("qu.Delete error %q", err.Error())
 				glog.Warning(err)
 				srv.requestCacheMu.Unlock()
@@ -284,16 +326,15 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 
 			// 2. enqueue(schedule) the job
 			item = etcdqueue.CreateItem(reqPath, 100, string(rb))
-			ch, err := qu.Add(ctx, item)
+			ch, err := qu.Enqueue(ctx, item)
 			if err != nil {
 				srv.requestCacheMu.Unlock()
-				err = fmt.Errorf("qu.Add error %q", err.Error())
+				err = fmt.Errorf("qu.Enqueue error %q", err.Error())
 				glog.Warning(err)
 				return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: err.Error()})
 			}
 
 			// 3. watch for changes from worker
-			// - now 'item' needs to wait until scheduled in 'path.Join(pfxWorker, bucket)'
 			// - waits until the worker processor computes the job
 			// - waits until the worker processor writes back to queue
 			// - queue watcher gets notified and writes back to 'path.Join(pfxScheduled, bucket)'
@@ -303,7 +344,7 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 			glog.Infof("created a item with request ID %s", requestID)
 
 			// TODO: this is just for testing, remove this later
-			go simulateWorker(qu, item)
+			go simulateWorker(srv, reqPath, item)
 		}
 
 	default:
@@ -409,103 +450,42 @@ func cacheImage(cache lru.Cache, ep string) (string, error) {
 	return fpath, nil
 }
 
-func simulateWorker(qu etcdqueue.Queue, item *etcdqueue.Item) {
-	origItem := item
-	time.Sleep(15 * time.Second)
+func simulateWorker(srv *Server, reqPath string, item *etcdqueue.Item) {
+	ep := srv.webURL.String() + reqPath + "/queue"
+	orig := *item
 
-	cli, err := clientv3.New(clientv3.Config{Endpoints: qu.ClientEndpoints()})
+	time.Sleep(10 * time.Second)
+
+	glog.Infof("[TEST] fetching from %q", ep)
+	resp, err := http.Get(ep)
 	if err != nil {
 		panic(err)
 	}
-	defer cli.Close()
-
-	workerKey := path.Join("_wokr", origItem.Bucket)
-	scheduledKey := path.Join("_schd", origItem.Key)
-
-	scheduleValue, err := json.Marshal(origItem)
+	rb, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		panic(err)
 	}
-
-	var newValue []byte
-	for {
-		gresp, err := cli.Get(context.Background(), workerKey)
-		if err != nil {
-			panic(err)
-		}
-		if len(gresp.Kvs) != 1 {
-			glog.Infof("%q is not yet scheduled for worker", workerKey)
-			time.Sleep(time.Second)
-			continue
-		}
-		if bytes.Equal(gresp.Kvs[0].Value, scheduleValue) {
-			glog.Infof("%q is now scheduled for worker (value: %q)", workerKey, string(scheduleValue))
-
-			var creq Request
-			if err = json.Unmarshal(gresp.Kvs[0].Value, &creq); err != nil {
-				panic(err)
-			}
-
-			// simulate that worker finishes computation
-			glog.Infof("updating %+v", creq)
-			creq.Result = "mocked result text at " + time.Now().String()[:26]
-			var rb []byte
-			rb, err = json.Marshal(creq)
-			if err != nil {
-				panic(err)
-			}
-			copied := *origItem
-			copied.Progress = 100
-			copied.Value = string(rb)
-			newValue, err = json.Marshal(copied)
-			if err != nil {
-				panic(err)
-			}
-			if _, err = cli.Put(context.Background(), workerKey, string(newValue)); err != nil {
-				panic(err)
-			}
-			glog.Infof("updated %q with %q", workerKey, string(newValue))
-			break
-		}
-
-		glog.Infof("%q is not yet scheduled; another job %q is in progress", workerKey, string(gresp.Kvs[0].Value))
-		time.Sleep(time.Second)
+	resp.Body.Close()
+	var front *etcdqueue.Item
+	if err = json.Unmarshal(rb, front); err != nil {
+		panic(err)
+	}
+	if !reflect.DeepEqual(front, item) {
+		glog.Warningf("front expected %+v, got %+v", front, item)
 	}
 
-	time.Sleep(time.Second)
+	time.Sleep(10 * time.Second)
 
-	// scheduler catches this write and writes back to scheduledKey
-	for {
-		gresp, err := cli.Get(context.Background(), scheduledKey)
-		if err != nil {
-			panic(err)
-		}
-		if len(gresp.Kvs) == 0 {
-			glog.Infof("%q has not been written to etcd yet or already deleted", scheduledKey)
-
-			time.Sleep(time.Second)
-			scheduledKey = path.Join("_cmpl", origItem.Key)
-			gresp, err = cli.Get(context.Background(), scheduledKey)
-			if err != nil {
-				panic(err)
-			}
-			if len(gresp.Kvs) == 0 {
-				glog.Fatalf("%q has not been completed yet", scheduledKey)
-			}
-		}
-		if len(gresp.Kvs) != 1 {
-			glog.Fatalf("%q must have 1 KV (got %+v)", scheduledKey, gresp.Kvs)
-		}
-		if !bytes.Equal(gresp.Kvs[0].Value, newValue) {
-			if !bytes.Equal(gresp.Kvs[0].Value, scheduleValue) {
-				glog.Fatalf("%q must have old value %q if not new value, but got %q", scheduledKey, scheduleValue, gresp.Kvs[0].Value)
-			}
-			glog.Infof("%q has not yet received new value, still has %q", scheduledKey, gresp.Kvs[0].Value)
-			time.Sleep(time.Second)
-			continue
-		}
-
-		glog.Infof("%q now has new value (old value %q) -- finished!", scheduledKey, newValue)
-		break
+	glog.Infof("[TEST] posting to %q", ep)
+	orig.Progress = 100
+	orig.Value = "new-value"
+	bts, err := json.Marshal(orig)
+	if err != nil {
+		panic(err)
 	}
+	presp, err := http.Post(ep, "application/json", bytes.NewReader(bts))
+	if err != nil {
+		panic(err)
+	}
+	glog.Infof("[TEST] posted %+v", presp)
 }
