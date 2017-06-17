@@ -15,9 +15,11 @@ It is a set of small projects on [Deep Learning](https://en.wikipedia.org/wiki/D
 
 - [`frontend`](https://github.com/gyuho/deephardway/tree/master/frontend) implements user-facing UI, sends user requests to [`backend/*`](https://github.com/gyuho/deephardway/tree/master/backend).
 - [`backend/web`](https://github.com/gyuho/deephardway/tree/master/backend/web) schedules user requests on [`pkg/etcd-queue`](https://github.com/gyuho/deephardway/tree/master/pkg/etcd-queue) service on top of [etcd](https://github.com/coreos/etcd).
-- [`backend/etcd-python`](https://github.com/gyuho/deephardway/tree/master/backend/etcd-python) fetches the list of jobs, and the writes results back to the queue.
-- [`backend/worker`](https://github.com/gyuho/deephardway/tree/master/backend/worker) processes/computes the list of jobs, and writes results back to queue.
+- [`backend/worker`](https://github.com/gyuho/deephardway/tree/master/backend/worker) fetches/processes the list of jobs, and writes results back to queue.
 - [`backend/web`](https://github.com/gyuho/deephardway/tree/master/backend/web) gets notified with [watch API](https://godoc.org/github.com/coreos/etcd/clientv3#Watcher) when the job is done, and returns results back to users.
+- Data serialization from `frontend` to `backend/web` is defined in `backend/web.Request` and `frontend/app/request-item.component.Request`.
+- Data serialization from `backend/web` to `frontend` is defined in `pkg/etcd-queue.Item` and `frontend/app/request-item.component.Item`.
+- Data serialization between `backend/web` and `worker` is defined in `pkg/etcd-queue.Item` and `backend/worker.Item`.
 
 Notes:
 

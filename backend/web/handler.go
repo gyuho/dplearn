@@ -316,19 +316,9 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 				return json.NewEncoder(w).Encode(item)
 			}
 
-			glog.Infof("creating a item with request ID %s", requestID)
-			creq.UserID = userID
-			creq.Result = ""
-			rb, err = json.Marshal(creq)
-			if err != nil {
-				srv.requestCacheMu.Unlock()
-				err = fmt.Errorf("json.Marshal error %q", err.Error())
-				glog.Warning(err)
-				return err
-			}
-
 			// enqueue(schedule) the job
-			item = etcdqueue.CreateItem(reqPath, 100, string(rb))
+			glog.Infof("creating a item with request ID %s", requestID)
+			item = etcdqueue.CreateItem(reqPath, 100, creq.RawData)
 			ch, err := qu.Enqueue(ctx, item)
 			if err != nil {
 				srv.requestCacheMu.Unlock()
@@ -348,6 +338,11 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 
 			// for testing, remove this later
 			go testWorker(srv.webURL.String()+reqPath+"/queue", item)
+
+			glog.Infof("created a item with request ID %s", requestID)
+			copied := *item
+			copied.Value = fmt.Sprintf("Processing %q", copied.Value)
+			return json.NewEncoder(w).Encode(&copied)
 		}
 
 	default:
