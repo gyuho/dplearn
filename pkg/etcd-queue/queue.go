@@ -82,6 +82,7 @@ type Queue interface {
 	Enqueue(ctx context.Context, it *Item) (ItemWatcher, error)
 
 	// Front returns the first item in the queue.
+	// It returns nil if there is no item.
 	Front(ctx context.Context, bucket string) (*Item, error)
 
 	// Dequeue deletes the item from the queue.

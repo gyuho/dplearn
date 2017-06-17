@@ -199,6 +199,9 @@ func queueHandler(ctx context.Context, w http.ResponseWriter, req *http.Request)
 		if err != nil {
 			return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: err.Error()})
 		}
+		if item == nil { // pass empty item
+			item = &etcdqueue.Item{}
+		}
 		return json.NewEncoder(w).Encode(item)
 
 	case http.MethodPost:
