@@ -1,6 +1,7 @@
 package web
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -19,8 +20,6 @@ import (
 	"github.com/gyuho/deephardway/pkg/fileutil"
 	"github.com/gyuho/deephardway/pkg/lru"
 	"github.com/gyuho/deephardway/pkg/urlutil"
-
-	"bytes"
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/golang/glog"
@@ -270,9 +269,6 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 			}
 			creq.RawData = fpath
 
-			// TODO: pass to worker
-			fmt.Println(creq.RawData)
-
 		case "/mnist-request":
 
 		case "/word-predict-request":
@@ -466,26 +462,24 @@ func simulateWorker(srv *Server, reqPath string, item *etcdqueue.Item) {
 		panic(err)
 	}
 	resp.Body.Close()
-	var front *etcdqueue.Item
-	if err = json.Unmarshal(rb, front); err != nil {
+	var front etcdqueue.Item
+	if err = json.Unmarshal(rb, &front); err != nil {
 		panic(err)
 	}
-	if !reflect.DeepEqual(front, item) {
-		glog.Warningf("front expected %+v, got %+v", front, item)
+	if !reflect.DeepEqual(front, orig) {
+		glog.Warningf("front expected %+v, got %+v", front, orig)
 	}
 
 	time.Sleep(10 * time.Second)
 
-	glog.Infof("[TEST] posting to %q", ep)
 	orig.Progress = 100
 	orig.Value = "new-value"
 	bts, err := json.Marshal(orig)
 	if err != nil {
 		panic(err)
 	}
-	presp, err := http.Post(ep, "application/json", bytes.NewReader(bts))
-	if err != nil {
+	if _, err := http.Post(ep, "application/json", bytes.NewReader(bts)); err != nil {
 		panic(err)
 	}
-	glog.Infof("[TEST] posted %+v", presp)
+	glog.Infof("[TEST] posting to %q", ep)
 }
