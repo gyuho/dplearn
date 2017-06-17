@@ -17,9 +17,9 @@ It is a set of small projects on [Deep Learning](https://en.wikipedia.org/wiki/D
 - [`backend/web`](https://github.com/gyuho/deephardway/tree/master/backend/web) schedules user requests on [`pkg/etcd-queue`](https://github.com/gyuho/deephardway/tree/master/pkg/etcd-queue) service on top of [etcd](https://github.com/coreos/etcd).
 - [`backend/worker`](https://github.com/gyuho/deephardway/tree/master/backend/worker) fetches/processes the list of jobs, and writes results back to queue.
 - [`backend/web`](https://github.com/gyuho/deephardway/tree/master/backend/web) gets notified with [watch API](https://godoc.org/github.com/coreos/etcd/clientv3#Watcher) when the job is done, and returns results back to users.
-- Data serialization from `frontend` to `backend/web` is defined in `backend/web.Request` and `frontend/app/request-item.component.Request`.
-- Data serialization from `backend/web` to `frontend` is defined in `pkg/etcd-queue.Item` and `frontend/app/request-item.component.Item`.
-- Data serialization between `backend/web` and `worker` is defined in `pkg/etcd-queue.Item` and `backend/worker.Item`.
+- Data serialization from `frontend` to `backend/web` is defined in [`backend/web.Request`](https://github.com/gyuho/deephardway/blob/master/backend/web/handler.go#L231-L237) and [`frontend/app/request-item.component.Request`](https://github.com/gyuho/deephardway/blob/master/frontend/app/request-item.component.ts).
+- Data serialization from `backend/web` to `frontend` is defined in [`pkg/etcd-queue.Item`](https://github.com/gyuho/deephardway/blob/master/pkg/etcd-queue/queue.go#L20) and [`frontend/app/request-item.component.Item`](https://github.com/gyuho/deephardway/blob/master/frontend/app/request-item.component.ts).
+- Data serialization between `backend/web` and `worker` is defined in [`pkg/etcd-queue.Item`](https://github.com/gyuho/deephardway/blob/master/pkg/etcd-queue/queue.go#L20) and [`backend/worker.Item`](https://github.com/gyuho/deephardway/blob/master/backend/worker/item.py).
 
 Notes:
 
@@ -94,7 +94,7 @@ To deploy `deephardway` application to Google Cloud Platform:
 ```bash
 GCP_KEY_PATH=/etc/gcp-key-deephardway.json ./scripts/gcp/create-instance.sh
 
-# this creates a Google Cloud Platform Compute Engine VM with a start-up
-# script that provisions GPUs, init systems, reverse proxy, and others
-# see ./scripts/gcp/ubuntu-gpu.ansible.sh for more detail
+# create a Google Cloud Platform Compute Engine VM with a start-up
+# to provisions GPUs, init systems, reverse proxy, and others
+# (see ./scripts/gcp/ubuntu-gpu.ansible.sh for more detail)
 ```
