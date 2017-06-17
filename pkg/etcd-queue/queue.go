@@ -2,7 +2,6 @@
 package etcdqueue
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -53,10 +52,12 @@ func CreateItem(bucket string, weight uint64, value string) *Item {
 	if weight > 99999 {
 		weight = 99999
 	}
+	// so that maximum weight comes first lexicographically
+	priority := 99999 - weight
 	return &Item{
 		Bucket:    bucket,
 		CreatedAt: time.Now(),
-		Key:       path.Join(bucket, fmt.Sprintf("%05d%035X", weight, time.Now().UnixNano())),
+		Key:       path.Join(bucket, fmt.Sprintf("%05d%035X", priority, time.Now().UnixNano())),
 		Value:     value,
 		Progress:  0,
 		Error:     "",
@@ -74,23 +75,25 @@ type Queue interface {
 	// Stop stops the queue and its clients.
 	Stop()
 
-	// Add adds an item to the queue.
+	// Enqueue adds or overwrites an item into the queue.
 	// Updates are sent to the returned channel.
-	// And the channel is closed after key deletion,
+	// And the channel is closed after key deletion(dequeue),
 	// which is the last event when the job is completed.
-	Add(ctx context.Context, it *Item) (ItemWatcher, error)
+	Enqueue(ctx context.Context, it *Item) (ItemWatcher, error)
 
-	// Delete deletes the item from the queue.
+	// Front returns the first item in the queue.
+	Front(ctx context.Context, bucket string) (*Item, error)
+
+	// Dequeue deletes the item from the queue.
 	// The item is dequeue-ed from the queue, and canceled if in progress.
-	Delete(ctx context.Context, it *Item) error
+	Dequeue(ctx context.Context, it *Item) error
 }
 
 // ItemWatcher is for clients that subscribes the status of job item.
 type ItemWatcher <-chan *Item
 
 const (
-	pfxWorker    = "_wokr" // ready/in-progress in worker process
-	pfxScheduled = "_schd" // requested by client, added on queue
+	pfxScheduled = "_schd" // requested by client, added to queue
 	pfxCompleted = "_cmpl" // finished by worker
 
 	// progress value 100 means that the job is done!
@@ -102,7 +105,6 @@ type queue struct {
 	cli        *clientv3.Client
 	rootCtx    context.Context
 	rootCancel func()
-	buckets    map[string]chan error
 }
 
 // embeddedQueue implements Queue interface with a single-node embedded etcd cluster.
@@ -167,7 +169,6 @@ func NewEmbeddedQueue(ctx context.Context, cport, pport int, dataDir string) (Qu
 			cli:        cli,
 			rootCtx:    cctx,
 			rootCancel: cancel,
-			buckets:    make(map[string]chan error),
 		},
 	}, err
 }
@@ -204,7 +205,6 @@ func NewQueue(cli *clientv3.Client) (Queue, error) {
 		cli:        cli,
 		rootCtx:    ctx,
 		rootCancel: cancel,
-		buckets:    make(map[string]chan error),
 	}, nil
 }
 
@@ -216,59 +216,21 @@ func (qu *queue) Stop() {
 
 	glog.Info("stopping queue")
 	qu.rootCancel()
-	for bucket, errc := range qu.buckets {
-		glog.Infof("stopping bucket %q", bucket)
-		if err := <-errc; err != nil && err != context.Canceled {
-			glog.Warningf("watch error: %v", err)
-		}
-		glog.Infof("stopped bucket %q", bucket)
-	}
 	qu.cli.Close()
 	glog.Info("stopped queue")
 }
 
-const canceledWorkerValue = `{"canceled":true}`
-
-func (qu *queue) Delete(ctx context.Context, it *Item) error {
-	// current worker key slot to watch
-	workerKey := path.Join(pfxWorker, it.Bucket)
-
-	// inside the queue, key is already prefixed
-	// with 'path.Join(pfxScheduled, bucket, ...'
-	key := path.Join(pfxScheduled, it.Key)
-	v, err := json.Marshal(it)
-	if err != nil {
-		return err
-	}
-	val := string(v)
-
-	qu.mu.Lock()
-	defer qu.mu.Unlock()
-
-	glog.Infof("deleting(or canceling) the item %q", key)
-	if err := qu.delete(ctx, key); err != nil {
-		return err
-	}
-	glog.Infof("deleted(or canceled) the item %q", key)
-
-	glog.Infof("deleting %q from worker, if in progress", key)
-	var tresp *clientv3.TxnResponse
-	tresp, err = qu.cli.Txn(ctx).
-		If(clientv3.Compare(clientv3.Value(workerKey), "=", val)).
-		Then(clientv3.OpPut(workerKey, canceledWorkerValue)).
-		Commit()
-	if err != nil {
-		return err
-	}
-	if tresp.Succeeded {
-		glog.Infof("deleting %q from worker (was in progress)", key)
-	} else {
-		glog.Infof("did not delete %q from worker (was not in progress)", key)
-	}
-	return nil
+func (qu *queue) put(ctx context.Context, key, val string) error {
+	_, err := qu.cli.Put(ctx, key, val)
+	return err
 }
 
-func (qu *queue) Add(ctx context.Context, it *Item) (ItemWatcher, error) {
+func (qu *queue) delete(ctx context.Context, key string) error {
+	_, err := qu.cli.Delete(ctx, key)
+	return err
+}
+
+func (qu *queue) Enqueue(ctx context.Context, it *Item) (ItemWatcher, error) {
 	key := path.Join(pfxScheduled, it.Key)
 	data, err := json.Marshal(it)
 	if err != nil {
@@ -279,59 +241,60 @@ func (qu *queue) Add(ctx context.Context, it *Item) (ItemWatcher, error) {
 	qu.mu.Lock()
 	defer qu.mu.Unlock()
 
-	err = qu.put(ctx, key, val)
-	if err != nil {
+	if err = qu.put(ctx, key, val); err != nil {
 		return nil, err
 	}
+	glog.Infof("enqueue: wrote %q", it.Key)
 
-	if _, ok := qu.buckets[it.Bucket]; !ok { // first job in the bucket, so schedule right away
-		if err = qu.put(ctx, path.Join(pfxWorker, it.Bucket), val); err != nil {
+	// TODO: make this configurable
+	ch := make(chan *Item, 100)
+	item := *it
+
+	if item.Progress == maxProgress {
+		if err = qu.delete(ctx, key); err != nil {
 			return nil, err
 		}
-		qu.buckets[it.Bucket] = make(chan error, 1)
-		go qu.runScheduler(qu.rootCtx, it.Bucket, qu.buckets[it.Bucket])
+		if err := qu.put(ctx, path.Join(pfxCompleted, item.Key), val); err != nil {
+			return nil, err
+		}
+		glog.Infof("enqueue: %q is finished", item.Key)
+		ch <- &item
+		close(ch)
+		return ch, nil
 	}
 
 	wch := qu.cli.Watch(ctx, key, clientv3.WithPrevKV())
-
-	// TODO: configurable?
-	ch := make(chan *Item, 100)
-
-	item := *it
-
-	// watch until it's done, close on delete/error event at the end
 	go func() {
 		for {
 			select {
 			case wresp := <-wch:
 				if len(wresp.Events) != 1 {
-					item.Error = fmt.Sprintf("watcher: %q expects 1 event from watch, got %+v", key, wresp.Events)
+					item.Error = fmt.Sprintf("enqueue-watcher: %q expects 1 event from watch, got %+v", item.Key, wresp.Events)
 					ch <- &item
 					close(ch)
 					return
 				}
+
 				if wresp.Events[0].Type == mvccpb.DELETE {
-					glog.Infof("watcher: %q has been deleted; either completed or canceled", key)
-					if wresp.Events[0].PrevKv != nil {
-						item.Value = string(wresp.Events[0].PrevKv.Value)
-					}
-					var oldItem Item
-					if err := json.Unmarshal(wresp.Events[0].PrevKv.Value, &oldItem); err != nil {
-						item.Error = fmt.Sprintf("watcher: cannot parse %s", item.Value)
-						ch <- &item
+					glog.Infof("enqueue-watcher: %q has been deleted; either completed or canceled", item.Key)
+					var prev Item
+					if err := json.Unmarshal(wresp.Events[0].PrevKv.Value, &prev); err != nil {
+						prev.Error = fmt.Sprintf("enqueue-watcher: cannot parse %q", string(wresp.Events[0].PrevKv.Value))
+						ch <- &prev
 						close(ch)
 						return
 					}
-					if oldItem.Progress != 100 {
-						item.Canceled = true
-						glog.Infof("watcher: found %q progress is only %d (canceled)", key, oldItem.Progress)
+					if prev.Progress != 100 {
+						prev.Canceled = true
+						glog.Infof("enqueue-watcher: found %q progress is only %d (canceled)", prev.Key, prev.Progress)
 					}
-					ch <- &item
+					ch <- &prev
 					close(ch)
 					return
 				}
+
 				if err := json.Unmarshal(wresp.Events[0].Kv.Value, &item); err != nil {
-					item.Error = fmt.Sprintf("watcher: cannot parse %s", string(wresp.Events[0].Kv.Value))
+					item.Error = fmt.Sprintf("enqueue-watcher: cannot parse %q", string(wresp.Events[0].Kv.Value))
 					ch <- &item
 					close(ch)
 					return
@@ -339,11 +302,16 @@ func (qu *queue) Add(ctx context.Context, it *Item) (ItemWatcher, error) {
 
 				ch <- &item
 				if item.Error != "" {
-					glog.Warningf("watcher: watched item contains error %v", item.Error)
+					glog.Warningf("enqueue-watcher: %q contains error %v", item.Key, item.Error)
 					close(ch)
 					return
 				}
-				glog.Infof("watcher: %q has been updated", key)
+				if item.Progress == 100 {
+					glog.Warningf("enqueue-watcher: %q is finished", item.Key)
+					close(ch)
+					return
+				}
+				glog.Infof("enqueue-watcher: %q has been updated", item.Key)
 
 			case <-ctx.Done():
 				item.Error = ctx.Err().Error()
@@ -356,226 +324,36 @@ func (qu *queue) Add(ctx context.Context, it *Item) (ItemWatcher, error) {
 	return ch, nil
 }
 
-// run watches on the queue and schedules the jobs.
-// Point is never miss events, thus one routine must always watch path.Join(pfxWorker, bucket)
-// 1. blocks until worker job is done, notified via watch events
-// 2. notify the client back with the new results on the key (Key field in Item)
-// 3. delete the DONE key from the queue, and move to pfxCompleted + Key for logging
-// 4. fetch one new job from path.Join(pfxScheduled, bucket)
-// 5. skip if there is no job to schedule
-// 6. write this job to path.Join(pfxWorker, bucket)
-// 7. drain watch events for this write
-// repeat!
-func (qu *queue) run(ctx context.Context, bucket string) error {
-	// slashes in http scheme keys will be munged, but ok since it's internal
-	workerKey := path.Join(pfxWorker, bucket)       // current worker key slot to watch
-	scheduledKey := path.Join(pfxScheduled, bucket) // current queue scheduler key to fetch from
-
-	wch := qu.cli.Watch(ctx, workerKey)
-	glog.Infof("scheduler: watching %q", workerKey)
-
-	for {
-		// 1. blocks until worker job is done, notified via watch events
-		select {
-		case wresp := <-wch:
-			if len(wresp.Events) != 1 {
-				return fmt.Errorf("scheduler: no watch events on %q (%+v, %v)", workerKey, wresp, wresp.Err())
-			}
-			v := wresp.Events[0].Kv.Value
-			var item Item
-			if err := json.Unmarshal([]byte(v), &item); err != nil {
-				return fmt.Errorf("scheduler: %q returned wrong JSON value %q (%v)", workerKey, string(v), err)
-			}
-			if item.Progress < maxProgress {
-				glog.Infof("scheduler: %q is in progress %d / %d (continue)", item.Key, item.Progress, maxProgress)
-				continue
-			}
-
-			// 2. notify the client back with the new results on the key (ID field in Item)
-			glog.Infof("scheduler: %q is done", item.Key)
-			if err := qu.put(ctx, path.Join(pfxScheduled, item.Key), string(v)); err != nil {
-				return err
-			}
-
-			// 3. delete the DONE key from the queue, and move to pfxCompleted + Key for logging
-			glog.Infof("scheduler: %q is deleted after completion", item.Key)
-			if err := qu.delete(ctx, path.Join(pfxScheduled, item.Key)); err != nil {
-				return err
-			}
-			cKey := path.Join(pfxCompleted, item.Key)
-			if err := qu.put(ctx, cKey, string(v)); err != nil {
-				return err
-			}
-			glog.Infof("scheduler: %q is written after completion", cKey)
-
-			// 4. fetch one new job from path.Join(pfxScheduled, bucket)
-			resp, err := qu.cli.Get(ctx, scheduledKey, append(clientv3.WithFirstKey(), clientv3.WithPrefix())...)
-			if err != nil {
-				return err
-			}
-
-			// 5. skip if there is no job to schedule
-			if len(resp.Kvs) == 0 {
-				glog.Infof("scheduler: no job to schedule on the bucket %q", bucket)
-				continue
-			}
-			if len(resp.Kvs) != 1 {
-				return fmt.Errorf("scheduler: %q should return only one key-value pair (got %+v)", scheduledKey, resp.Kvs)
-			}
-			fetched := resp.Kvs[0].Value
-			var newItem Item
-			if err := json.Unmarshal([]byte(fetched), &newItem); err != nil {
-				return fmt.Errorf("scheduler: %q has wrong JSON %q", resp.Kvs[0].Key, string(fetched))
-			}
-			if newItem.Progress != 0 {
-				return fmt.Errorf("scheduler: %q must have initial progress, got %d", newItem.Key, newItem.Progress)
-			}
-
-			// 6. write this job to path.Join(pfxWorker, bucket)
-			glog.Infof("scheduler: %q is scheduled", string(resp.Kvs[0].Key))
-			qu.mu.Lock() // protect against racey job cancel
-			if err := qu.put(ctx, workerKey, string(resp.Kvs[0].Value)); err != nil {
-				qu.mu.Unlock()
-				return err
-			}
-
-			// 7. drain watch events for this write
-			select {
-			case wresp = <-wch:
-				qu.mu.Unlock()
-
-				if len(wresp.Events) != 1 {
-					return fmt.Errorf("scheduler: no watch events on %q after schedule (%+v, %v)", workerKey, wresp, wresp.Err())
-				}
-				v := wresp.Events[0].Kv.Value
-
-				if string(v) == canceledWorkerValue {
-					panic("racey worker cancel")
-				}
-
-				var item Item
-				if err := json.Unmarshal([]byte(v), &item); err != nil {
-					return fmt.Errorf("scheduler: %q returned wrong JSON value %q (%v)", workerKey, string(v), err)
-				}
-				if item.Progress != 0 {
-					return fmt.Errorf("scheduler: %q has wrong progress %d, expected initial progress 0", workerKey, item.Progress)
-				}
-				if !bytes.Equal(resp.Kvs[0].Value, v) {
-					return fmt.Errorf("scheduler: scheduled value expected %q, got %q", string(resp.Kvs[0].Value), string(v))
-				}
-
-			case <-ctx.Done():
-				qu.mu.Unlock()
-				return ctx.Err()
-			}
-
-		case <-ctx.Done():
-			return ctx.Err()
-		}
+func (qu *queue) Front(ctx context.Context, bucket string) (*Item, error) {
+	scheduledKey := path.Join(pfxScheduled, bucket)
+	resp, err := qu.cli.Get(ctx, scheduledKey, append(clientv3.WithFirstKey(), clientv3.WithPrefix(), clientv3.WithLimit(1))...)
+	if err != nil {
+		return nil, err
 	}
-}
-
-func (qu *queue) runScheduler(ctx context.Context, bucket string, errc chan error) {
-	defer close(errc)
-
-	for {
-		if err := qu.run(ctx, bucket); err != nil {
-			if err == context.Canceled {
-				errc <- err
-				return
-			}
-			glog.Warningf("scheduler: %v", err)
-		}
-		// below is implemented for failure tolerance; retry logic
-
-		// slashes in http scheme keys will be munged, but ok since it's internal
-		workerKey := path.Join(pfxWorker, bucket)       // current worker key slot to watch
-		scheduledKey := path.Join(pfxScheduled, bucket) // current queue scheduler key to fetch from
-
-		// resetting current worker job
-		resp, err := qu.cli.Get(ctx, workerKey)
-		if err != nil {
-			errc <- err
-			return
-		}
-		if len(resp.Kvs) != 1 {
-			errc <- fmt.Errorf("scheduler: len(resp.Kvs) expected 1, got %+v", resp.Kvs)
-			return
-		}
-		v := resp.Kvs[0].Value
-		var item Item
-		if err = json.Unmarshal([]byte(v), &item); err != nil {
-			errc <- err
-			return
-		}
-		if item.Progress == maxProgress {
-			glog.Warningf("scheduler: watch might have failed after %q is finished", item.Key)
-
-			// 2. notify the client back with the new results on the key (ID field in Item)
-			glog.Infof("scheduler: %q is done", item.Key)
-			if err := qu.put(ctx, path.Join(pfxScheduled, item.Key), string(v)); err != nil {
-				errc <- err
-				return
-			}
-
-			// 3. delete the DONE key from the queue, and move to pfxCompleted + Key for logging
-			glog.Infof("scheduler: %q is deleted", item.Key)
-			if err := qu.delete(ctx, path.Join(pfxScheduled, item.Key)); err != nil {
-				errc <- err
-				return
-			}
-			cKey := path.Join(pfxCompleted, item.Key)
-			if err := qu.put(ctx, cKey, string(v)); err != nil {
-				errc <- err
-				return
-			}
-			glog.Infof("scheduler: %q is written", cKey)
-
-			// 4. fetch one new job from path.Join(pfxScheduled, bucket)
-			resp, err := qu.cli.Get(ctx, scheduledKey, append(clientv3.WithFirstKey(), clientv3.WithPrefix())...)
-			if err != nil {
-				errc <- err
-				return
-			}
-
-			// 5. skip if there is no job to schedule
-			if len(resp.Kvs) == 0 {
-				glog.Infof("scheduler: no job to schedule on the bucket %q", bucket)
-				continue
-			}
-			if len(resp.Kvs) != 1 {
-				errc <- fmt.Errorf("scheduler: %q should return only one key-value pair (got %+v)", scheduledKey, resp.Kvs)
-				return
-			}
-			fetched := resp.Kvs[0].Value
-			var newItem Item
-			if err := json.Unmarshal([]byte(fetched), &newItem); err != nil {
-				errc <- fmt.Errorf("scheduler: %q has wrong JSON %q", resp.Kvs[0].Key, string(fetched))
-				return
-			}
-			if newItem.Progress != 0 {
-				errc <- fmt.Errorf("scheduler: %q must have initial progress, got %d", newItem.Key, newItem.Progress)
-				return
-			}
-
-			// 6. write this job to path.Join(pfxWorker, bucket)
-			glog.Infof("scheduler: %q is scheduled", string(resp.Kvs[0].Key))
-			if err := qu.put(ctx, workerKey, string(resp.Kvs[0].Value)); err != nil {
-				errc <- err
-				return
-			}
-
-			// continue to 'run'
-		}
+	if len(resp.Kvs) == 0 {
+		return nil, nil
 	}
+	if len(resp.Kvs) != 1 {
+		return nil, fmt.Errorf("%q returned more than 1 key", scheduledKey)
+	}
+	v := resp.Kvs[0].Value
+	var item Item
+	if err := json.Unmarshal(v, &item); err != nil {
+		return nil, fmt.Errorf("%q returned wrong JSON value %q (%v)", scheduledKey, string(v), err)
+	}
+	return &item, nil
 }
 
-func (qu *queue) put(ctx context.Context, key, val string) error {
-	_, err := qu.cli.Put(ctx, key, val)
-	return err
-}
+func (qu *queue) Dequeue(ctx context.Context, it *Item) error {
+	key := path.Join(pfxScheduled, it.Key)
 
-func (qu *queue) delete(ctx context.Context, key string) error {
-	_, err := qu.cli.Delete(ctx, key)
-	return err
+	qu.mu.Lock()
+	defer qu.mu.Unlock()
+
+	glog.Infof("dequeue-ing %q", key)
+	if err := qu.delete(ctx, key); err != nil {
+		return err
+	}
+	glog.Infof("dequeue-ed %q", key)
+	return nil
 }
