@@ -1,4 +1,4 @@
-# Last updated at 2017-06-16 04:14:59.819681359 -0700 PDT
+# Last updated at 2017-06-17 12:30:07.042372284 -0700 PDT
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile.gpu
 # https://gcr.io/tensorflow/tensorflow
@@ -181,9 +181,9 @@ ADD . ${GOPATH}/src/github.com/gyuho/deephardway
 # Symlinks to notebooks notebooks
 RUN ln -s /gopath/src/github.com/gyuho/deephardway /git-deep \
   && pushd ${GOPATH}/src/github.com/gyuho/deephardway \
-  && go build -o ./backend-web-server -v ./cmd/backend-web-server \
-  && go build -o ./gen-nginx-conf -v ./cmd/gen-nginx-conf \
-  && go build -o ./gen-package-json -v ./cmd/gen-package-json \
+  && go install -v ./cmd/backend-web-server \
+  && go install -v ./cmd/gen-nginx-conf \
+  && go install -v ./cmd/gen-package-json \
   && go install -v ./cmd/download-data \
   && popd
 ##########################
