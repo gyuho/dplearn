@@ -27,7 +27,7 @@
 [[projects]]
   name = "github.com/coreos/etcd"
   packages = ["alarm","auth","auth/authpb","client","clientv3","clientv3/concurrency","compactor","discovery","embed","error","etcdserver","etcdserver/api","etcdserver/api/v2http","etcdserver/api/v2http/httptypes","etcdserver/api/v3client","etcdserver/api/v3election","etcdserver/api/v3election/v3electionpb","etcdserver/api/v3election/v3electionpb/gw","etcdserver/api/v3lock","etcdserver/api/v3lock/v3lockpb","etcdserver/api/v3lock/v3lockpb/gw","etcdserver/api/v3rpc","etcdserver/api/v3rpc/rpctypes","etcdserver/auth","etcdserver/etcdserverpb","etcdserver/etcdserverpb/gw","etcdserver/membership","etcdserver/stats","lease","lease/leasehttp","lease/leasepb","mvcc","mvcc/backend","mvcc/mvccpb","pkg/adt","pkg/contention","pkg/cors","pkg/cpuutil","pkg/crc","pkg/debugutil","pkg/fileutil","pkg/httputil","pkg/idutil","pkg/ioutil","pkg/logutil","pkg/monotime","pkg/netutil","pkg/pathutil","pkg/pbutil","pkg/runtime","pkg/schedule","pkg/srv","pkg/tlsutil","pkg/transport","pkg/types","pkg/wait","proxy/grpcproxy/adapter","raft","raft/raftpb","rafthttp","snap","snap/snappb","store","version","wal","wal/walpb"]
-  revision = "1acc8090e33c2f6505112e7b305d34996fb46dd9"
+  revision = "e475a4ea710491899fd4427552eda6ee45775320"
 
 [[projects]]
   name = "github.com/coreos/go-semver"
@@ -174,7 +174,7 @@
   branch = "master"
   name = "github.com/prometheus/common"
   packages = ["expfmt","internal/bitbucket.org/ww/goautoneg","model"]
-  revision = "3233b24a36715a2fe36d162260457857a56d672d"
+  revision = "0d0c3d572886e0f2323ed376557f9eb99b97d25b"
 
 [[projects]]
   branch = "master"
@@ -210,7 +210,7 @@
   branch = "master"
   name = "golang.org/x/net"
   packages = ["context","context/ctxhttp","http2","http2/hpack","idna","internal/timeseries","lex/httplex","trace"]
-  revision = "ddf80d0970594e2e4cccf5a98861cad3d9eaa4cd"
+  revision = "973f3f3bbd50e92b13faa6c53ec16f49b45e851c"
 
 [[projects]]
   name = "golang.org/x/oauth2"
@@ -266,6 +266,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "2488e599b166ae32e93214de2cdcbc80f60418980231bde488a047f858695e0a"
+  inputs-digest = "4d55af200e582599504c63ce16996b32c26437d3dcba3b74c044366cc3738317"
   solver-name = "gps-cdcl"
   solver-version = 1
