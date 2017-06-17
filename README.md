@@ -14,7 +14,7 @@ It is a set of small projects on [Deep Learning](https://en.wikipedia.org/wiki/D
 <img src="./architecture.png" alt="architecture" width="620">
 
 - [`frontend`](https://github.com/gyuho/deephardway/tree/master/frontend) implements user-facing UI, sends user requests to [`backend/*`](https://github.com/gyuho/deephardway/tree/master/backend).
-- [`backend/web`](https://github.com/gyuho/deephardway/tree/master/backend/web) schedules user requests on [`pkg/etcd-queue`](https://github.com/gyuho/deephardway/tree/master/pkg/etcd-queue) service on top of [etcd](https://github.com/coreos/etcd).
+- [`backend/web`](https://github.com/gyuho/deephardway/tree/master/backend/web) schedules user requests on [`pkg/etcd-queue`](https://github.com/gyuho/deephardway/tree/master/pkg/etcd-queue) service on top of [`etcd`](https://github.com/coreos/etcd).
 - [`backend/worker`](https://github.com/gyuho/deephardway/tree/master/backend/worker) fetches/processes the list of jobs, and writes results back to queue.
 - [`backend/web`](https://github.com/gyuho/deephardway/tree/master/backend/web) gets notified with [watch API](https://godoc.org/github.com/coreos/etcd/clientv3#Watcher) when the job is done, and returns results back to users.
 - Data serialization from `frontend` to `backend/web` is defined in [`backend/web.Request`](https://github.com/gyuho/deephardway/blob/master/backend/web/handler.go#L231-L237) and [`frontend/app/request-item.component.Request`](https://github.com/gyuho/deephardway/blob/master/frontend/app/request-item.component.ts).
@@ -24,7 +24,8 @@ It is a set of small projects on [Deep Learning](https://en.wikipedia.org/wiki/D
 Notes:
 
 - **Why is the queue service needed?** Users requests are concurrent, while worker has only limited computing power. Requests should be serialized into the queue, so that worker performance is maximized for each queue item.
-- **How is this deployed?** I have limited budget on public serving, thus everything is run in *one container*. In production, [etcd](https://github.com/coreos/etcd) can be distributed for higher availability, and [Tensorflow/serving](https://tensorflow.github.io/serving/) can serve the pre-trained models.
+- **Why Go?** To natively use [`embedded etcd`](https://github.com/coreos/etcd/tree/master/embed).
+- **How is this deployed?** I have limited budget on public serving, thus everything is run in *one container*. In production, [`etcd`](https://github.com/coreos/etcd) can be distributed for higher availability, and [Tensorflow/serving](https://tensorflow.github.io/serving/) can serve the pre-trained models.
 
 
 ### Development Workflow
