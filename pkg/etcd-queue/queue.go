@@ -308,7 +308,7 @@ func (qu *queue) Enqueue(ctx context.Context, it *Item) (ItemWatcher, error) {
 					return
 				}
 				if item.Progress == 100 {
-					glog.Warningf("enqueue-watcher: %q is finished", item.Key)
+					glog.Infof("enqueue-watcher: %q is finished", item.Key)
 					close(ch)
 					return
 				}
