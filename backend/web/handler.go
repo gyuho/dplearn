@@ -357,7 +357,7 @@ func (srv *Server) watch(ctx context.Context, requestID string, ch <-chan *etcdq
 		srv.requestCacheMu.Lock()
 		_, ok := srv.requestCache[requestID]
 		if !ok {
-			glog.Infof("watcher: %q is deleted", requestID)
+			glog.Infof("watcher: %q is already deleted(canceled)", requestID)
 			srv.requestCacheMu.Unlock()
 			return
 		}
