@@ -80,11 +80,16 @@ if __name__ == "__main__":
     PREV = None
     while True:
         ITEM = fetch_item(EP)
-        log.info("fetched item: {0}".format(ITEM))
-        if ITEM['key'] == '' and ITEM['value'] == '':
+
+        EMPTY_CREATED = ITEM['created_at'] == ''
+        EMPTY_CREATED |= ITEM['created_at'] == '0001-01-01T00:00:00Z'
+        EMPTY_KV = ITEM['key'] == '' and ITEM['value'] == ''
+        if EMPTY_CREATED and EMPTY_KV:
             log.info('No job to process in {0}'.format(EP))
             time.sleep(5)
             continue
+
+        log.info("fetched item: {0}".format(ITEM))
 
         # in case previous post request is
         # not processed yet in backend
