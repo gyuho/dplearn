@@ -14,16 +14,18 @@ import glog as log
 import requests
 
 
+ITEM_KEYS = ['bucket', 'key', 'value', 'progress', 'canceled', 'error']
+
+
 def fetch_item(endpoint):
     """
     fetch_item fetches a scheduled job from queue service.
     """
-    keys = ['bucket', 'key', 'value', 'progress', 'canceled', 'error']
     while True:
         try:
             rresp = requests.get(endpoint)
             item = json.loads(rresp.text)
-            for key in keys:
+            for key in ITEM_KEYS:
                 if key not in item:
                     log.warning('{0} not in {1}'.format(key, rresp.text))
                     return None
@@ -42,9 +44,17 @@ def post_item(endpoint, item):
     """
     post posts the processed job to the queue service.
     """
+    headers = {'Content-Type': 'application/json'}
     while True:
         try:
-            return requests.post(endpoint, data=json.dumps(item))
+            rresp = requests.post(endpoint, data=json.dumps(item),
+                                  headers=headers)
+            item = json.loads(rresp.text)
+            for key in ITEM_KEYS:
+                if key not in item:
+                    log.warning('{0} not in {1}'.format(key, rresp.text))
+                    return None
+            return item
 
         except requests.exceptions.ConnectionError as err:
             log.warning('Connection error: {0}'.format(err))
