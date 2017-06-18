@@ -8,9 +8,12 @@ import os.path
 import shutil
 import subprocess
 import sys
+import tempfile
 import threading
 import time
 import unittest
+
+import glog as log
 
 from etcd import get, put, watch
 
@@ -24,13 +27,18 @@ class ETCD(threading.Thread):
         self.stderr = None
         self.process = None
         self.exec_path = ETCD_PATH
+        self.data_dir = os.path.join(tempfile.gettempdir(), 'etcd')
+        if os.path.exists(self.data_dir):
+            log.info('deleting {0}'.format(self.data_dir))
+            shutil.rmtree(self.data_dir)
+            log.info('deleted {0}'.format(self.data_dir))
         threading.Thread.__init__(self)
 
     def run(self):
         self.process = subprocess.Popen([
             self.exec_path,
             '--name', 's1',
-            '--data-dir', 'etcd-test-data',
+            '--data-dir', self.data_dir,
             '--listen-client-urls', 'http://localhost:2379',
             '--advertise-client-urls', 'http://localhost:2379',
             '--listen-peer-urls', 'http://localhost:2380',
@@ -47,7 +55,13 @@ class ETCD(threading.Thread):
         """
         Kills the running etcd process
         """
+        log.info('killing process')
         self.process.kill()
+        log.info('killed process')
+        if os.path.exists(self.data_dir):
+            log.info('deleting {0}'.format(self.data_dir))
+            shutil.rmtree(self.data_dir)
+            log.info('deleted {0}'.format(self.data_dir))
 
 
 class TestETCDMethods(unittest.TestCase):
@@ -68,46 +82,44 @@ class TestETCDMethods(unittest.TestCase):
         """
         exec_path = os.environ['ETCD_EXEC']
         if exec_path == '':
-            print('Got empty etcd path')
+            log.fatal('Got empty etcd path')
             sys.exit(0)
         if not os.path.exists(exec_path):
-            print('{0} does not eixst'.format(exec_path))
+            log.fatal('{0} does not eixst'.format(exec_path))
             sys.exit(0)
 
-        print('Running {0}'.format(exec_path))
+        log.info('Running {0}'.format(exec_path))
         etcd_proc = ETCD(exec_path)
         etcd_proc.setDaemon(True)
         etcd_proc.start()
 
-        print('Sleeping...')
+        log.info('Sleeping...')
         time.sleep(5)
 
-        print('Launching watch requests...')
+        log.info('Launching watch requests...')
         watch_thread = threading.Thread(target=self.watch_routine)
         watch_thread.setDaemon(True)
         watch_thread.start()
 
         time.sleep(3)
 
-        print('Launching client requests...')
-        print(put('http://localhost:2379', 'foo', 'bar'))
+        log.info('Launching client requests...')
+        log.info(put('http://localhost:2379', 'foo', 'bar'))
 
         self.assertEqual(get('http://localhost:2379', 'foo'), 'bar')
         # Python 3
         # self.assertEqual(get('http://localhost:2379', 'foo'), b'bar')
 
-        print('Waing for watch...')
+        log.info('Waing for watch...')
         watch_thread.join()
 
-        print('Killing etcd...')
+        log.info('Killing etcd...')
         etcd_proc.kill()
 
         etcd_proc.join()
-        print('etcd output: {0}'.format(etcd_proc.stderr))
+        log.info('etcd output: {0}'.format(etcd_proc.stderr))
 
-        print('Removing etcd data directory...')
-        shutil.rmtree('etcd-test-data')
-        print('Done!')
+        log.info('Done!')
 
 
 if __name__ == '__main__':
