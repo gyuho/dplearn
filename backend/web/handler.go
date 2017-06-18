@@ -196,7 +196,7 @@ func queueHandler(ctx context.Context, w http.ResponseWriter, req *http.Request)
 	case http.MethodGet:
 		item, err := qu.Front(ctx, bucket)
 		if err != nil {
-			return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: err.Error()})
+			return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: bucket, Progress: 0, Error: err.Error()})
 		}
 		if item == nil { // pass empty item
 			item = &etcdqueue.Item{}
@@ -213,10 +213,10 @@ func queueHandler(ctx context.Context, w http.ResponseWriter, req *http.Request)
 
 		var item etcdqueue.Item
 		if err = json.Unmarshal(rb, &item); err != nil {
-			return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: err.Error()})
+			return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: bucket, Progress: 0, Error: err.Error()})
 		}
 		if _, err := qu.Enqueue(ctx, &item); err != nil {
-			return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: err.Error()})
+			return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: bucket, Progress: 0, Error: err.Error()})
 		}
 		return json.NewEncoder(w).Encode(&item)
 
@@ -229,10 +229,8 @@ func queueHandler(ctx context.Context, w http.ResponseWriter, req *http.Request)
 
 // Request defines requests from frontend.
 type Request struct {
-	UserID        string `json:"user_id"`
-	RawData       string `json:"raw_data"`
-	Result        string `json:"result"`
-	DeleteRequest bool   `json:"delete_request"`
+	DataFromFrontend string `json:"data_from_frontend"`
+	DeleteRequest    bool   `json:"delete_request"`
 }
 
 func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.Request) error {
@@ -256,10 +254,10 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 		if err = json.Unmarshal(rb, &creq); err != nil {
 			err = fmt.Errorf("JSON parse error %q", err.Error())
 			glog.Warning(err)
-			return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: err.Error()})
+			return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: reqPath, Progress: 0, Error: err.Error()})
 		}
 
-		if creq.RawData == "" { // TODO: bug in ngOnDestroy?
+		if creq.DataFromFrontend == "" { // TODO: bug in ngOnDestroy?
 			glog.Warning("skipping empty request...")
 			return nil
 		}
@@ -267,13 +265,13 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 		switch reqPath {
 		case "/cats-vs-dogs-request":
 			var fpath string
-			fpath, err = cacheImage(cache, creq.RawData)
+			fpath, err = cacheImage(cache, creq.DataFromFrontend)
 			if err != nil {
-				err = fmt.Errorf("error %q while fetching %q", err.Error(), creq.RawData)
+				err = fmt.Errorf("error %q while fetching %q", err.Error(), creq.DataFromFrontend)
 				glog.Warning(err)
-				return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: err.Error()})
+				return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: reqPath, Progress: 0, Error: err.Error()})
 			}
-			creq.RawData = fpath
+			creq.DataFromFrontend = fpath
 
 		case "/mnist-request":
 
@@ -282,10 +280,10 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 		default:
 			err = fmt.Errorf("unknown request %q", reqPath)
 			glog.Warning(err)
-			return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: err.Error()})
+			return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: reqPath, Progress: 0, Error: err.Error()})
 		}
 
-		requestID := generateRequestID(reqPath, userID, creq.RawData)
+		requestID := generateRequestID(reqPath, userID, creq.DataFromFrontend)
 
 		switch creq.DeleteRequest {
 		case true:
@@ -299,10 +297,10 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 			}
 			delete(srv.requestCache, requestID)
 			if err = qu.Dequeue(ctx, item); err != nil {
-				err = fmt.Errorf("qu.Delete error %q", err.Error())
+				err = fmt.Errorf("qu.Dequeue error %q", err.Error())
 				glog.Warning(err)
 				srv.requestCacheMu.Unlock()
-				return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: err.Error()})
+				return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: reqPath, Progress: 0, Error: err.Error()})
 			}
 			srv.requestCacheMu.Unlock()
 			glog.Infof("deleted %q", requestID)
@@ -316,14 +314,14 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 			}
 
 			// enqueue(schedule) the job
-			glog.Infof("creating a item with request ID %s", requestID)
-			item = etcdqueue.CreateItem(reqPath, 100, creq.RawData)
+			glog.Infof("creating an item with request ID %s", requestID)
+			item = etcdqueue.CreateItem(reqPath, 100, creq.DataFromFrontend)
 			ch, err := qu.Enqueue(ctx, item)
 			if err != nil {
 				srv.requestCacheMu.Unlock()
 				err = fmt.Errorf("qu.Enqueue error %q", err.Error())
 				glog.Warning(err)
-				return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: err.Error()})
+				return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: reqPath, Progress: 0, Error: err.Error()})
 			}
 
 			// watch for changes from worker, keep the cache up-to-date
@@ -334,7 +332,7 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 			srv.requestCacheMu.Unlock()
 			go srv.watch(ctx, requestID, ch)
 
-			glog.Infof("created a item with request ID %s", requestID)
+			glog.Infof("created an item with request ID %s", requestID)
 			copied := *item
 			copied.Value = fmt.Sprintf("requested job with %q", copied.Value)
 			return json.NewEncoder(w).Encode(&copied)

@@ -1,17 +1,13 @@
 
 // Request represents TypeScript version of Request in https://github.com/gyuho/deephardway/blob/master/backend/web/web.go.
 export class Request {
-  user_id: string;
-  raw_data: string;
-  result: string;
+  data_from_frontend: string;
   delete_request: boolean;
   constructor(
     d: string,
     delete_request: boolean,
   ) {
-    this.user_id = '';
-    this.raw_data = d;
-    this.result = '';
+    this.data_from_frontend = d;
     this.delete_request = delete_request;
   }
 };
