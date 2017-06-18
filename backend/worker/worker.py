@@ -86,7 +86,9 @@ if __name__ == "__main__":
         ITEM = fetch_item(EP)
         if ITEM['error'] not in ['', u'']:
             log.warning(ITEM['error'])
-            time.sleep(5)
+            time.sleep(2)
+            if 'has no item' not in str(ITEM['error']):
+                time.sleep(3)
             continue
 
         REQ_ID = ITEM['request_id']
