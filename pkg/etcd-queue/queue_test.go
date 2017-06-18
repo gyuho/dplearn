@@ -193,22 +193,22 @@ func TestQueue(t *testing.T) {
 // truncate CreatedAt to handle added timestamp texts while serialization
 func equalItem(item1, item2 *Item) error {
 	if item1.CreatedAt.String()[:29] != item2.CreatedAt.String()[:29] {
-		return fmt.Errorf("unexpected CreatedAt %q, got %q", item1.CreatedAt.String()[:29], item2.CreatedAt.String()[:29])
+		return fmt.Errorf("expected CreatedAt %q, got %q", item1.CreatedAt.String()[:29], item2.CreatedAt.String()[:29])
 	}
 	if item1.Bucket != item2.Bucket {
-		return fmt.Errorf("unexpected Bucket %q, got %q", item1.Bucket, item2.Bucket)
+		return fmt.Errorf("expected Bucket %q, got %q", item1.Bucket, item2.Bucket)
 	}
 	if item1.Key != item2.Key {
-		return fmt.Errorf("unexpected Key %q, got %q", item1.Key, item2.Key)
+		return fmt.Errorf("expected Key %q, got %q", item1.Key, item2.Key)
 	}
 	if item1.Value != item2.Value {
-		return fmt.Errorf("unexpected Value %q, got %q", item1.Value, item2.Value)
+		return fmt.Errorf("expected Value %q, got %q", item1.Value, item2.Value)
 	}
 	if item1.Progress != item2.Progress {
-		return fmt.Errorf("unexpected Progress %d, got %d", item1.Progress, item2.Progress)
+		return fmt.Errorf("expected Progress %d, got %d", item1.Progress, item2.Progress)
 	}
 	if item1.Canceled != item2.Canceled {
-		return fmt.Errorf("unexpected Canceled %v, got %v", item1.Canceled, item2.Canceled)
+		return fmt.Errorf("expected Canceled %v, got %v", item1.Canceled, item2.Canceled)
 	}
 	return nil
 }
