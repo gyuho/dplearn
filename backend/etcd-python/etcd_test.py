@@ -5,16 +5,14 @@ This script tests etcd clients.
 from __future__ import print_function
 
 import os.path
-import sys
-import time
 import shutil
 import subprocess
+import sys
 import threading
+import time
 import unittest
 
-from etcd import put
-from etcd import get
-from etcd import watch
+from etcd import get, put, watch
 
 
 class ETCD(threading.Thread):
@@ -72,7 +70,7 @@ class TestETCDMethods(unittest.TestCase):
         if exec_path == '':
             print('Got empty etcd path')
             sys.exit(0)
-        if os.path.exists(exec_path) != True:
+        if not os.path.exists(exec_path):
             print('{0} does not eixst'.format(exec_path))
             sys.exit(0)
 

@@ -9,7 +9,13 @@ import base64
 import json
 import sys
 import time
+
 import requests
+
+
+PUT_PATH = '/v3alpha/kv/put'
+RANGE_PATH = '/v3alpha/kv/range'
+
 
 def put(endpoint, key, val):
     """
@@ -27,7 +33,7 @@ def put(endpoint, key, val):
     req = {"key": key_str, "value": val_str}
     while True:
         try:
-            return requests.post(endpoint + "/v3alpha/kv/put", data=json.dumps(req))
+            return requests.post(endpoint + PUT_PATH, data=json.dumps(req))
 
         except requests.exceptions.ConnectionError as err:
             print('Connection error: {0}'.format(err))
@@ -36,6 +42,7 @@ def put(endpoint, key, val):
         except:
             print('Unexpected error:', sys.exc_info()[0])
             raise
+
 
 def get(endpoint, key):
     """
@@ -51,7 +58,7 @@ def get(endpoint, key):
     req = {"key": key_str}
     while True:
         try:
-            rresp = requests.post(endpoint + '/v3alpha/kv/range', data=json.dumps(req))
+            rresp = requests.post(endpoint + RANGE_PATH, data=json.dumps(req))
             resp = json.loads(rresp.text)
             if 'kvs' not in resp:
                 print('{0} does not exist'.format(key))
@@ -69,6 +76,7 @@ def get(endpoint, key):
             print('Unexpected error:', sys.exc_info()[0])
             raise
 
+
 def watch(endpoint, key):
     """
     watch sends watch request to etcd.
@@ -83,7 +91,8 @@ def watch(endpoint, key):
     req = {'create_request': {"key": key_str}}
     while True:
         try:
-            rresp = requests.post(endpoint + '/v3alpha/watch', data=json.dumps(req), stream=True)
+            rresp = requests.post(endpoint + '/v3alpha/watch',
+                                  data=json.dumps(req), stream=True)
             for line in rresp.iter_lines():
                 # filter out keep-alive new lines
                 if line:
@@ -93,18 +102,19 @@ def watch(endpoint, key):
                         print('{0} does not have result'.format(resp))
                         return ''
                     if 'created' in resp['result']:
-                        if resp['result']['created'] == True:
+                        if resp['result']['created']:
                             print('watching {0}'.format(key))
                             continue
                     if 'events' not in resp['result']:
                         print('{0} returned no events: {1}'.format(key, resp))
                         return None
                     if len(resp['result']['events']) != 1:
-                        print('{0} returned more than 1 event: {1}'.format(key, resp))
+                        print('{0} returned >1 event: {1}'.format(key, resp))
                         return None
                     if 'kv' in resp['result']['events'][0]:
                         if 'value' in resp['result']['events'][0]['kv']:
-                            return base64.b64decode(resp['result']['events'][0]['kv']['value'])
+                            val = resp['result']['events'][0]['kv']['value']
+                            return base64.b64decode(val)
                         else:
                             print('no value in ', resp)
                             return None
