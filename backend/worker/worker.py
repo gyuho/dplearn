@@ -1,5 +1,5 @@
 """
-This script interacts with backend/web/queue-service.
+This script interacts with backend/web.
 """
 
 from __future__ import print_function

@@ -10,8 +10,8 @@ import json
 import sys
 import time
 
+import glog as log
 import requests
-
 
 PUT_PATH = '/v3alpha/kv/put'
 RANGE_PATH = '/v3alpha/kv/range'
@@ -36,11 +36,11 @@ def put(endpoint, key, val):
             return requests.post(endpoint + PUT_PATH, data=json.dumps(req))
 
         except requests.exceptions.ConnectionError as err:
-            print('Connection error: {0}'.format(err))
+            log.warning('Connection error: {0}'.format(err))
             time.sleep(5)
 
         except:
-            print('Unexpected error:', sys.exc_info()[0])
+            log.warning('Unexpected error:', sys.exc_info()[0])
             raise
 
 
@@ -61,19 +61,19 @@ def get(endpoint, key):
             rresp = requests.post(endpoint + RANGE_PATH, data=json.dumps(req))
             resp = json.loads(rresp.text)
             if 'kvs' not in resp:
-                print('{0} does not exist'.format(key))
+                log.warning('{0} does not exist'.format(key))
                 return ''
             if len(resp['kvs']) != 1:
-                print('{0} does not exist'.format(key))
+                log.warning('{0} does not exist'.format(key))
                 return ''
             return base64.b64decode(resp['kvs'][0]['value'])
 
         except requests.exceptions.ConnectionError as err:
-            print('Connection error: {0}'.format(err))
+            log.warning('Connection error: {0}'.format(err))
             time.sleep(5)
 
         except:
-            print('Unexpected error:', sys.exc_info()[0])
+            log.warning('Unexpected error:', sys.exc_info()[0])
             raise
 
 
@@ -99,33 +99,35 @@ def watch(endpoint, key):
                     decoded_line = line.decode('utf-8')
                     resp = json.loads(decoded_line)
                     if 'result' not in resp:
-                        print('{0} does not have result'.format(resp))
+                        log.warning('{0} does not have result'.format(resp))
                         return ''
                     if 'created' in resp['result']:
                         if resp['result']['created']:
-                            print('watching {0}'.format(key))
+                            log.warning('watching {0}'.format(key))
                             continue
                     if 'events' not in resp['result']:
-                        print('{0} returned no events: {1}'.format(key, resp))
+                        log.warning('{0} returned no events: {1}'.format(key,
+                                                                         resp))
                         return None
                     if len(resp['result']['events']) != 1:
-                        print('{0} returned >1 event: {1}'.format(key, resp))
+                        log.warning('{0} returned >1 event: {1}'.format(key,
+                                                                        resp))
                         return None
                     if 'kv' in resp['result']['events'][0]:
                         if 'value' in resp['result']['events'][0]['kv']:
                             val = resp['result']['events'][0]['kv']['value']
                             return base64.b64decode(val)
                         else:
-                            print('no value in ', resp)
+                            log.warning('no value in ', resp)
                             return None
                     else:
-                        print('no kv in ', resp)
+                        log.warning('no kv in ', resp)
                         return None
 
         except requests.exceptions.ConnectionError as err:
-            print('Connection error: {0}'.format(err))
+            log.warning('Connection error: {0}'.format(err))
             time.sleep(5)
 
         except:
-            print('Unexpected error:', sys.exc_info()[0])
+            log.warning('Unexpected error:', sys.exc_info()[0])
             raise
