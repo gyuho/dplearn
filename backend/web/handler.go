@@ -189,18 +189,17 @@ func (srv *Server) StopNotify() <-chan struct{} {
 func queueHandler(ctx context.Context, w http.ResponseWriter, req *http.Request) error {
 	reqPath := req.URL.Path
 	bucket := path.Dir(reqPath)
+	srv := ctx.Value(serverKey).(*Server)
 	qu := ctx.Value(queueKey).(etcdqueue.Queue)
 
-	glog.Infof("[%s] %s", req.Method, reqPath)
 	switch req.Method {
 	case http.MethodGet:
 		item, err := qu.Front(ctx, bucket)
 		if err != nil {
 			return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: bucket, Progress: 0, Error: err.Error()})
 		}
-		if item == nil { // pass empty item
-			glog.Infof("%q returning empty item", bucket)
-			item = &etcdqueue.Item{Bucket: bucket}
+		if item == nil {
+			item = &etcdqueue.Item{Bucket: bucket, Error: fmt.Sprintf("%q has no item", bucket)}
 		}
 		return json.NewEncoder(w).Encode(item)
 
@@ -217,9 +216,18 @@ func queueHandler(ctx context.Context, w http.ResponseWriter, req *http.Request)
 		if err = json.Unmarshal(rb, &item); err != nil {
 			return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: bucket, Progress: 0, Error: err.Error()})
 		}
-		if item.Bucket == "" || item.Key == "" || item.Value == "" {
+
+		if item.Bucket == "" || item.Key == "" || item.Value == "" || item.RequestID == "" {
 			return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: bucket, Progress: 0, Error: fmt.Sprintf("invalid item: %+v", item)})
 		}
+
+		srv.requestCacheMu.Lock()
+		_, ok := srv.requestCache[item.RequestID]
+		srv.requestCacheMu.Unlock()
+		if !ok {
+			return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: bucket, Progress: 0, Error: fmt.Sprintf("request ID %q is already deleted(canceled)", item.RequestID)})
+		}
+
 		if _, err := qu.Enqueue(ctx, &item); err != nil {
 			return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: bucket, Progress: 0, Error: err.Error()})
 		}
@@ -245,7 +253,6 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 	cache := ctx.Value(cacheKey).(lru.Cache)
 	userID := ctx.Value(userKey).(string)
 
-	glog.Infof("[%s] %s", req.Method, reqPath)
 	switch req.Method {
 	case http.MethodPost:
 		rb, err := ioutil.ReadAll(req.Body)
@@ -313,15 +320,17 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 
 		case false:
 			srv.requestCacheMu.Lock()
-			item, ok := srv.requestCache[requestID]
+			v, ok := srv.requestCache[requestID]
 			if ok {
 				srv.requestCacheMu.Unlock()
-				return json.NewEncoder(w).Encode(item)
+				return json.NewEncoder(w).Encode(v)
 			}
 
+			item := etcdqueue.CreateItem(reqPath, 100, creq.DataFromFrontend)
+			item.RequestID = requestID
+			glog.Infof("created an item with request ID %q", requestID)
+
 			// enqueue(schedule) the job
-			glog.Infof("creating an item with request ID %s", requestID)
-			item = etcdqueue.CreateItem(reqPath, 100, creq.DataFromFrontend)
 			ch, err := qu.Enqueue(ctx, item)
 			if err != nil {
 				srv.requestCacheMu.Unlock()
