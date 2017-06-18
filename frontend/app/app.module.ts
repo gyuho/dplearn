@@ -1,25 +1,30 @@
-import { NgModule, ApplicationRef } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
-import { FormsModule } from '@angular/forms';
-import { HttpModule, JsonpModule } from '@angular/http';
+import { ApplicationRef, NgModule } from "@angular/core";
+import { FormsModule } from "@angular/forms";
+import { HttpModule, JsonpModule } from "@angular/http";
+import { BrowserModule } from "@angular/platform-browser";
 
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 
 import {
   MdButtonModule,
-  MdToolbarModule,
   MdCardModule,
-  MdMenuModule,
-  MdInputModule,
-  MdSnackBarModule,
-  MdProgressSpinnerModule,
   MdChipsModule,
-} from '@angular/material';
+  MdInputModule,
+  MdMenuModule,
+  MdProgressSpinnerModule,
+  MdSnackBarModule,
+  MdToolbarModule,
+} from "@angular/material";
 
-import { AppComponent } from './app.component';
-import { routing, routedComponents } from './app.routing';
+import { AppComponent } from "./app.component";
+import { routedComponents, routing } from "./app.routing";
 
 @NgModule({
+  declarations: [
+    AppComponent,
+    routedComponents,
+  ],
+  entryComponents: [AppComponent],
   imports: [
     BrowserModule,
     FormsModule,
@@ -40,17 +45,12 @@ import { routing, routedComponents } from './app.routing';
 
     routing,
   ],
-  declarations: [
-    AppComponent,
-    routedComponents,
-  ],
-  entryComponents: [AppComponent],
 })
 
 export class AppModule {
   constructor(private _appRef: ApplicationRef) { }
 
-  ngDoBootstrap() {
+  public ngDoBootstrap() {
     this._appRef.bootstrap(AppComponent);
   }
 }

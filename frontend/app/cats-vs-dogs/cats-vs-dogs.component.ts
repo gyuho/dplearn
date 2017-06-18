@@ -1,88 +1,81 @@
 import {
   Component,
   OnDestroy,
-} from '@angular/core';
+} from "@angular/core";
 
 import {
-  Http,
-  Response,
   Headers,
+  Http,
   RequestOptions,
-} from '@angular/http';
+  Response,
+} from "@angular/http";
 
 import {
   Observable,
-} from 'rxjs/Rx';
+} from "rxjs/Rx";
 
 import {
   MdSnackBar,
-} from '@angular/material';
+} from "@angular/material";
 
 import {
-  Request,
   Item,
-} from '../request-item.component';
+  Request,
+} from "../request-item.component";
 
 @Component({
-  selector: 'app',
-  templateUrl: 'cats-vs-dogs.component.html',
-  styleUrls: ['cats-vs-dogs.component.css'],
+  selector: "app",
+  styleUrls: ["cats-vs-dogs.component.css"],
+  templateUrl: "cats-vs-dogs.component.html",
 })
 export class CatsVsDogsComponent implements OnDestroy {
-  private endpoint = 'cats-vs-dogs-request';
+  public endpoint = "cats-vs-dogs-request";
 
-  mode = 'Observable';
+  public mode = "Observable";
 
-  inputValue: string;
+  public inputValue: string;
 
-  sresp: Item;
-  srespError: string;
-  result: string;
+  public sresp: Item;
+  public srespError: string;
+  public result: string;
 
-  progress = 0;
-  spinnerColor = 'primary';
-  spinnerMode = 'indeterminate';
+  public progress = 0;
+  public spinnerColor = "primary";
+  public spinnerMode = "indeterminate";
 
-  pollingHandler;
+  private pollingHandler;
 
   constructor(private http: Http, public snackBar: MdSnackBar) {
-    this.inputValue = 'https://images.pexels.com/photos/127028/pexels-photo-127028.jpeg?w=1260&h=750&auto=compress&cs=tinysrgb';
-    this.srespError = '';
-    this.result = 'No results to show yet...';
+    this.inputValue = "https://images.pexels.com/photos/127028/pexels-photo-127028.jpeg?w=1260&h=750&auto=compress&cs=tinysrgb";
+    this.srespError = "";
+    this.result = "No results to show yet...";
   }
 
-  ngOnDestroy() {
-    console.log('User left the page!');
+  public ngOnDestroy() {
     clearInterval(this.pollingHandler);
 
-    console.log('sending DELETE');
-    let creq = new Request(this.inputValue, true);
+    const creq = new Request(this.inputValue, true);
     let responseFromSubscribe: Item;
     this.deleteRequest(creq).subscribe(
-      sresp => responseFromSubscribe = sresp,
-      error => this.srespError = <any>error,
+      (sresp) => responseFromSubscribe = sresp,
+      (error) => this.srespError = error as any,
       () => this.processItem(responseFromSubscribe), // on-complete
     );
-    console.log('sent DELETE');
 
-    this.inputValue = '';
-    this.srespError = '';
+    this.inputValue = "";
+    this.srespError = "";
     return;
   }
 
-  processItem(resp: Item) {
+  public processItem(resp: Item) {
     this.sresp = resp;
     this.result = resp.value;
-    if (resp.error !== '') {
+    if (resp.error !== "") {
       clearInterval(this.pollingHandler);
-      if (this.result !== '') {
-        this.result = resp.value + '(' + resp.error + ')';
-      } else {
-        this.result = resp.error;
-      }
+      this.result = (this.result === "") ? resp.error : `${resp.value} (${resp.error})`;
     }
     if (resp.canceled === true) {
-      this.result += ' - canceled!';
+      this.result += " - canceled!";
     }
 
     this.progress = resp.progress;
@@ -91,52 +84,52 @@ export class CatsVsDogsComponent implements OnDestroy {
     }
   }
 
-  processHTTPResponseClient(res: Response) {
-    let jsonBody = res.json();
-    let sresp = <Item>jsonBody;
+  public processHTTPResponseClient(res: Response) {
+    const jsonBody = res.json();
+    const sresp = jsonBody as Item;
     return sresp || {};
   }
 
-  processHTTPErrorClient(error: any) {
-    let errMsg = (error.message) ? error.message :
-      error.status ? `${error.status} - ${error.statusText}` : 'Server error';
+  public processHTTPErrorClient(error: any) {
+    const errMsg = (error.message) ? error.message :
+      error.status ? `${error.status} - ${error.statusText}` : "Server error";
     console.error(errMsg);
     this.srespError = errMsg;
     return Observable.throw(errMsg);
   }
 
-  postRequest(creq: Request): Observable<Item> {
-    let body = JSON.stringify(creq);
-    let headers = new Headers({'Content-Type' : 'application/json'});
-    let options = new RequestOptions({headers : headers});
+  public postRequest(creq: Request): Observable<Item> {
+    const body = JSON.stringify(creq);
+    const headers = new Headers({"Content-Type" : "application/json"});
+    const options = new RequestOptions({headers});
 
     // this returns without waiting for POST response
-    let obser = this.http.post(this.endpoint, body, options)
+    const obser = this.http.post(this.endpoint, body, options)
       .map(this.processHTTPResponseClient)
       .catch(this.processHTTPErrorClient);
     return obser;
   }
 
-  deleteRequest(creq: Request): Observable<Item> {
+  public deleteRequest(creq: Request): Observable<Item> {
     creq.delete_request = true;
     return this.postRequest(creq);
   }
 
-  processRequest() {
-    let creq = new Request(this.inputValue, false);
+  public processRequest() {
+    const creq = new Request(this.inputValue, false);
     let responseFromSubscribe: Item;
     this.postRequest(creq).subscribe(
-      sresp => responseFromSubscribe = sresp,
-      error => this.srespError = <any>error,
+      (sresp) => responseFromSubscribe = sresp,
+      (error) => this.srespError = error as any,
       () => this.processItem(responseFromSubscribe), // on-complete
     );
   }
 
-  clickProcessRequest() {
-    this.snackBar.open('Job scheduled! Waiting...', 'Requested!', {
-      duration: 5000,
+  public clickProcessRequest() {
+    this.snackBar.open("Job scheduled! Waiting...", "Requested!", {
+      duration: 7000,
     });
     this.progress = 0;
-    this.pollingHandler = setInterval(() => this.processRequest(), 2000);
+    this.pollingHandler = setInterval(() => this.processRequest(), 1500);
   }
 }

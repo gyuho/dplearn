@@ -1,9 +1,9 @@
-import {Component} from '@angular/core';
+import {Component} from "@angular/core";
 
 @Component({
-  selector: 'app-deephardway',
-  templateUrl: 'app.component.html',
-  styleUrls: ['app.component.css'],
+  selector: "app-deephardway",
+  styleUrls: ["app.component.css"],
+  templateUrl: "app.component.html",
 })
 
 export class AppComponent { }

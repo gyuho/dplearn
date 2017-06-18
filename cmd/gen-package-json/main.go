@@ -74,6 +74,9 @@ const tmplPackageJSON = `{
     "version": "0.9.5",
     "license": "Apache-2.0",
     "angular-cli": {},
+    "bin": {
+        "tslint": "./bin/tslint"
+    },
     "scripts": {
         "start": "{{.NgCommandServeStart}} --port {{.HostPort}} --host {{.Host}} --proxy-config {{.ProxyConfigJSONPath}}",
         "start-prod": "{{.NgCommandServeStartProd}} --port {{.HostProdPort}} --host {{.HostProd}} --disable-host-check --proxy-config proxy.config.json",

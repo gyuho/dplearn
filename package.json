@@ -3,6 +3,9 @@
     "version": "0.9.5",
     "license": "Apache-2.0",
     "angular-cli": {},
+    "bin": {
+        "tslint": "./bin/tslint"
+    },
     "scripts": {
         "start": "ng serve --port 4200 --host 0.0.0.0 --proxy-config proxy.config.json",
         "start-prod": "ng serve --prod --port 4200 --host 0.0.0.0 --disable-host-check --proxy-config proxy.config.json",
