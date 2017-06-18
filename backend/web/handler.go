@@ -199,7 +199,7 @@ func queueHandler(ctx context.Context, w http.ResponseWriter, req *http.Request)
 			return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: bucket, Progress: 0, Error: err.Error()})
 		}
 		if item == nil { // pass empty item
-			item = &etcdqueue.Item{}
+			item = &etcdqueue.Item{Bucket: bucket}
 		}
 		return json.NewEncoder(w).Encode(item)
 
@@ -334,7 +334,7 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 
 			glog.Infof("created an item with request ID %s", requestID)
 			copied := *item
-			copied.Value = fmt.Sprintf("requested job with %q", copied.Value)
+			copied.Value = fmt.Sprintf("Requested %q", copied.Value)
 			return json.NewEncoder(w).Encode(&copied)
 		}
 
