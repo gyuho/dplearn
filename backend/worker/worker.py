@@ -24,7 +24,7 @@ def fetch_item(endpoint):
         try:
             rresp = requests.get(endpoint)
             item = json.loads(rresp.text)
-            for key in range(keys):
+            for key in keys:
                 if key not in item:
                     log.warning('{0} not in {1}'.format(key, rresp.text))
                     return None
@@ -59,20 +59,23 @@ def post_item(endpoint, item):
 if __name__ == "__main__":
     log.info("starting worker")
 
-    EP = os.environ['QUEUE_ENDPOINT']
+    if len(sys.argv) == 1:
+        log.fatal('Got empty endpoint: {0}'.format(sys.argv))
+        sys.exit(1)
+
+    EP = sys.argv[1]
     if EP == '':
-        log.fatal('Got empty QUEUE_ENDPOINT')
+        log.fatal('Got empty endpoint: {0}'.format(sys.argv))
         sys.exit(1)
 
     PREV = None
     while True:
         ITEM = fetch_item(EP)
+        log.info("fetched item: {0}".format(ITEM))
         if ITEM['key'] == '' and ITEM['value'] == '':
             log.info('No job to process in {0}'.format(EP))
             time.sleep(5)
             continue
-
-        log.info("fetched item: {0}".format(ITEM))
 
         # in case previous post request is
         # not processed yet in backend
@@ -92,6 +95,7 @@ if __name__ == "__main__":
             ITEM['progress'] = 100
             ITEM['value'] = 'cats-vs-dogs at ' + pendulum.now().isoformat()
             post_item(EP, ITEM)
+            log.info('posted to /cats-vs-dogs-request/queue')
 
         elif ITEM['bucket'] == '/mnist-request':
             log.info('/mnist-request is not ready yet')
@@ -104,3 +108,4 @@ if __name__ == "__main__":
             ITEM['progress'] = 100
             ITEM['value'] = 'word-predict at ' + pendulum.now().isoformat()
             post_item(EP, ITEM)
+            log.info('posted to /word-predict-request/queue')
