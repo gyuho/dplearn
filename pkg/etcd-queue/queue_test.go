@@ -210,5 +210,11 @@ func equalItem(item1, item2 *Item) error {
 	if item1.Canceled != item2.Canceled {
 		return fmt.Errorf("expected Canceled %v, got %v", item1.Canceled, item2.Canceled)
 	}
+	if item1.Error != item2.Error {
+		return fmt.Errorf("expected Error %s, got %s", item1.Error, item2.Error)
+	}
+	if item1.RequestID != item2.RequestID {
+		return fmt.Errorf("expected RequestID %s, got %s", item1.RequestID, item2.RequestID)
+	}
 	return nil
 }

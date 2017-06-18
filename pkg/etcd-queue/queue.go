@@ -43,6 +43,9 @@ type Item struct {
 	// Error contains any error message.
 	// It's defined as string for different language interpolation.
 	Error string `json:"error"`
+
+	// RequestID is to be populated by external service to uniquely identify each item.
+	RequestID string `json:"request_id"`
 }
 
 // CreateItem creates an item with auto-generated ID. The ID uses unix
