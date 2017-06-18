@@ -7,7 +7,9 @@
 
 /backend/etcd-python/*.pyc
 /backend/etcd-python/__pycache__/
-/backend/etcd-python/etcd-test-data/
+
+/backend/worker/*.pyc
+/backend/worker/__pycache__/
 
 /notebooks/.ipynb_checkpoints
 /notebooks/sample-notebooks
