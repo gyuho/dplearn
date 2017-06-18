@@ -1,7 +1,6 @@
 package web
 
 import (
-	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -327,21 +326,17 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 				return json.NewEncoder(w).Encode(&etcdqueue.Item{Progress: 0, Error: err.Error()})
 			}
 
-			// watch for changes from worker
+			// watch for changes from worker, keep the cache up-to-date
 			// - waits until the worker processor computes the job
 			// - waits until the worker processor writes back to queue
 			// - queue watcher gets notified and writes back to 'path.Join(pfxScheduled, bucket)'
 			srv.requestCache[requestID] = item
 			srv.requestCacheMu.Unlock()
 			go srv.watch(ctx, requestID, ch)
-			glog.Infof("created a item with request ID %s", requestID)
-
-			// for testing, remove this later
-			go testWorker(srv.webURL.String()+reqPath+"/queue", item)
 
 			glog.Infof("created a item with request ID %s", requestID)
 			copied := *item
-			copied.Value = fmt.Sprintf("Processing %q", copied.Value)
+			copied.Value = fmt.Sprintf("requested job with %q", copied.Value)
 			return json.NewEncoder(w).Encode(&copied)
 		}
 
@@ -354,31 +349,29 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 
 func (srv *Server) watch(ctx context.Context, requestID string, ch <-chan *etcdqueue.Item) {
 	item := &etcdqueue.Item{Progress: 0}
-	for item.Progress < 100 {
+	for item.Progress < 100 && !item.Canceled {
 		srv.requestCacheMu.Lock()
 		_, ok := srv.requestCache[requestID]
 		if !ok {
-			glog.Infof("%q is deleted; exiting watch routine", requestID)
+			glog.Infof("watcher: %q is deleted", requestID)
 			srv.requestCacheMu.Unlock()
 			return
 		}
 		srv.requestCacheMu.Unlock()
 
-		// watch from queue until it's done, feed from queue service
 		select {
 		case <-srv.donec:
 			return
 		case <-ctx.Done():
 			return
 		case item = <-ch:
-			if item.Canceled {
-				glog.Infof("%q is canceld; exiting watch routine", item.Key)
-				return
-			}
 			srv.requestCacheMu.Lock()
 			srv.requestCache[requestID] = item
 			srv.requestCacheMu.Unlock()
-			glog.Infof("updated item with request ID %q", requestID)
+			glog.Infof("watcher: received an update on %q", requestID)
+			if item.Canceled {
+				glog.Infof("watcher: %q is canceld", requestID)
+			}
 		}
 	}
 }
@@ -446,43 +439,4 @@ func cacheImage(cache lru.Cache, ep string) (string, error) {
 	}
 
 	return fpath, nil
-}
-
-func testWorker(ep string, item *etcdqueue.Item) {
-	orig := *item
-	time.Sleep(10 * time.Second)
-
-	glog.Infof("[TEST] fetching from %q", ep)
-	resp, err := http.Get(ep)
-	if err != nil {
-		panic(err)
-	}
-
-	rb, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		panic(err)
-	}
-	io.Copy(ioutil.Discard, resp.Body)
-	resp.Body.Close()
-
-	var front etcdqueue.Item
-	if err = json.Unmarshal(rb, &front); err != nil {
-		panic(err)
-	}
-	if !reflect.DeepEqual(front, orig) {
-		glog.Warningf("front expected %+v, got %+v", front, orig)
-	}
-
-	time.Sleep(10 * time.Second)
-
-	orig.Progress = 100
-	orig.Value = "new-value"
-	bts, err := json.Marshal(orig)
-	if err != nil {
-		panic(err)
-	}
-	if _, err := http.Post(ep, "application/json", bytes.NewReader(bts)); err != nil {
-		panic(err)
-	}
-	glog.Infof("[TEST] posted to %q", ep)
 }
