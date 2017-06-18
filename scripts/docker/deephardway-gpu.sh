@@ -9,7 +9,8 @@ fi
 LOCAL_DIR=/var/lib/etcd
 if [[ $(uname) = "Darwin" ]]; then
   echo "Running locally with MacOS"
-  LOCAL_DIR=${HOME}/etcd
+  LOCAL_DIR=/tmp/etcd
+  rm -rf /tmp/etcd
 fi
 
 # -P

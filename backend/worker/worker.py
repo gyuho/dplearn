@@ -104,7 +104,6 @@ if __name__ == "__main__":
             """
             TODO: implement actual worker with Tensorflow
             """
-            time.sleep(5)
             ITEM['progress'] = 100
             NOW = datetime.datetime.now().isoformat()
             ITEM['value'] = 'fake value for cats-vs-dogs at ' + NOW
@@ -124,7 +123,6 @@ if __name__ == "__main__":
             """
             TODO: implement actual worker with Tensorflow
             """
-            time.sleep(5)
             ITEM['progress'] = 100
             NOW = datetime.datetime.now().isoformat()
             ITEM['value'] = 'fake value for word-predict at ' + NOW
