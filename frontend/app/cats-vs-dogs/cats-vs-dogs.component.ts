@@ -137,6 +137,6 @@ export class CatsVsDogsComponent implements OnDestroy {
       duration: 5000,
     });
     this.progress = 0;
-    this.pollingHandler = setInterval(() => this.processRequest(), 5000);
+    this.pollingHandler = setInterval(() => this.processRequest(), 2000);
   }
 }
