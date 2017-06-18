@@ -83,7 +83,7 @@ if __name__ == "__main__":
     PREV_ITEM = None
     while True:
         ITEM = fetch_item(EP)
-        if ITEM['error'] is not '':
+        if ITEM['error'] not in ['', u'']:
             log.warning(ITEM['error'])
             time.sleep(5)
             continue
@@ -101,8 +101,6 @@ if __name__ == "__main__":
         PREV_ITEM = copy.deepcopy(ITEM)
 
         if ITEM['bucket'] == '/cats-vs-dogs-request':
-            log.info('/cats-vs-dogs-request is not ready yet; testing')
-
             """
             TODO: implement actual worker with Tensorflow
             """
@@ -114,7 +112,7 @@ if __name__ == "__main__":
             """
 
             POST_RESPONSE = post_item(EP, ITEM)
-            if POST_RESPONSE['error'] is not '':
+            if POST_RESPONSE['error'] not in ['', u'']:
                 log.warning(POST_RESPONSE['error'])
             else:
                 log.info('posted to {0} for {1}'.format(EP, REQ_ID))
@@ -123,8 +121,6 @@ if __name__ == "__main__":
             log.info('/mnist-request is not ready yet')
 
         elif ITEM['bucket'] == '/word-predict-request':
-            log.info('/word-predict-request is not ready yet; testing')
-
             """
             TODO: implement actual worker with Tensorflow
             """
@@ -136,7 +132,7 @@ if __name__ == "__main__":
             """
 
             POST_RESPONSE = post_item(EP, ITEM)
-            if POST_RESPONSE['error'] is not '':
+            if POST_RESPONSE['error'] not in ['', u'']:
                 log.warning(POST_RESPONSE['error'])
             else:
                 log.info('posted to {0} for {1}'.format(EP, REQ_ID))
