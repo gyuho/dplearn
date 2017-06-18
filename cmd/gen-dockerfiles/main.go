@@ -153,6 +153,8 @@ ENV HOME /root
 # https://github.com/jupyter/docker-stacks/blob/master/r-notebook/Dockerfile
 RUN pip --no-cache-dir install \
   requests \
+  glog \
+  pendulum \
   humanize \
   bcolz \
   theano \
@@ -198,6 +200,8 @@ root = /usr/local/cuda\n'\
   python=3.6 \
   ipykernel \
   requests \
+  glog \
+  pendulum \
   && conda clean -tipsy \
   && conda list \
   && python -V \

@@ -1,4 +1,4 @@
-# Last updated at 2017-06-17 12:30:07.042372284 -0700 PDT
+# Last updated at 2017-06-17 21:02:39.340678185 -0700 PDT
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile.gpu
 # https://gcr.io/tensorflow/tensorflow
@@ -80,6 +80,8 @@ ENV HOME /root
 # https://github.com/jupyter/docker-stacks/blob/master/r-notebook/Dockerfile
 RUN pip --no-cache-dir install \
   requests \
+  glog \
+  pendulum \
   humanize \
   bcolz \
   theano \
@@ -125,6 +127,8 @@ root = /usr/local/cuda\n'\
   python=3.6 \
   ipykernel \
   requests \
+  glog \
+  pendulum \
   && conda clean -tipsy \
   && conda list \
   && python -V \
