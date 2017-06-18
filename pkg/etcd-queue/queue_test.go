@@ -3,10 +3,10 @@ package etcdqueue
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
-	"reflect"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -69,8 +69,9 @@ func TestQueue(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !reflect.DeepEqual(item2, item2a) {
-		t.Fatalf("front expected %+v, got %+v", item2, item2a)
+	// deep-equal returns error on 'created-at'
+	if err = equalItem(item2, item2a); err != nil {
+		t.Fatalf("expected %+v, got %+v (%v)", item2, item2a, err)
 	}
 
 	select {
@@ -90,16 +91,16 @@ func TestQueue(t *testing.T) {
 	}
 	select {
 	case item2b := <-wch2a:
-		if !reflect.DeepEqual(item2a, item2b) {
-			t.Fatalf("wch2a expected %+v, got %+v", item2a, item2b)
+		if err = equalItem(item2a, item2b); err != nil {
+			t.Fatalf("expected %+v, got %+v (%v)", item2, item2b, err)
 		}
 	default:
 		t.Fatalf("expected events from qu.Enqueue(item3)")
 	}
 	select {
 	case item2c := <-wch2:
-		if !reflect.DeepEqual(item2a, item2c) {
-			t.Fatalf("wch2 expected %+v, got %+v", item2a, item2c)
+		if err = equalItem(item2a, item2c); err != nil {
+			t.Fatalf("expected %+v, got %+v (%v)", item2, item2c, err)
 		}
 	default:
 		t.Fatalf("expected events from wch2")
@@ -115,8 +116,8 @@ func TestQueue(t *testing.T) {
 	if err := json.Unmarshal(resp.Kvs[0].Value, &item2d); err != nil {
 		t.Fatalf("cannot parse %q (%v)", string(resp.Kvs[0].Value), err)
 	}
-	if !reflect.DeepEqual(*item2a, item2d) {
-		t.Fatalf("item2d expected %+v, got %+v", *item2a, item2d)
+	if err = equalItem(item2a, &item2d); err != nil {
+		t.Fatalf("expected %+v, got %+v (%v)", item2a, item2d, err)
 	}
 	// if finished, the channel must be closed
 	if v, ok := <-wch2; ok {
@@ -131,8 +132,8 @@ func TestQueue(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !reflect.DeepEqual(item1, item1a) {
-		t.Fatalf("front expected %+v, got %+v", item1, item1a)
+	if err = equalItem(item1, item1a); err != nil {
+		t.Fatalf("expected %+v, got %+v (%v)", item1, item1a, err)
 	}
 
 	// proceed 'item1'
@@ -149,8 +150,8 @@ func TestQueue(t *testing.T) {
 	}
 	select {
 	case item1c := <-wch1:
-		if !reflect.DeepEqual(item1a, item1c) {
-			t.Fatalf("wch1 expected %+v, got %+v", item1a, item1c)
+		if err = equalItem(item1a, item1c); err != nil {
+			t.Fatalf("expected %+v, got %+v (%v)", item1a, item1c, err)
 		}
 	case <-time.After(5 * time.Second):
 		t.Fatalf("expected events from wch1 in 5-sec")
@@ -183,4 +184,26 @@ func TestQueue(t *testing.T) {
 	if v, ok := <-wch1a; ok {
 		t.Fatalf("unexpected event from wch1a, got %+v", v)
 	}
+}
+
+func equalItem(item1, item2 *Item) error {
+	if item1.CreatedAt.String()[:29] != item2.CreatedAt.String()[:29] {
+		return fmt.Errorf("expected %+v, got %+v", item1, item2)
+	}
+	if item1.Bucket != item2.Bucket {
+		return fmt.Errorf("expected %+v, got %+v", item1, item2)
+	}
+	if item1.Key != item2.Key {
+		return fmt.Errorf("expected %+v, got %+v", item1, item2)
+	}
+	if item1.Value != item2.Value {
+		return fmt.Errorf("expected %+v, got %+v", item1, item2)
+	}
+	if item1.Progress != item2.Progress {
+		return fmt.Errorf("expected %+v, got %+v", item1, item2)
+	}
+	if item1.Canceled != item2.Canceled {
+		return fmt.Errorf("expected %+v, got %+v", item1, item2)
+	}
+	return nil
 }
