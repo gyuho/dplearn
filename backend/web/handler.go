@@ -209,6 +209,7 @@ func queueHandler(ctx context.Context, w http.ResponseWriter, req *http.Request)
 		if err != nil {
 			return err
 		}
+		// TODO: python gets ('Connection aborted.', BadStatusLine("''",))
 		io.Copy(ioutil.Discard, req.Body)
 		req.Body.Close()
 
@@ -251,6 +252,7 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 		if err != nil {
 			return err
 		}
+		// TODO: python gets ('Connection aborted.', BadStatusLine("''",))
 		io.Copy(ioutil.Discard, req.Body)
 		req.Body.Close()
 
