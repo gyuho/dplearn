@@ -19,7 +19,7 @@ It is a set of small projects on [Deep Learning](https://en.wikipedia.org/wiki/D
 - [`backend/web`](https://github.com/gyuho/deephardway/tree/master/backend/web) gets notified with [watch API](https://godoc.org/github.com/coreos/etcd/clientv3#Watcher) when the job is done, and returns results back to users.
 - Data serialization from `frontend` to `backend/web` is defined in [`backend/web.Request`](https://github.com/gyuho/deephardway/blob/master/backend/web/handler.go#L231-L237) and [`frontend/app/request-item.component.Request`](https://github.com/gyuho/deephardway/blob/master/frontend/app/request-item.component.ts).
 - Data serialization from `backend/web` to `frontend` is defined in [`pkg/etcd-queue.Item`](https://github.com/gyuho/deephardway/blob/master/pkg/etcd-queue/queue.go#L20) and [`frontend/app/request-item.component.Item`](https://github.com/gyuho/deephardway/blob/master/frontend/app/request-item.component.ts).
-- Data serialization between `backend/web` and `worker` is defined in [`pkg/etcd-queue.Item`](https://github.com/gyuho/deephardway/blob/master/pkg/etcd-queue/queue.go#L20) and [`backend/worker.Item`](https://github.com/gyuho/deephardway/blob/master/backend/worker/item.py).
+- Data serialization between `backend/web` and `worker` is defined in [`pkg/etcd-queue.Item`](https://github.com/gyuho/deephardway/blob/master/pkg/etcd-queue/queue.go#L20) and [`backend/worker/worker.py`](https://github.com/gyuho/deephardway/blob/master/backend/worker/worker.py).
 
 Notes:
 
@@ -96,6 +96,6 @@ To deploy `deephardway` application to Google Cloud Platform:
 GCP_KEY_PATH=/etc/gcp-key-deephardway.json ./scripts/gcp/create-instance.sh
 
 # create a Google Cloud Platform Compute Engine VM with a start-up
-# to provisions GPUs, init systems, reverse proxy, and others
+# to provision GPU, init system, reverse proxy, and others
 # (see ./scripts/gcp/ubuntu-gpu.ansible.sh for more detail)
 ```
