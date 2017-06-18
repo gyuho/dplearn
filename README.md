@@ -63,6 +63,7 @@ To build Docker container image:
 To run tests:
 
 ```bash
+./scripts/tests/frontend.sh
 ./scripts/tests/go.sh
 ETCD_EXEC=/etcd ./scripts/tests/python.sh
 
