@@ -102,7 +102,7 @@ const tmplPackageJSON = `{
         "zone.js": "0.8.12"
     },
     "devDependencies": {
-        "@angular/cli": "1.2.0-beta.1",
+        "@angular/cli": "1.2.0-rc.0",
         "@types/angular": "1.6.19",
         "@types/angular-animate": "1.5.7",
         "@types/angular-cookies": "1.4.4",
