@@ -5,13 +5,12 @@ This script interacts with backend/web/queue-service.
 from __future__ import print_function
 
 import copy
+import datetime
 import json
-import os
 import sys
 import time
 
 import glog as log
-import pendulum
 import requests
 
 
@@ -90,10 +89,13 @@ if __name__ == "__main__":
         if ITEM['bucket'] == '/cats-vs-dogs-request':
             log.info('/cats-vs-dogs-request is not ready yet; testing')
 
-            # simulate worker
+            """
+            TODO: implement actual worker with Tensorflow
+            """
             time.sleep(5)
             ITEM['progress'] = 100
-            ITEM['value'] = 'cats-vs-dogs at ' + pendulum.now().isoformat()
+            NOW = datetime.datetime.now().isoformat()
+            ITEM['value'] = 'cats-vs-dogs at ' + NOW
             post_item(EP, ITEM)
             log.info('posted to /cats-vs-dogs-request/queue')
 
@@ -103,9 +105,12 @@ if __name__ == "__main__":
         elif ITEM['bucket'] == '/word-predict-request':
             log.info('/word-predict-request is not ready yet; testing')
 
-            # simulate worker
+            """
+            TODO: implement actual worker with Tensorflow
+            """
             time.sleep(5)
             ITEM['progress'] = 100
-            ITEM['value'] = 'word-predict at ' + pendulum.now().isoformat()
+            NOW = datetime.datetime.now().isoformat()
+            ITEM['value'] = 'word-predict at ' + NOW
             post_item(EP, ITEM)
             log.info('posted to /word-predict-request/queue')

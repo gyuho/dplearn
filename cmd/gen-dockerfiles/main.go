@@ -154,7 +154,6 @@ ENV HOME /root
 RUN pip --no-cache-dir install \
   requests \
   glog \
-  pendulum \
   humanize \
   bcolz \
   theano \
@@ -201,7 +200,6 @@ root = /usr/local/cuda\n'\
   ipykernel \
   requests \
   glog \
-  pendulum \
   humanize \
   && conda clean -tipsy \
   && conda list \
