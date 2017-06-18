@@ -69,7 +69,7 @@ func TestQueue(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// deep-equal returns error on 'created-at'
+
 	if err = equalItem(item2, item2a); err != nil {
 		t.Fatalf("expected %+v, got %+v (%v)", item2, item2a, err)
 	}
@@ -89,6 +89,7 @@ func TestQueue(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	select {
 	case item2b := <-wch2a:
 		if err = equalItem(item2a, item2b); err != nil {
@@ -97,6 +98,7 @@ func TestQueue(t *testing.T) {
 	default:
 		t.Fatalf("expected events from qu.Enqueue(item3)")
 	}
+
 	select {
 	case item2c := <-wch2:
 		if err = equalItem(item2a, item2c); err != nil {
@@ -105,6 +107,7 @@ func TestQueue(t *testing.T) {
 	default:
 		t.Fatalf("expected events from wch2")
 	}
+
 	resp, err := cli.Get(context.Background(), path.Join(pfxCompleted, item2.Key))
 	if err != nil {
 		t.Fatal(err)
@@ -119,6 +122,7 @@ func TestQueue(t *testing.T) {
 	if err = equalItem(item2a, &item2d); err != nil {
 		t.Fatalf("expected %+v, got %+v (%v)", item2a, item2d, err)
 	}
+
 	// if finished, the channel must be closed
 	if v, ok := <-wch2; ok {
 		t.Fatalf("unexpected event from wch2, got %+v", v)
@@ -186,24 +190,25 @@ func TestQueue(t *testing.T) {
 	}
 }
 
+// truncate CreatedAt to handle added timestamp texts while serialization
 func equalItem(item1, item2 *Item) error {
 	if item1.CreatedAt.String()[:29] != item2.CreatedAt.String()[:29] {
-		return fmt.Errorf("expected %+v, got %+v", item1, item2)
+		return fmt.Errorf("unexpected CreatedAt %q, got %q", item1.CreatedAt.String()[:29], item2.CreatedAt.String()[:29])
 	}
 	if item1.Bucket != item2.Bucket {
-		return fmt.Errorf("expected %+v, got %+v", item1, item2)
+		return fmt.Errorf("unexpected Bucket %q, got %q", item1.Bucket, item2.Bucket)
 	}
 	if item1.Key != item2.Key {
-		return fmt.Errorf("expected %+v, got %+v", item1, item2)
+		return fmt.Errorf("unexpected Key %q, got %q", item1.Key, item2.Key)
 	}
 	if item1.Value != item2.Value {
-		return fmt.Errorf("expected %+v, got %+v", item1, item2)
+		return fmt.Errorf("unexpected Value %q, got %q", item1.Value, item2.Value)
 	}
 	if item1.Progress != item2.Progress {
-		return fmt.Errorf("expected %+v, got %+v", item1, item2)
+		return fmt.Errorf("unexpected Progress %d, got %d", item1.Progress, item2.Progress)
 	}
 	if item1.Canceled != item2.Canceled {
-		return fmt.Errorf("expected %+v, got %+v", item1, item2)
+		return fmt.Errorf("unexpected Canceled %v, got %v", item1.Canceled, item2.Canceled)
 	}
 	return nil
 }
