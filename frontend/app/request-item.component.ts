@@ -21,12 +21,14 @@ export class Item {
   progress: number;
   canceled: boolean;
   error: string;
+  request_id: string;
   constructor(
     bucket: string,
     key: string,
     value: string,
     progress: number,
     error: string,
+    req_id: string,
   ) {
     this.bucket = bucket;
     this.created_at = '';
@@ -35,5 +37,6 @@ export class Item {
     this.progress = progress;
     this.canceled = false;
     this.error = error;
+    this.request_id = req_id;
   }
 };
