@@ -25,3 +25,7 @@ fi
 pushd ./backend/worker >/dev/null
 ./tests.sh
 popd >/dev/null
+
+<<COMMENT
+ETCD_EXEC=/etcd BACKEND_WEB_SERVER_EXEC=/Users/gyuho/go/bin/backend-web-server ./scripts/tests/python.sh
+COMMENT
