@@ -81,14 +81,20 @@ if __name__ == "__main__":
 
     log.info("starting worker on {0}".format(EP))
 
+    NO_ITEM_COUNT = 0
     PREV_ITEM = None
     while True:
         ITEM = fetch_item(EP)
         if ITEM['error'] not in ['', u'']:
-            log.warning(ITEM['error'])
-            time.sleep(2)
-            if '" has no item' not in str(ITEM['error']):
-                time.sleep(3)
+            if '" has no item' in str(ITEM['error']):
+                NO_ITEM_COUNT += 1
+                if NO_ITEM_COUNT == 300:
+                    NO_ITEM_COUNT = 0
+                    log.warning(ITEM['error'])
+                time.sleep(2)
+            else:
+                log.warning(ITEM['error'])
+                time.sleep(5)
             continue
 
         REQ_ID = ITEM['request_id']
