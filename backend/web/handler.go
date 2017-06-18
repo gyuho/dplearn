@@ -227,7 +227,7 @@ func queueHandler(ctx context.Context, w http.ResponseWriter, req *http.Request)
 	return nil
 }
 
-// Request defines common requests.
+// Request defines requests from frontend.
 type Request struct {
 	UserID        string `json:"user_id"`
 	RawData       string `json:"raw_data"`
