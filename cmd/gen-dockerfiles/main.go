@@ -81,6 +81,12 @@ FROM {{.TensorflowBaseImage}}
 ##########################
 
 ##########################
+# Set working directory
+ENV ROOT_DIR /
+WORKDIR ${ROOT_DIR}
+##########################
+
+##########################
 # Update OS
 # Configure 'bash' for 'source' commands
 RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections \
@@ -133,12 +139,6 @@ ENV PATH ${PATH}:/root/miniconda/bin
 # Configure reverse proxy
 RUN mkdir -p /etc/nginx/sites-available/
 ADD nginx.conf /etc/nginx/sites-available/default
-##########################
-
-##########################
-# Set working directory
-ENV ROOT_DIR /
-WORKDIR ${ROOT_DIR}
 ##########################
 
 ##########################
@@ -202,6 +202,7 @@ root = /usr/local/cuda\n'\
   requests \
   glog \
   pendulum \
+  humanize \
   && conda clean -tipsy \
   && conda list \
   && python -V \
@@ -281,12 +282,6 @@ RUN pushd ${GOPATH}/src/github.com/gyuho/deephardway \
   && npm install \
   && cp /usr/local/nvm/versions/node/v{{.NodeVersion}}/bin/node /usr/bin/node \
   && popd
-##########################
-
-##########################
-# Set working directory
-ENV ROOT_DIR /
-WORKDIR ${ROOT_DIR}
 ##########################
 
 ##########################

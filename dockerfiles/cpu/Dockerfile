@@ -1,10 +1,16 @@
-# Last updated at 2017-06-17 21:02:39.356578813 -0700 PDT
+# Last updated at 2017-06-17 21:37:55.070679299 -0700 PDT
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile.gpu
 # https://gcr.io/tensorflow/tensorflow
 
 ##########################
 FROM gcr.io/tensorflow/tensorflow:1.2.0
+##########################
+
+##########################
+# Set working directory
+ENV ROOT_DIR /
+WORKDIR ${ROOT_DIR}
 ##########################
 
 ##########################
@@ -60,12 +66,6 @@ ENV PATH ${PATH}:/root/miniconda/bin
 # Configure reverse proxy
 RUN mkdir -p /etc/nginx/sites-available/
 ADD nginx.conf /etc/nginx/sites-available/default
-##########################
-
-##########################
-# Set working directory
-ENV ROOT_DIR /
-WORKDIR ${ROOT_DIR}
 ##########################
 
 ##########################
@@ -129,6 +129,7 @@ root = /usr/local/cuda\n'\
   requests \
   glog \
   pendulum \
+  humanize \
   && conda clean -tipsy \
   && conda list \
   && python -V \
@@ -208,12 +209,6 @@ RUN pushd ${GOPATH}/src/github.com/gyuho/deephardway \
   && npm install \
   && cp /usr/local/nvm/versions/node/v7.10.0/bin/node /usr/bin/node \
   && popd
-##########################
-
-##########################
-# Set working directory
-ENV ROOT_DIR /
-WORKDIR ${ROOT_DIR}
 ##########################
 
 ##########################
