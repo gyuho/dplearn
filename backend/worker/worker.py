@@ -8,6 +8,7 @@ import copy
 import datetime
 import json
 import sys
+import os.path
 import time
 
 import glog as log
@@ -101,14 +102,21 @@ if __name__ == "__main__":
         PREV_ITEM = copy.deepcopy(ITEM)
 
         if ITEM['bucket'] == '/cats-vs-dogs-request':
-            """
-            TODO: implement actual worker with Tensorflow
-            """
-            ITEM['progress'] = 100
-            NOW = datetime.datetime.now().isoformat()
-            ITEM['value'] = 'fake value for cats-vs-dogs at ' + NOW
-            """
-            """
+            IMAGE_PATH = ITEM['value']
+            if not os.path.exists(IMAGE_PATH):
+                log.warning('cannot find image {0}'.format(IMAGE_PATH))
+                ITEM['progress'] = 100
+                ITEM['error'] = 'cannot find image {0}'.format(IMAGE_PATH)
+            else:
+                """
+                TODO: implement actual worker with Tensorflow
+                """
+                with open(IMAGE_PATH, "r") as f:
+                    log.info('opened image {0}'.format(f.read(5)))
+                    # process_cats_vs_dogs(ITEM['value'])
+                    ITEM['progress'] = 100
+                    NOW = datetime.datetime.now().isoformat()
+                    ITEM['value'] = "[FAKE] it's a cat! " + NOW
 
             POST_RESPONSE = post_item(EP, ITEM)
             if POST_RESPONSE['error'] not in ['', u'']:
@@ -120,14 +128,18 @@ if __name__ == "__main__":
             log.info('/mnist-request is not ready yet')
 
         elif ITEM['bucket'] == '/word-predict-request':
-            """
-            TODO: implement actual worker with Tensorflow
-            """
-            ITEM['progress'] = 100
-            NOW = datetime.datetime.now().isoformat()
-            ITEM['value'] = 'fake value for word-predict at ' + NOW
-            """
-            """
+            TXT = ITEM['value']
+            if len(TXT) < 5:
+                log.warning('text is too short {0}'.format(TXT))
+                ITEM['progress'] = 100
+                ITEM['error'] = 'text is too short {0}'.format(TXT)
+            else:
+                """
+                TODO: implement actual worker with Tensorflow
+                """
+                ITEM['progress'] = 100
+                NOW = datetime.datetime.now().isoformat()
+                ITEM['value'] = "[FAKE] it's ... " + NOW
 
             POST_RESPONSE = post_item(EP, ITEM)
             if POST_RESPONSE['error'] not in ['', u'']:
