@@ -14,3 +14,12 @@ fi
 pushd ./backend/etcd-python >/dev/null
 ./tests.sh
 popd >/dev/null
+
+if [[ -z "${BACKEND_WEB_SERVER_EXEC}" ]]; then
+  echo BACKEND_WEB_SERVER_EXEC is not defined!
+  exit 255
+fi
+
+pushd ./backend/worker >/dev/null
+./tests.sh
+popd >/dev/null
