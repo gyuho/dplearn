@@ -15,6 +15,8 @@ pushd ./backend/etcd-python >/dev/null
 ./tests.sh
 popd >/dev/null
 
+sleep 3s
+
 if [[ -z "${BACKEND_WEB_SERVER_EXEC}" ]]; then
   echo BACKEND_WEB_SERVER_EXEC is not defined!
   exit 255
