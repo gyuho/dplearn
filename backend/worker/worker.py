@@ -14,7 +14,8 @@ import glog as log
 import requests
 
 
-ITEM_KEYS = ['bucket', 'key', 'value', 'progress', 'canceled', 'error']
+ITEM_KEYS = ['bucket', 'key', 'value', 'progress', 'canceled', 'error',
+             'request_id']
 
 
 def fetch_item(endpoint):
@@ -25,6 +26,7 @@ def fetch_item(endpoint):
         try:
             rresp = requests.get(endpoint)
             item = json.loads(rresp.text)
+            # even empty, Go backend should encode every field
             for key in ITEM_KEYS:
                 if key not in item:
                     log.warning('{0} not in {1}'.format(key, rresp.text))
@@ -50,6 +52,7 @@ def post_item(endpoint, item):
             rresp = requests.post(endpoint, data=json.dumps(item),
                                   headers=headers)
             item = json.loads(rresp.text)
+            # even empty, Go backend should encode every field
             for key in ITEM_KEYS:
                 if key not in item:
                     log.warning('{0} not in {1}'.format(key, rresp.text))
@@ -66,8 +69,6 @@ def post_item(endpoint, item):
 
 
 if __name__ == "__main__":
-    log.info("starting worker")
-
     if len(sys.argv) == 1:
         log.fatal('Got empty endpoint: {0}'.format(sys.argv))
         sys.exit(1)
@@ -77,29 +78,27 @@ if __name__ == "__main__":
         log.fatal('Got empty endpoint: {0}'.format(sys.argv))
         sys.exit(1)
 
-    PREV = None
+    log.info("starting worker on {0}".format(EP))
+
+    PREV_ITEM = None
     while True:
         ITEM = fetch_item(EP)
-
-        EMPTY_CREATED = ITEM['created_at'] == ''
-        EMPTY_CREATED |= ITEM['created_at'] == '0001-01-01T00:00:00Z'
-        EMPTY_KV = ITEM['key'] == '' and ITEM['value'] == ''
-        if EMPTY_CREATED and EMPTY_KV:
-            log.info('No job to process in {0}'.format(EP))
+        if ITEM['error'] is not '':
+            log.warning(ITEM['error'])
             time.sleep(5)
             continue
 
-        log.info("fetched item: {0}".format(ITEM))
+        REQ_ID = ITEM['request_id']
 
         # in case previous post request is
         # not processed yet in backend
-        if ITEM == PREV:
-            log.warning('{0} == prev {1}?'.format(ITEM, PREV))
+        if ITEM == PREV_ITEM:
+            log.warning('duplicate: {0} == prev {1}?'.format(ITEM, PREV_ITEM))
             time.sleep(5)
             continue
 
         # for future comparison
-        PREV = copy.deepcopy(ITEM)
+        PREV_ITEM = copy.deepcopy(ITEM)
 
         if ITEM['bucket'] == '/cats-vs-dogs-request':
             log.info('/cats-vs-dogs-request is not ready yet; testing')
@@ -110,9 +109,15 @@ if __name__ == "__main__":
             time.sleep(5)
             ITEM['progress'] = 100
             NOW = datetime.datetime.now().isoformat()
-            ITEM['value'] = 'cats-vs-dogs at ' + NOW
-            post_item(EP, ITEM)
-            log.info('posted to /cats-vs-dogs-request/queue')
+            ITEM['value'] = 'fake value for cats-vs-dogs at ' + NOW
+            """
+            """
+
+            POST_RESPONSE = post_item(EP, ITEM)
+            if POST_RESPONSE['error'] is not '':
+                log.warning(POST_RESPONSE['error'])
+            else:
+                log.info('posted to {0} for {1}'.format(EP, REQ_ID))
 
         elif ITEM['bucket'] == '/mnist-request':
             log.info('/mnist-request is not ready yet')
@@ -126,6 +131,12 @@ if __name__ == "__main__":
             time.sleep(5)
             ITEM['progress'] = 100
             NOW = datetime.datetime.now().isoformat()
-            ITEM['value'] = 'word-predict at ' + NOW
-            post_item(EP, ITEM)
-            log.info('posted to /word-predict-request/queue')
+            ITEM['value'] = 'fake value for word-predict at ' + NOW
+            """
+            """
+
+            POST_RESPONSE = post_item(EP, ITEM)
+            if POST_RESPONSE['error'] is not '':
+                log.warning(POST_RESPONSE['error'])
+            else:
+                log.info('posted to {0} for {1}'.format(EP, REQ_ID))
