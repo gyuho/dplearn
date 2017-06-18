@@ -191,7 +191,7 @@ func queueHandler(ctx context.Context, w http.ResponseWriter, req *http.Request)
 	bucket := path.Dir(reqPath)
 	qu := ctx.Value(queueKey).(etcdqueue.Queue)
 
-	glog.Infof("[%s] client request on %q", req.Method, reqPath)
+	glog.Infof("[%s] %s", req.Method, reqPath)
 	switch req.Method {
 	case http.MethodGet:
 		item, err := qu.Front(ctx, bucket)
@@ -199,6 +199,7 @@ func queueHandler(ctx context.Context, w http.ResponseWriter, req *http.Request)
 			return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: bucket, Progress: 0, Error: err.Error()})
 		}
 		if item == nil { // pass empty item
+			glog.Infof("%q returning empty item", bucket)
 			item = &etcdqueue.Item{Bucket: bucket}
 		}
 		return json.NewEncoder(w).Encode(item)
@@ -243,7 +244,7 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 	cache := ctx.Value(cacheKey).(lru.Cache)
 	userID := ctx.Value(userKey).(string)
 
-	glog.Infof("[%s] client request on %q", req.Method, reqPath)
+	glog.Infof("[%s] %s", req.Method, reqPath)
 	switch req.Method {
 	case http.MethodPost:
 		rb, err := ioutil.ReadAll(req.Body)
