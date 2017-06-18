@@ -215,6 +215,9 @@ func queueHandler(ctx context.Context, w http.ResponseWriter, req *http.Request)
 		if err = json.Unmarshal(rb, &item); err != nil {
 			return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: bucket, Progress: 0, Error: err.Error()})
 		}
+		if item.Bucket == "" || item.Key == "" || item.Value == "" {
+			return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: bucket, Progress: 0, Error: fmt.Sprintf("invalid item: %+v", item)})
+		}
 		if _, err := qu.Enqueue(ctx, &item); err != nil {
 			return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: bucket, Progress: 0, Error: err.Error()})
 		}
