@@ -22,5 +22,6 @@ docker run \
   -it \
   -p 4200:4200 \
   --volume=${LOCAL_DIR}:/var/lib/etcd \
+  --volume=${HOME}/.keras/datasets:/root/.keras/datasets \
   gcr.io/deephardway/deephardway:latest-gpu \
   /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && ./scripts/run/deephardway-gpu.sh"

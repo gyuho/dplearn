@@ -2,6 +2,8 @@
 set -e
 
 echo "root ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+
+##########################################################
 apt-get -y --allow-unauthenticated install ansible
 
 cat > /etc/ansible-install.yml <<EOF
@@ -92,13 +94,17 @@ cat > /etc/ansible-install.yml <<EOF
 EOF
 
 ansible-playbook /etc/ansible-install.yml > /etc/ansible-install.log 2>&1
+##########################################################
 
+##########################################################
 systemctl daemon-reload
 systemctl stop nvidia-docker.service
 systemctl disable nvidia-docker.service
 systemctl enable nvidia-docker.service
 systemctl start nvidia-docker.service
+##########################################################
 
+##########################################################
 cat > /tmp/ipython-gpu.service <<EOF
 [Unit]
 Description=deep GPU development service
@@ -115,8 +121,9 @@ ExecStartPre=/usr/bin/docker pull gcr.io/deephardway/deephardway:latest-gpu
 
 ExecStart=/usr/bin/nvidia-docker run \
   --rm \
-  -p 8888:8888 \
   --name ipython-gpu \
+  --volume=${HOME}/.keras/datasets:/root/.keras/datasets \
+  -p 8888:8888 \
   --ulimit nofile=262144:262144 \
   gcr.io/deephardway/deephardway:latest-gpu \
   /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && PASSWORD='' ./run_jupyter.sh -y"
@@ -128,7 +135,42 @@ WantedBy=multi-user.target
 EOF
 cat /tmp/ipython-gpu.service
 mv -f /tmp/ipython-gpu.service /etc/systemd/system/ipython-gpu.service
+##########################################################
 
+##########################################################
+cat > /tmp/download-data.service <<EOF
+[Unit]
+Description=deephardway download model data
+Documentation=https://github.com/gyuho/deephardway
+
+[Service]
+Restart=on-failure
+RestartSec=5s
+TimeoutStartSec=0
+LimitNOFILE=40000
+
+ExecStartPre=/usr/bin/docker login -u oauth2accesstoken -p "$(/usr/bin/gcloud auth application-default print-access-token)" https://gcr.io
+ExecStartPre=/usr/bin/docker pull gcr.io/deephardway/deephardway
+
+ExecStart=/usr/bin/docker run \
+  --rm \
+  --name download-data \
+  --volume=${HOME}/.keras/datasets:/root/.keras/datasets \
+  --net=host \
+  --ulimit nofile=262144:262144 \
+  gcr.io/deephardway/deephardway:latest-gpu \
+  /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && ./scripts/dep/download-data.sh"
+
+ExecStop=/usr/bin/docker rm --force download-data
+
+[Install]
+WantedBy=multi-user.target
+EOF
+cat /tmp/download-data.service
+mv -f /tmp/download-data.service /etc/systemd/system/download-data.service
+##########################################################
+
+##########################################################
 cat > /tmp/deephardway-gpu.service <<EOF
 [Unit]
 Description=deep GPU development service
@@ -145,9 +187,10 @@ ExecStartPre=/usr/bin/docker pull gcr.io/deephardway/deephardway:latest-gpu
 
 ExecStart=/usr/bin/nvidia-docker run \
   --rm \
-  -p 4200:4200 \
-  --volume=/var/lib/etcd:/var/lib/etcd \
   --name deephardway-gpu \
+  --volume=/var/lib/etcd:/var/lib/etcd \
+  --volume=${HOME}/.keras/datasets:/root/.keras/datasets \
+  -p 4200:4200 \
   --ulimit nofile=262144:262144 \
   gcr.io/deephardway/deephardway:latest-gpu \
   /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && ./scripts/run/deephardway-gpu.sh"
@@ -159,11 +202,15 @@ WantedBy=multi-user.target
 EOF
 cat /tmp/deephardway-gpu.service
 mv -f /tmp/deephardway-gpu.service /etc/systemd/system/deephardway-gpu.service
+##########################################################
 
+##########################################################
 cat > /tmp/reverse-proxy.service <<EOF
 [Unit]
 Description=deephardway reverse proxy
 Documentation=https://github.com/gyuho/deephardway
+
+After=deephardway-gpu.service
 
 [Service]
 Restart=always
@@ -171,12 +218,13 @@ RestartSec=5s
 TimeoutStartSec=0
 LimitNOFILE=40000
 
-ExecStartPre=/usr/bin/docker pull quay.io/coreos/etcdlabs:latest
+ExecStartPre=/usr/bin/docker login -u oauth2accesstoken -p "$(/usr/bin/gcloud auth application-default print-access-token)" https://gcr.io
+ExecStartPre=/usr/bin/docker pull gcr.io/deephardway/deephardway
 
 ExecStart=/usr/bin/docker run \
   --rm \
-  --net=host \
   --name reverse-proxy \
+  --net=host \
   --ulimit nofile=262144:262144 \
   gcr.io/deephardway/deephardway:latest-gpu \
   /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && ./scripts/run/reverse-proxy.sh"
@@ -188,7 +236,9 @@ WantedBy=multi-user.target
 EOF
 cat /tmp/reverse-proxy.service
 mv -f /tmp/reverse-proxy.service /etc/systemd/system/reverse-proxy.service
+##########################################################
 
+##########################################################
 systemctl daemon-reload
 
 <<COMMENT
@@ -196,8 +246,12 @@ systemctl enable ipython-gpu.service
 systemctl start ipython-gpu.service
 COMMENT
 
+systemctl enable download-data.service
+systemctl start download-data.service
+
 systemctl enable deephardway-gpu.service
 systemctl start deephardway-gpu.service
 
 systemctl enable reverse-proxy.service
 systemctl start reverse-proxy.service
+##########################################################

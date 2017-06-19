@@ -6,12 +6,11 @@ if ! [[ "$0" =~ "./scripts/gcp/create-instance.sh" ]]; then
   exit 255
 fi
 
-if [[ -z "${GCP_KEY_PATH}" ]]; then
-  GCP_KEY_PATH="fmt bom dep compile build unit"
-  echo GCP_KEY_PATH is not defined
-  exit 255
+if [[ "${GCP_KEY_PATH}" ]]; then
+  echo GCP_KEY_PATH is defined: \""${GCP_KEY_PATH}"\"
 else
-  echo Reading "${GCP_KEY_PATH}"
+  echo GCP_KEY_PATH is not defined!
+  exit 255
 fi
 
 gcloud config set project deephardway

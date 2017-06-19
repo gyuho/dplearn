@@ -6,7 +6,9 @@ if ! [[ "$0" =~ "./scripts/docker/push-cpu.sh" ]]; then
   exit 255
 fi
 
-if [[ -z "${GCP_KEY_PATH}" ]]; then
+if [[ "${GCP_KEY_PATH}" ]]; then
+  echo GCP_KEY_PATH is defined: \""${GCP_KEY_PATH}"\"
+else
   echo GCP_KEY_PATH is not defined!
   exit 255
 fi

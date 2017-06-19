@@ -17,7 +17,9 @@ popd >/dev/null
 
 sleep 3s
 
-if [[ -z "${BACKEND_WEB_SERVER_EXEC}" ]]; then
+if [[ "${BACKEND_WEB_SERVER_EXEC}" ]]; then
+  echo BACKEND_WEB_SERVER_EXEC is defined: \""${BACKEND_WEB_SERVER_EXEC}"\"
+else
   echo BACKEND_WEB_SERVER_EXEC is not defined!
   exit 255
 fi
@@ -27,5 +29,7 @@ pushd ./backend/worker >/dev/null
 popd >/dev/null
 
 <<COMMENT
-ETCD_EXEC=/etcd BACKEND_WEB_SERVER_EXEC=/Users/gyuho/go/bin/backend-web-server ./scripts/tests/python.sh
+ETCD_EXEC=/etcd \
+  BACKEND_WEB_SERVER_EXEC=${HOME}/go/bin/backend-web-server \
+  ./scripts/tests/python.sh
 COMMENT

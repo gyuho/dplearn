@@ -21,9 +21,9 @@ docker run \
   --privileged \
   --rm \
   -it \
-  -p 8888:8888 \
-  --volume=${HOME}/data/deephardway.data:/root/data/deephardway.data \
   --volume=`pwd`/notebooks:/gopath/src/github.com/gyuho/deephardway/notebooks \
+  --volume=${HOME}/.keras/datasets:/root/.keras/datasets \
+  -p 8888:8888 \
   gcr.io/deephardway/deephardway:latest-cpu \
   /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && ${ACTIVATE_COMMAND} PASSWORD='' ./run_jupyter.sh -y --allow-root --notebook-dir=./notebooks"
 
