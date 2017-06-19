@@ -20,7 +20,7 @@ import worker
 
 class BACKEND(threading.Thread):
     """
-    wraps backend-web-server subprocess
+        wraps backend-web-server subprocess
     """
     def __init__(self, BACKEND_WEB_SERVER_EXEC):
         self.stdout = None
@@ -48,7 +48,7 @@ class BACKEND(threading.Thread):
 
     def kill(self):
         """
-        Kills the running backend-web-server process
+            Kills the running backend-web-server process
         """
         log.info('killing process')
         self.process.kill()
@@ -61,11 +61,11 @@ class BACKEND(threading.Thread):
 
 class TestBackend(unittest.TestCase):
     """
-    backend-web-server testing methods
+        backend-web-server testing methods
     """
     def test_backend(self):
         """
-        backend-web-server test function
+            backend-web-server test function
         """
         exec_path = os.environ['BACKEND_WEB_SERVER_EXEC']
         if exec_path == '':

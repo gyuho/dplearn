@@ -20,7 +20,7 @@ from etcd import get, put, watch
 
 class ETCD(threading.Thread):
     """
-    wraps etcd subprocess
+        wraps etcd subprocess
     """
     def __init__(self, ETCD_PATH):
         self.stdout = None
@@ -53,7 +53,7 @@ class ETCD(threading.Thread):
 
     def kill(self):
         """
-        Kills the running etcd process
+            Kills the running etcd process
         """
         log.info('killing process')
         self.process.kill()
@@ -66,11 +66,11 @@ class ETCD(threading.Thread):
 
 class TestETCDMethods(unittest.TestCase):
     """
-    etcd testing methods
+        etcd testing methods
     """
     def watch_routine(self):
         """
-        test watch API
+            test watch API
         """
         self.assertEqual(watch('http://localhost:2379', 'foo'), 'bar')
         # Python 3
@@ -78,7 +78,7 @@ class TestETCDMethods(unittest.TestCase):
 
     def test_etcd(self):
         """
-        etcd test function
+            etcd test function
         """
         exec_path = os.environ['ETCD_EXEC']
         if exec_path == '':

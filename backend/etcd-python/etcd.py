@@ -19,10 +19,10 @@ RANGE_PATH = '/v3alpha/kv/range'
 
 def put(endpoint, key, val):
     """
-    put sends write request to etcd.
+        put sends write request to etcd.
 
-    curl -L http://localhost:2379/v3alpha/kv/put \
-      -X POST -d '{"key": "Zm9v", "value": "YmFy"}'
+        curl -L http://localhost:2379/v3alpha/kv/put \
+        -X POST -d '{"key": "Zm9v", "value": "YmFy"}'
     """
     key_str = base64.b64encode(key)
     val_str = base64.b64encode(val)
@@ -46,10 +46,10 @@ def put(endpoint, key, val):
 
 def get(endpoint, key):
     """
-    get sends read request to etcd.
+        get sends read request to etcd.
 
-    curl -L http://localhost:2379/v3alpha/kv/range \
-      -X POST -d '{"key": "Zm9v"}'
+        curl -L http://localhost:2379/v3alpha/kv/range \
+        -X POST -d '{"key": "Zm9v"}'
     """
     key_str = base64.b64encode(key)
     # Python 3 base64 requires utf-08 encoded bytes
@@ -79,10 +79,10 @@ def get(endpoint, key):
 
 def watch(endpoint, key):
     """
-    watch sends watch request to etcd.
+        watch sends watch request to etcd.
 
-    curl -L http://localhost:2379/v3alpha/watch \
-      -X POST -d ''{"create_request": {"key":"Zm9v"} }'
+        curl -L http://localhost:2379/v3alpha/watch \
+        -X POST -d ''{"create_request": {"key":"Zm9v"} }'
     """
     key_str = base64.b64encode(key)
     # Python 3 base64 requires utf-08 encoded bytes
