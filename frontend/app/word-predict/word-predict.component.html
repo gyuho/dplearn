@@ -14,23 +14,23 @@
                         very well with mountainous terrain, the Shiba Inu was originally bred for hunting.
                         <p></p>
                         <md-input-container class="input-full-width">
-                            <textarea mdInput type="text" #inputText maxlength="200" mdAutosizeMinRows="5" placeholder="Type texts..." [(ngModel)]="inputValue"></textarea>
+                            <textarea mdInput type="text" #inputText maxlength="200" mdAutosizeMinRows="5" placeholder="Type texts..." [(ngModel)]="backendService.inputValue"></textarea>
                             <md-hint align="end">{{inputText.value.length}} / 200</md-hint>
                         </md-input-container>
                     </md-card-content>
                     <md-card-actions>
-                        <button md-button color="primary" class="word-predict-button" (click)="clickProcessRequest();">Run</button>
+                        <button md-button color="primary" class="word-predict-button" (click)="backendService.clickProcessRequest();">Run</button>
                     </md-card-actions>
                 </md-card>
             </div>
             <div class="block block-copy half">
                 <p>
-                    <md-progress-spinner *ngIf="progress === 0" [color]="spinnerColor" [mode]="spinnerMode"></md-progress-spinner>
-                    <md-chip-list *ngIf="progress === 100">
+                    <md-progress-spinner *ngIf="backendService.progress === 0" [color]="backendService.spinnerColor" [mode]="backendService.spinnerMode"></md-progress-spinner>
+                    <md-chip-list *ngIf="backendService.progress === 100">
                         <md-chip color="primary" selected="true">Done!</md-chip>
                     </md-chip-list>
                     <br>
-                    {{result}}
+                    {{backendService.result}}
                 </p>
             </div>
         </div>
