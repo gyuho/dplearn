@@ -204,7 +204,7 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["bcrypt","blowfish"]
-  revision = "850760c427c516be930bc91280636328f1a62286"
+  revision = "93b5df3bf36996258d005da151953da2030e346b"
 
 [[projects]]
   branch = "master"
