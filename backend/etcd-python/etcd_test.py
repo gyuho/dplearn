@@ -15,7 +15,7 @@ import unittest
 
 import glog as log
 
-from etcd import get, put, watch
+from .etcd import get, put, watch
 
 
 class ETCD(threading.Thread):

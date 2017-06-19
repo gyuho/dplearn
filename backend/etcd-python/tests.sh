@@ -11,4 +11,6 @@ if [[ -z "${ETCD_EXEC}" ]]; then
   exit 255
 fi
 
-ETCD_EXEC=${ETCD_EXEC} python -m unittest discover --pattern=*.py -v
+pushd ..
+ETCD_EXEC=${ETCD_EXEC} python -m unittest etcd-python.etcd_test
+popd
