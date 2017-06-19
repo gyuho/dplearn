@@ -225,7 +225,7 @@ func queueHandler(ctx context.Context, w http.ResponseWriter, req *http.Request)
 		_, ok := srv.requestCache[item.RequestID]
 		srv.requestCacheMu.Unlock()
 		if !ok {
-			return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: bucket, Progress: 0, Error: fmt.Sprintf("request ID %q is already deleted(canceled)", item.RequestID)})
+			return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: bucket, Progress: 0, Error: fmt.Sprintf("unknown request ID %q", item.RequestID)})
 		}
 
 		if _, err := qu.Enqueue(ctx, &item); err != nil {
