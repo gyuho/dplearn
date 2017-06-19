@@ -1,4 +1,4 @@
-# Last updated at 2017-06-18 21:34:43.443053201 -0700 PDT
+# Last updated at 2017-06-19 04:31:37.169542468 -0700 PDT
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile.gpu
 # https://gcr.io/tensorflow/tensorflow
@@ -17,8 +17,7 @@ ENV HOME /root
 ##########################
 # Update OS
 # Configure 'bash' for 'source' commands
-RUN mkdir -p ${HOME}/.keras/datasets/ \
-  && echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections \
+RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections \
   && rm /bin/sh \
   && ln -s /bin/bash /bin/sh \
   && ls -l $(which bash) \
@@ -83,9 +82,10 @@ RUN pip --no-cache-dir install \
   glog \
   humanize \
   h5py \
+  Pillow \
   bcolz \
   theano \
-  keras==1.2.2 \
+  keras==2.0.5 \
   && echo $'[global]\n\
 device = cpu\n\
 floatX = float32\n\
@@ -93,12 +93,10 @@ floatX = float32\n\
 root = /usr/local/cuda\n'\
 > ${HOME}/.theanorc \
   && cat ${HOME}/.theanorc \
-  && mkdir -p ${HOME}/.keras \
+  && mkdir -p ${HOME}/.keras/datasets \
+  && mkdir -p ${HOME}/.keras/models \
   && echo $'{\n\
-  "image_dim_ordering": "th",\n\
-  "epsilon": 1e-07,\n\
-  "floatx": "float32",\n\
-  "backend": "theano"\n\
+  "image_data_format": "channels_last"\n\
 }\n'\
 > ${HOME}/.keras/keras.json \
   && cat ${HOME}/.keras/keras.json \
@@ -134,9 +132,6 @@ root = /usr/local/cuda\n'\
   && conda list \
   && python -V \
   && pip freeze --all
-
-# "image_dim_ordering": "tf"
-# "backend": "tensorflow"
 
 # built for CPU, no need to install 'cuda'
 
