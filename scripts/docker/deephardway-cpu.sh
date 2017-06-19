@@ -13,13 +13,6 @@ if [[ $(uname) = "Darwin" ]]; then
   rm -rf /tmp/etcd
 fi
 
-if [[ "${DATA_DIR}" ]]; then
-  echo DATA_DIR is defined: \""${DATA_DIR}"\"
-else
-  echo DATA_DIR is not defined
-  exit 255
-fi
-
 # -P
 # -p hostPort:containerPort
 # -p 80:80
@@ -30,5 +23,6 @@ docker run \
   --volume=${LOCAL_DIR}:/var/lib/etcd \
   --volume=${HOME}/.keras/datasets:/root/.keras/datasets \
   -p 4200:4200 \
+  --ulimit nofile=262144:262144 \
   gcr.io/deephardway/deephardway:latest-cpu \
   /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && ./scripts/run/deephardway-cpu.sh"
