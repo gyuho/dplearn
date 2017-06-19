@@ -85,13 +85,12 @@ FROM {{.TensorflowBaseImage}}
 ENV ROOT_DIR /
 WORKDIR ${ROOT_DIR}
 ENV HOME /root
-RUN
 ##########################
 
 ##########################
 # Update OS
 # Configure 'bash' for 'source' commands
-RUN mkdir -p ${HOME}/.keras/datasets \
+RUN mkdir -p ${HOME}/.keras/datasets/ \
   && echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections \
   && rm /bin/sh \
   && ln -s /bin/bash /bin/sh \

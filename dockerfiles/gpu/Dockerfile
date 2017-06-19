@@ -1,4 +1,4 @@
-# Last updated at 2017-06-18 21:32:48.766953902 -0700 PDT
+# Last updated at 2017-06-18 21:34:43.434874475 -0700 PDT
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile.gpu
 # https://gcr.io/tensorflow/tensorflow
@@ -12,13 +12,12 @@ FROM gcr.io/tensorflow/tensorflow:1.2.0-gpu
 ENV ROOT_DIR /
 WORKDIR ${ROOT_DIR}
 ENV HOME /root
-RUN
 ##########################
 
 ##########################
 # Update OS
 # Configure 'bash' for 'source' commands
-RUN mkdir -p ${HOME}/.keras/datasets \
+RUN mkdir -p ${HOME}/.keras/datasets/ \
   && echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections \
   && rm /bin/sh \
   && ln -s /bin/bash /bin/sh \
