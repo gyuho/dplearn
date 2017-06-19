@@ -6,15 +6,18 @@ from __future__ import print_function
 
 import unittest
 
-from vgg import VGG16
 import glog as log
+
+from .vgg import VGG
 
 
 class TestVGG(unittest.TestCase):
     """VGG test function.
 
     Examples:
-        python -m unittest discover --pattern=vgg*.py -v
+        pushd ..
+        python -m unittest worker.vgg_test
+        popd
     """
     def test_vgg(self):
         """VGG test function.
@@ -23,7 +26,7 @@ class TestVGG(unittest.TestCase):
         log.info('running tests...')
         self.assertEqual('', '')
 
-        vgg = VGG16()
+        vgg = VGG()
         print(vgg)
 
 

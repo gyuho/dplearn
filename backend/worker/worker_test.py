@@ -15,11 +15,16 @@ import unittest
 
 import glog as log
 
-import worker
+from .worker import fetch_item, post_item
 
 
 class BACKEND(threading.Thread):
-    """wraps backend-web-server subprocess
+    """Worker test function.
+
+    Examples:
+        pushd ..
+        BACKEND_WEB_SERVER_EXEC=${GOPATH}/bin/backend-web-server python -m unittest worker.worker_test
+        popd
     """
     def __init__(self, BACKEND_WEB_SERVER_EXEC):
         self.stdout = None
@@ -88,22 +93,23 @@ class TestBackend(unittest.TestCase):
             'key': '/word-predict-request',
             'value': '',
         }
-        itemresp1 = worker.post_item(endpoint, item)
+        itemresp1 = post_item(endpoint, item)
         self.assertIsNot(itemresp1['error'], '')
 
         # valid item
         item['value'] = 'foo'
-        itemresp2 = worker.post_item(endpoint, item)
-        self.assertEqual(itemresp2['error'], '')
+        item['request_id'] = 'id'
+        itemresp2 = post_item(endpoint, item)
+        self.assertEqual(itemresp2['error'], u'unknown request ID \"id\"')
 
         time.sleep(3)
 
         log.info('Fetching items...')
-        itemresp3 = worker.fetch_item(endpoint)
-        self.assertEqual(item['bucket'], itemresp3['bucket'])
-        self.assertEqual(item['key'], itemresp3['key'])
-        self.assertEqual(item['value'], itemresp3['value'])
-        self.assertEqual(itemresp3['error'], '')
+        itemresp3 = fetch_item(endpoint)
+        self.assertEqual(itemresp3['bucket'], '/word-predict-request')
+        self.assertEqual(itemresp3['key'], u'')
+        self.assertEqual(itemresp3['value'], u'')
+        self.assertEqual(itemresp3['error'], u'"/word-predict-request" has no item')
 
         log.info('Killing backend-web-server...')
         backend_proc.kill()
