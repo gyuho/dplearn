@@ -1,5 +1,5 @@
-"""
-This script interacts with backend/web.
+# -*- coding: utf-8 -*-
+"""This script interacts with backend/web.
 """
 
 from __future__ import print_function
@@ -20,8 +20,7 @@ ITEM_KEYS = ['bucket', 'key', 'value', 'progress', 'canceled', 'error',
 
 
 def fetch_item(endpoint):
-    """
-        fetch_item fetches a scheduled job from queue service.
+    """fetch_item fetches a scheduled job from queue service.
     """
     while True:
         try:
@@ -44,8 +43,7 @@ def fetch_item(endpoint):
 
 
 def post_item(endpoint, item):
-    """
-        post posts the processed job to the queue service.
+    """post posts the processed job to the queue service.
     """
     headers = {'Content-Type': 'application/json'}
     while True:
@@ -116,8 +114,7 @@ if __name__ == "__main__":
                 ITEM['progress'] = 100
                 ITEM['error'] = 'cannot find image {0}'.format(IMAGE_PATH)
             else:
-                """
-                    TODO: implement actual worker with Tensorflow
+                """TODO: implement actual worker with Tensorflow
                 """
                 with open(IMAGE_PATH, "r") as f:
                     log.info('opened image {0}'.format(f.read(5)))
@@ -142,8 +139,7 @@ if __name__ == "__main__":
                 ITEM['progress'] = 100
                 ITEM['error'] = 'text is too short {0}'.format(TXT)
             else:
-                """
-                    TODO: implement actual worker with Tensorflow
+                """TODO: implement actual worker with Tensorflow
                 """
                 ITEM['progress'] = 100
                 NOW = datetime.datetime.now().isoformat()

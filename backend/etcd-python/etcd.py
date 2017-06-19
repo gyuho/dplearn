@@ -1,6 +1,8 @@
-"""
-This script interacts with etcd server via grpc-gateway.
-See https://github.com/coreos/etcd/blob/master/Documentation/dev-guide/api_grpc_gateway.md for more.
+# -*- coding: utf-8 -*-
+""" This script interacts with etcd server via grpc-gateway.
+
+Reference:
+- https://github.com/coreos/etcd/blob/master/Documentation/dev-guide/api_grpc_gateway.md
 """
 
 from __future__ import print_function
@@ -18,9 +20,9 @@ RANGE_PATH = '/v3alpha/kv/range'
 
 
 def put(endpoint, key, val):
-    """
-        put sends write request to etcd.
+    """put sends write request to etcd.
 
+    Examples:
         curl -L http://localhost:2379/v3alpha/kv/put \
         -X POST -d '{"key": "Zm9v", "value": "YmFy"}'
     """
@@ -45,9 +47,9 @@ def put(endpoint, key, val):
 
 
 def get(endpoint, key):
-    """
-        get sends read request to etcd.
+    """get sends read request to etcd.
 
+    Examples:
         curl -L http://localhost:2379/v3alpha/kv/range \
         -X POST -d '{"key": "Zm9v"}'
     """
@@ -78,9 +80,9 @@ def get(endpoint, key):
 
 
 def watch(endpoint, key):
-    """
-        watch sends watch request to etcd.
+    """watch sends watch request to etcd.
 
+    Examples:
         curl -L http://localhost:2379/v3alpha/watch \
         -X POST -d ''{"create_request": {"key":"Zm9v"} }'
     """

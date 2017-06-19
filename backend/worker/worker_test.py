@@ -1,5 +1,5 @@
-"""
-This script tests worker and backend-web-server clients.
+# -*- coding: utf-8 -*-
+"""This script tests worker and backend-web-server clients.
 """
 
 from __future__ import print_function
@@ -19,8 +19,7 @@ import worker
 
 
 class BACKEND(threading.Thread):
-    """
-        wraps backend-web-server subprocess
+    """wraps backend-web-server subprocess
     """
     def __init__(self, BACKEND_WEB_SERVER_EXEC):
         self.stdout = None
@@ -47,8 +46,7 @@ class BACKEND(threading.Thread):
         self.stdout, self.stderr = self.process.communicate()
 
     def kill(self):
-        """
-            Kills the running backend-web-server process
+        """Kills the running backend-web-server process
         """
         log.info('killing process')
         self.process.kill()
@@ -60,12 +58,10 @@ class BACKEND(threading.Thread):
 
 
 class TestBackend(unittest.TestCase):
-    """
-        backend-web-server testing methods
+    """backend-web-server testing methods
     """
     def test_backend(self):
-        """
-            backend-web-server test function
+        """backend-web-server test function
         """
         exec_path = os.environ['BACKEND_WEB_SERVER_EXEC']
         if exec_path == '':
@@ -109,13 +105,13 @@ class TestBackend(unittest.TestCase):
         self.assertEqual(item['value'], itemresp3['value'])
         self.assertEqual(itemresp3['error'], '')
 
-        print('Killing backend-web-server...')
+        log.info('Killing backend-web-server...')
         backend_proc.kill()
 
         backend_proc.join()
-        print('backend-web-server output: {0}'.format(backend_proc.stderr))
+        log.info('backend-web-server output: {0}'.format(backend_proc.stderr))
 
-        print('Done!')
+        log.info('Done!')
 
 
 if __name__ == '__main__':
