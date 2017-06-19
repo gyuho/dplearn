@@ -9,23 +9,23 @@
                 </p>
                 <br>
                 <md-input-container class="input-full-width">
-                    <input mdInput type="text" #inputText maxlength="300" placeholder="Type URL" [(ngModel)]="inputValue">
+                    <input mdInput type="text" #inputText maxlength="300" placeholder="Type URL" [(ngModel)]="backendService.inputValue">
                     <md-hint align="end">{{inputText.value.length}} / 300</md-hint>
                 </md-input-container>
                 <br>
-                <button md-button color="primary" class="cats-vs-dogs-button" (click)="clickProcessRequest();">Run</button>
+                <button md-button color="primary" class="cats-vs-dogs-button" (click)="backendService.clickProcessRequest();">Run</button>
             </div>
             <div class="block block-copy half">
                 <p>
-                    <img src="{{inputValue}}" alt="user input image" height="100" width="100">
+                    <img src="{{backendService.inputValue}}" alt="user input image" height="100" width="100">
                 </p>
                 <p>
-                    <md-progress-spinner *ngIf="progress === 0" [color]="spinnerColor" [mode]="spinnerMode"></md-progress-spinner>
-                    <md-chip-list *ngIf="progress === 100">
+                    <md-progress-spinner *ngIf="backendService.progress === 0" [color]="backendService.spinnerColor" [mode]="backendService.spinnerMode"></md-progress-spinner>
+                    <md-chip-list *ngIf="backendService.progress === 100">
                         <md-chip color="primary" selected="true">Done!</md-chip>
                     </md-chip-list>
                     <br>
-                    {{result}}
+                    {{backendService.result}}
                 </p>
             </div>
         </div>
