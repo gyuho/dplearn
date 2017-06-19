@@ -25,12 +25,12 @@ download-data -source-path http://files.fast.ai/data/dogscats.zip \
   -smart-rename \
   -logtostderr
 
-download-data -source-path http://files.fast.ai/models/vgg16.h5 \
-  -target-path ${HOME}/.keras/datasets/dogscats/models/vgg16.h5 \
+download-data -source-path https://github.com/fchollet/deep-learning-models/releases/download/v0.1/vgg16_weights_tf_dim_ordering_tf_kernels.h5 \
+  -target-path ${HOME}/.keras/models/vgg16_weights_tf_dim_ordering_tf_kernels.h5 \
   -verbose \
   -logtostderr
 
-download-data -source-path http://files.fast.ai/models/imagenet_class_index.json \
-  -target-path ${HOME}/.keras/datasets/dogscats/models/imagenet_class_index.json \
+download-data -source-path https://github.com/fchollet/deep-learning-models/releases/download/v0.1/vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5 \
+  -target-path ${HOME}/.keras/models/vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5 \
   -verbose \
   -logtostderr
