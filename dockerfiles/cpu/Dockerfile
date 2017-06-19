@@ -1,4 +1,4 @@
-# Last updated at 2017-06-18 13:07:30.680350327 -0700 PDT
+# Last updated at 2017-06-18 21:32:48.775109117 -0700 PDT
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile.gpu
 # https://gcr.io/tensorflow/tensorflow
@@ -11,12 +11,15 @@ FROM gcr.io/tensorflow/tensorflow:1.2.0
 # Set working directory
 ENV ROOT_DIR /
 WORKDIR ${ROOT_DIR}
+ENV HOME /root
+RUN
 ##########################
 
 ##########################
 # Update OS
 # Configure 'bash' for 'source' commands
-RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections \
+RUN mkdir -p ${HOME}/.keras/datasets \
+  && echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections \
   && rm /bin/sh \
   && ln -s /bin/bash /bin/sh \
   && ls -l $(which bash) \
@@ -70,8 +73,6 @@ ADD nginx.conf /etc/nginx/sites-available/default
 
 ##########################
 # Install additional Python libraries
-ENV HOME /root
-
 # install 'pip --no-cache-dir install' with default python
 # use vanilla python from tensorflow base image, as much as possible
 # install 'conda install --name r ...' just for R (source activate r)
@@ -82,6 +83,7 @@ RUN pip --no-cache-dir install \
   requests \
   glog \
   humanize \
+  h5py \
   bcolz \
   theano \
   keras==1.2.2 \
@@ -128,6 +130,7 @@ root = /usr/local/cuda\n'\
   requests \
   glog \
   humanize \
+  h5py \
   && conda clean -tipsy \
   && conda list \
   && python -V \
@@ -182,9 +185,10 @@ ADD . ${GOPATH}/src/github.com/gyuho/deephardway
 RUN ln -s /gopath/src/github.com/gyuho/deephardway /git-deep \
   && pushd ${GOPATH}/src/github.com/gyuho/deephardway \
   && go install -v ./cmd/backend-web-server \
+  && go install -v ./cmd/download-data \
+  && go install -v ./cmd/gen-dockerfiles \
   && go install -v ./cmd/gen-nginx-conf \
   && go install -v ./cmd/gen-package-json \
-  && go install -v ./cmd/download-data \
   && popd
 ##########################
 
