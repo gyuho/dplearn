@@ -78,76 +78,78 @@ func main() {
 			glog.Infof("created %q", parentDir)
 		}
 
-		if *outputDirOverwrite {
+		if *outputDirOverwrite && fileutil.Exist(*outputDir) {
 			glog.Infof("deleting %q", *outputDir)
 			os.RemoveAll(*outputDir)
 			glog.Infof("deleted %q", *outputDir)
 		}
 
-		glog.Infof("unarchiving %q", *targetPath)
-		var opts []archiver.OpOption
-		if *verbose {
-			opts = append(opts, archiver.WithVerbose())
-		}
-		if err := ff.Open(*targetPath, *outputDir, opts...); err != nil {
-			glog.Fatal(err)
-		}
-		glog.Infof("unarchived %q", *targetPath)
-
-		if *smartRename {
-			glog.Infof("parent directory: %q (base %s)", parentDir, filepath.Base(parentDir))
-			glog.Infof("output directory: %q (base %s)", *outputDir, filepath.Base(*outputDir))
-			dirs, err := fileutil.WalkDirectories(*outputDir)
-			if err != nil {
+		if !fileutil.Exist(*outputDir) {
+			glog.Infof("unarchiving %q", *targetPath)
+			var opts []archiver.OpOption
+			if *verbose {
+				opts = append(opts, archiver.WithVerbose())
+			}
+			if err := ff.Open(*targetPath, *outputDir, opts...); err != nil {
 				glog.Fatal(err)
 			}
-			if len(dirs) == 0 {
-				glog.Fatalf("got no contents in %q (%v)", *outputDir, dirs)
-			}
-			lvl1Cnt := 0
-			var lvl1 fileutil.FileInfo
-			for _, d := range dirs {
-				if d.Level == 0 {
-					continue
-				}
-				if d.Level == 1 {
-					lvl1Cnt++
-					lvl1 = d
-				}
-			}
-			if lvl1Cnt == 1 {
-				glog.Infof("found redundancy... cleaning up... %+v", lvl1)
+			glog.Infof("unarchived %q", *targetPath)
 
-				tmpPath := *outputDir + ".tmp"
-				glog.Infof("renaming %q to %q", lvl1.Path, tmpPath)
-				if err = os.Rename(lvl1.Path, tmpPath); err != nil {
+			if *smartRename {
+				glog.Infof("parent directory: %q (base %s)", parentDir, filepath.Base(parentDir))
+				glog.Infof("output directory: %q (base %s)", *outputDir, filepath.Base(*outputDir))
+				dirs, err := fileutil.WalkDirectories(*outputDir)
+				if err != nil {
 					glog.Fatal(err)
 				}
-				glog.Infof("renamed %q to %q", lvl1.Path, tmpPath)
+				if len(dirs) == 0 {
+					glog.Fatalf("got no contents in %q (%v)", *outputDir, dirs)
+				}
+				lvl1Cnt := 0
+				var lvl1 fileutil.FileInfo
+				for _, d := range dirs {
+					if d.Level == 0 {
+						continue
+					}
+					if d.Level == 1 {
+						lvl1Cnt++
+						lvl1 = d
+					}
+				}
+				if lvl1Cnt == 1 {
+					glog.Infof("found redundancy... cleaning up... %+v", lvl1)
 
-				glog.Infof("removing %q", *outputDir)
-				if err = os.RemoveAll(*outputDir); err != nil {
+					tmpPath := *outputDir + ".tmp"
+					glog.Infof("renaming %q to %q", lvl1.Path, tmpPath)
+					if err = os.Rename(lvl1.Path, tmpPath); err != nil {
+						glog.Fatal(err)
+					}
+					glog.Infof("renamed %q to %q", lvl1.Path, tmpPath)
+
+					glog.Infof("removing %q", *outputDir)
+					if err = os.RemoveAll(*outputDir); err != nil {
+						glog.Fatal(err)
+					}
+					glog.Infof("removed %q", *outputDir)
+
+					glog.Infof("renaming %q to %q", tmpPath, *outputDir)
+					if err = os.Rename(tmpPath, *outputDir); err != nil {
+						glog.Fatal(err)
+					}
+					glog.Infof("renamed %q to %q", tmpPath, *outputDir)
+
+					glog.Infof("updated to %q", *outputDir)
+				}
+			}
+			if *verbose {
+				glog.Infof("%q:", *outputDir)
+				fis, err := fileutil.WalkFiles(*outputDir)
+				if err != nil {
 					glog.Fatal(err)
 				}
-				glog.Infof("removed %q", *outputDir)
-
-				glog.Infof("renaming %q to %q", tmpPath, *outputDir)
-				if err = os.Rename(tmpPath, *outputDir); err != nil {
-					glog.Fatal(err)
+				for _, v := range fis {
+					fmt.Printf("%q : %s\n", v.Path, v.SizeTxt)
 				}
-				glog.Infof("renamed %q to %q", tmpPath, *outputDir)
-
-				glog.Infof("updated to %q", *outputDir)
-			}
-		}
-		if *verbose {
-			glog.Infof("%q:", *outputDir)
-			fis, err := fileutil.WalkFiles(*outputDir)
-			if err != nil {
-				glog.Fatal(err)
-			}
-			for _, v := range fis {
-				fmt.Printf("%q : %s\n", v.Path, v.SizeTxt)
 			}
 		}
 	} else {
