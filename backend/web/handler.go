@@ -380,12 +380,13 @@ func (srv *Server) watch(ctx context.Context, requestID string, ch <-chan *etcdq
 		case <-ctx.Done():
 			return
 		case item = <-ch:
-			srv.requestCacheMu.Lock()
-			srv.requestCache[requestID] = item
-			srv.requestCacheMu.Unlock()
-			glog.Infof("watcher: received an update on %q", requestID)
 			if item.Canceled {
 				glog.Infof("watcher: %q is canceld", requestID)
+			} else {
+				glog.Infof("watcher: received an update on %q", requestID)
+				srv.requestCacheMu.Lock()
+				srv.requestCache[requestID] = item
+				srv.requestCacheMu.Unlock()
 			}
 		}
 	}
