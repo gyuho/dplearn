@@ -85,14 +85,15 @@ type Queue interface {
 	// Updates are sent to the returned channel.
 	// And the channel is closed after key deletion(dequeue),
 	// which is the last event when the job is completed.
-	Enqueue(ctx context.Context, it *Item) (ItemWatcher, error)
+	Enqueue(ctx context.Context, it *Item) ItemWatcher
 
 	// Front returns the first item in the queue.
 	// It returns nil if there is no item.
-	Front(ctx context.Context, bucket string) (*Item, error)
+	Front(ctx context.Context, bucket string) ItemWatcher
 
-	// Dequeue deletes the item from the queue.
-	// The item is dequeue-ed from the queue, and canceled if in progress.
+	// Dequeue deletes the item from the queue. Item is dequeue-ed
+	// from the queue, and canceled if in progress. The item does not
+	// need to be the first one in the queue.
 	Dequeue(ctx context.Context, it *Item) error
 }
 
@@ -234,11 +235,14 @@ func (qu *queue) delete(ctx context.Context, key string) error {
 	return err
 }
 
-func (qu *queue) Enqueue(ctx context.Context, it *Item) (ItemWatcher, error) {
+func (qu *queue) Enqueue(ctx context.Context, it *Item) ItemWatcher {
 	key := path.Join(pfxScheduled, it.Key)
 	data, err := json.Marshal(it)
 	if err != nil {
-		return nil, err
+		ch := make(chan *Item, 1)
+		ch <- &Item{Error: err.Error()}
+		close(ch)
+		return ch
 	}
 	val := string(data)
 
@@ -246,7 +250,10 @@ func (qu *queue) Enqueue(ctx context.Context, it *Item) (ItemWatcher, error) {
 	defer qu.mu.Unlock()
 
 	if err = qu.put(ctx, key, val); err != nil {
-		return nil, err
+		ch := make(chan *Item, 1)
+		ch <- &Item{Error: err.Error()}
+		close(ch)
+		return ch
 	}
 	glog.Infof("enqueue: wrote %q", it.Key)
 
@@ -256,15 +263,19 @@ func (qu *queue) Enqueue(ctx context.Context, it *Item) (ItemWatcher, error) {
 
 	if item.Progress == maxProgress {
 		if err = qu.delete(ctx, key); err != nil {
-			return nil, err
+			ch <- &Item{Error: err.Error()}
+			close(ch)
+			return ch
 		}
 		if err := qu.put(ctx, path.Join(pfxCompleted, item.Key), val); err != nil {
-			return nil, err
+			ch <- &Item{Error: err.Error()}
+			close(ch)
+			return ch
 		}
 		glog.Infof("enqueue: %q is finished", item.Key)
 		ch <- &item
 		close(ch)
-		return ch, nil
+		return ch
 	}
 
 	wch := qu.cli.Watch(ctx, key, clientv3.WithPrevKV())
@@ -325,27 +336,59 @@ func (qu *queue) Enqueue(ctx context.Context, it *Item) (ItemWatcher, error) {
 			}
 		}
 	}()
-	return ch, nil
+	return ch
 }
 
-func (qu *queue) Front(ctx context.Context, bucket string) (*Item, error) {
+func (qu *queue) Front(ctx context.Context, bucket string) ItemWatcher {
 	scheduledKey := path.Join(pfxScheduled, bucket)
-	resp, err := qu.cli.Get(ctx, scheduledKey, append(clientv3.WithFirstKey(), clientv3.WithPrefix(), clientv3.WithLimit(1))...)
+	ch := make(chan *Item, 1)
+
+	resp, err := qu.cli.Get(ctx, scheduledKey, clientv3.WithFirstKey()...)
 	if err != nil {
-		return nil, err
+		ch <- &Item{Error: err.Error()}
+		close(ch)
+		return ch
 	}
+
 	if len(resp.Kvs) == 0 {
-		return nil, nil
+		wch := qu.cli.Watch(ctx, scheduledKey, clientv3.WithPrefix())
+		go func() {
+			defer close(ch)
+
+			select {
+			case wresp := <-wch:
+				if len(wresp.Events) != 1 {
+					ch <- &Item{Error: fmt.Sprintf("%q did not return 1 event via watch (got %+v)", scheduledKey, wresp)}
+					return
+				}
+				v := wresp.Events[0].Kv.Value
+				var item Item
+				if err := json.Unmarshal(v, &item); err != nil {
+					ch <- &Item{Error: fmt.Sprintf("%q returned wrong JSON value %q (%v)", scheduledKey, string(v), err)}
+				} else {
+					ch <- &item
+				}
+			case <-ctx.Done():
+				ch <- &Item{Error: err.Error()}
+			}
+		}()
+		return ch
 	}
+
 	if len(resp.Kvs) != 1 {
-		return nil, fmt.Errorf("%q returned more than 1 key", scheduledKey)
+		ch <- &Item{Error: fmt.Sprintf("%q returned more than 1 key", scheduledKey)}
+		close(ch)
+		return ch
 	}
 	v := resp.Kvs[0].Value
 	var item Item
 	if err := json.Unmarshal(v, &item); err != nil {
-		return nil, fmt.Errorf("%q returned wrong JSON value %q (%v)", scheduledKey, string(v), err)
+		ch <- &Item{Error: fmt.Sprintf("%q returned wrong JSON value %q (%v)", scheduledKey, string(v), err)}
+		close(ch)
+	} else {
+		ch <- &item
 	}
-	return &item, nil
+	return ch
 }
 
 func (qu *queue) Dequeue(ctx context.Context, it *Item) error {

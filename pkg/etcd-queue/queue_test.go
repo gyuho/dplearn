@@ -1,6 +1,7 @@
 package etcdqueue
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -23,7 +24,6 @@ var basePort int32 = 22379
 func TestQueue(t *testing.T) {
 	cport := int(atomic.LoadInt32(&basePort))
 	atomic.StoreInt32(&basePort, int32(cport)+2)
-	testBucket := "test-bucket"
 
 	dataDir, err := ioutil.TempDir(os.TempDir(), "etcd-queue")
 	if err != nil {
@@ -51,25 +51,37 @@ func TestQueue(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	testBucket := "test-bucket"
+
+	firstCreate := qu.Front(context.Background(), testBucket)
+	select {
+	case fi := <-firstCreate:
+		t.Fatalf("unexpected events: %+v", fi)
+	default:
+	}
+
 	item1 := CreateItem(testBucket, 1500, "test-data-1")
-	wch1, err := qu.Enqueue(context.Background(), item1)
-	if err != nil {
-		t.Fatal(err)
-	}
+	wch1 := qu.Enqueue(context.Background(), item1)
 	item2 := CreateItem(testBucket, 15000, "test-data-2")
-	wch2, err := qu.Enqueue(context.Background(), item2)
-	if err != nil {
-		t.Fatal(err)
-	}
+	wch2 := qu.Enqueue(context.Background(), item2)
 
 	time.Sleep(3 * time.Second)
 
+	select {
+	case fi := <-firstCreate:
+		if err = equalItem(item1, fi); err != nil {
+			t.Fatalf("expected %+v, got %+v (%v)", item1, fi, err)
+		}
+	default:
+		t.Fatalf("expected events, but got none")
+	}
+
 	// first element in the queue must be item2 with higher priority
-	item2a, err := qu.Front(context.Background(), testBucket)
+	fch2a := qu.Front(context.Background(), testBucket)
 	if err != nil {
 		t.Fatal(err)
 	}
-
+	item2a := <-fch2a
 	if err = equalItem(item2, item2a); err != nil {
 		t.Fatalf("expected %+v, got %+v (%v)", item2, item2a, err)
 	}
@@ -85,13 +97,12 @@ func TestQueue(t *testing.T) {
 	// finish 'item2'
 	item2a.Progress = 100
 	item2a.Value = "new-data"
-	wch2a, err := qu.Enqueue(context.Background(), item2a)
-	if err != nil {
-		t.Fatal(err)
-	}
-
+	wch2a := qu.Enqueue(context.Background(), item2a)
 	select {
 	case item2b := <-wch2a:
+		if item2b.Error != "" {
+			t.Fatalf("unexpected error: %+v", item2b)
+		}
 		if err = equalItem(item2a, item2b); err != nil {
 			t.Fatalf("expected %+v, got %+v (%v)", item2, item2b, err)
 		}
@@ -132,9 +143,10 @@ func TestQueue(t *testing.T) {
 	}
 
 	// next item in the queue must be item1
-	item1a, err := qu.Front(context.Background(), testBucket)
-	if err != nil {
-		t.Fatal(err)
+	fch1a := qu.Front(context.Background(), testBucket)
+	item1a := <-fch1a
+	if item1a.Error != "" {
+		t.Fatalf("unexpected error: %+v", item1a)
 	}
 	if err = equalItem(item1, item1a); err != nil {
 		t.Fatalf("expected %+v, got %+v (%v)", item1, item1a, err)
@@ -143,10 +155,7 @@ func TestQueue(t *testing.T) {
 	// proceed 'item1'
 	item1a.Progress = 50
 	item1a.Value = "new-data"
-	wch1a, err := qu.Enqueue(context.Background(), item1a)
-	if err != nil {
-		t.Fatal(err)
-	}
+	wch1a := qu.Enqueue(context.Background(), item1a)
 	select {
 	case it := <-wch1a:
 		t.Fatalf("unexpected events from wch1a %+v", it)
@@ -154,6 +163,9 @@ func TestQueue(t *testing.T) {
 	}
 	select {
 	case item1c := <-wch1:
+		if item1c.Error != "" {
+			t.Fatalf("unexpected error: %+v", item1c)
+		}
 		if err = equalItem(item1a, item1c); err != nil {
 			t.Fatalf("expected %+v, got %+v (%v)", item1a, item1c, err)
 		}
@@ -167,6 +179,9 @@ func TestQueue(t *testing.T) {
 	}
 	select {
 	case it := <-wch1:
+		if it.Error != "" {
+			t.Fatalf("unexpected error: %+v", it)
+		}
 		if it.Canceled != true {
 			t.Fatalf("%q expected cancel, got %+v", it.Key, it)
 		}
@@ -175,6 +190,9 @@ func TestQueue(t *testing.T) {
 	}
 	select {
 	case it := <-wch1a:
+		if it.Error != "" {
+			t.Fatalf("unexpected error: %+v", it)
+		}
 		if it.Canceled != true {
 			t.Fatalf("%q expected cancel, got %+v", it.Key, it)
 		}
@@ -217,4 +235,93 @@ func equalItem(item1, item2 *Item) error {
 		return fmt.Errorf("expected RequestID %s, got %s", item1.RequestID, item2.RequestID)
 	}
 	return nil
+}
+
+// TestQueueEtcd tests some etcd-specific behaviors.
+func TestQueueEtcd(t *testing.T) {
+	cport := int(atomic.LoadInt32(&basePort))
+	atomic.StoreInt32(&basePort, int32(cport)+2)
+
+	dataDir, err := ioutil.TempDir(os.TempDir(), "etcd-queue")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dataDir)
+
+	qu, err := NewEmbeddedQueue(context.Background(), cport, cport+1, dataDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer qu.Stop()
+
+	var cli *clientv3.Client
+	cli, err = clientv3.New(clientv3.Config{Endpoints: qu.ClientEndpoints()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer cli.Close()
+
+	resp, err := cli.Get(context.Background(), "\x00", clientv3.WithFromKey())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(resp.Kvs) != 0 {
+		t.Fatalf("len(resp.Kvs) expected 0, got %+v", resp.Kvs)
+	}
+
+	watchChan := cli.Watch(context.Background(), "foo", clientv3.WithPrefix())
+	donec := make(chan struct{})
+	go func() {
+		defer close(donec)
+
+		wresp := <-watchChan
+		if len(wresp.Events) != 1 {
+			t.Fatalf("len(wresp.Events) expected 1, got %+v", wresp.Events)
+		}
+		if !bytes.Equal(wresp.Events[0].Kv.Key, []byte("foo")) {
+			t.Fatalf("key expected 'foo', got %q", string(wresp.Events[0].Kv.Key))
+		}
+		if !bytes.Equal(wresp.Events[0].Kv.Value, []byte("bar")) {
+			t.Fatalf("value expected 'bar', got %q", string(wresp.Events[0].Kv.Value))
+		}
+	}()
+
+	if _, err = cli.Put(context.Background(), "foo", "bar"); err != nil {
+		t.Fatal(err)
+	}
+	resp, err = cli.Get(context.Background(), "foo")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(resp.Kvs) != 1 {
+		t.Fatalf("len(resp.Kvs) expected 1, got %+v", resp.Kvs)
+	}
+	fmt.Printf("Get response: %+v\n", resp)
+
+	ch := cli.Watch(context.Background(), "foo", clientv3.WithRev(resp.Header.Revision))
+	select {
+	case wresp := <-ch:
+		fmt.Printf("Watch response: %+v\n", wresp.Events[0])
+	case <-time.After(2 * time.Second):
+		t.Fatal("watch timed out")
+	}
+	ch = cli.Watch(context.Background(), "foo")
+	select {
+	case wresp := <-ch:
+		t.Fatalf("unexpected watch response: %+v", wresp)
+	case <-time.After(3 * time.Second):
+	}
+
+	<-donec
+
+	if _, err = cli.Put(context.Background(), "foo1", "bar1"); err != nil {
+		t.Fatal(err)
+	}
+	resp, err = cli.Get(context.Background(), "\x00", clientv3.WithFromKey())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(resp.Kvs) != 2 {
+		t.Fatalf("len(resp.Kvs) expected 2, got %+v", resp.Kvs)
+	}
 }
