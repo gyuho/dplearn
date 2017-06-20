@@ -4,7 +4,7 @@ import {
 
 import {
   BackendService,
-} from "../request-item.component";
+} from "../request.component";
 
 @Component({
   providers: [BackendService],
