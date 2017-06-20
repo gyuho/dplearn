@@ -319,9 +319,11 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 			glog.Infof("deleted %q", requestID)
 
 		case false:
+			glog.Infof("fetching %q", requestID)
 			srv.requestCacheMu.Lock()
 			v, ok := srv.requestCache[requestID]
 			if ok {
+				glog.Infof("fetched %q", requestID)
 				srv.requestCacheMu.Unlock()
 				return json.NewEncoder(w).Encode(v)
 			}
