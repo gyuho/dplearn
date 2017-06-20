@@ -300,7 +300,7 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 
 		switch creq.DeleteRequest {
 		case true:
-			glog.Infof("requested to delete %q", requestID)
+			glog.Infof("deleting %q", requestID)
 			srv.requestCacheMu.Lock()
 			item, ok := srv.requestCache[requestID]
 			if !ok {
@@ -326,9 +326,9 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 				return json.NewEncoder(w).Encode(v)
 			}
 
+			glog.Infof("creating an item with request ID %q", requestID)
 			item := etcdqueue.CreateItem(reqPath, 100, creq.DataFromFrontend)
 			item.RequestID = requestID
-			glog.Infof("created an item with request ID %q", requestID)
 
 			// enqueue(schedule) the job
 			ch, err := qu.Enqueue(ctx, item)
