@@ -67,6 +67,9 @@ func CreateItem(bucket string, weight uint64, value string) *Item {
 	}
 }
 
+// ItemWatcher is for clients that subscribes the status of job item.
+type ItemWatcher <-chan *Item
+
 // Queue is the queue service backed by etcd.
 type Queue interface {
 	// ClientEndpoints returns the client endpoints.
@@ -92,9 +95,6 @@ type Queue interface {
 	// The item is dequeue-ed from the queue, and canceled if in progress.
 	Dequeue(ctx context.Context, it *Item) error
 }
-
-// ItemWatcher is for clients that subscribes the status of job item.
-type ItemWatcher <-chan *Item
 
 const (
 	pfxScheduled = "_schd" // requested by client, added to queue
@@ -178,7 +178,7 @@ func NewEmbeddedQueue(ctx context.Context, cport, pport int, dataDir string) (Qu
 }
 
 func (qu *embeddedQueue) ClientEndpoints() []string {
-	eps := make([]string, len(qu.srv.Config().LCUrls))
+	eps := make([]string, 0, len(qu.srv.Config().LCUrls))
 	for i := range qu.srv.Config().LCUrls {
 		eps = append(eps, qu.srv.Config().LCUrls[i].String())
 	}
