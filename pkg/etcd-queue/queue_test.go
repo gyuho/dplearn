@@ -73,7 +73,7 @@ func TestQueue(t *testing.T) {
 			t.Fatalf("expected %+v, got %+v (%v)", item1, fi, err)
 		}
 	default:
-		t.Fatalf("expected events, but got none")
+		t.Fatal("expected events, but got none")
 	}
 
 	// first element in the queue must be item2 with higher priority
@@ -107,7 +107,7 @@ func TestQueue(t *testing.T) {
 			t.Fatalf("expected %+v, got %+v (%v)", item2, item2b, err)
 		}
 	default:
-		t.Fatalf("expected events from qu.Enqueue(item3)")
+		t.Fatal("expected events from qu.Enqueue(item3)")
 	}
 
 	select {
@@ -116,7 +116,7 @@ func TestQueue(t *testing.T) {
 			t.Fatalf("expected %+v, got %+v (%v)", item2, item2c, err)
 		}
 	default:
-		t.Fatalf("expected events from wch2")
+		t.Fatal("expected events from wch2")
 	}
 
 	resp, err := cli.Get(context.Background(), path.Join(pfxCompleted, item2.Key))
@@ -170,7 +170,7 @@ func TestQueue(t *testing.T) {
 			t.Fatalf("expected %+v, got %+v (%v)", item1a, item1c, err)
 		}
 	case <-time.After(5 * time.Second):
-		t.Fatalf("expected events from wch1 in 5-sec")
+		t.Fatal("expected events from wch1 in 5-sec")
 	}
 
 	// cancel 'item1'
