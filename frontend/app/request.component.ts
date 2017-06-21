@@ -1,5 +1,4 @@
 import {
-  Component,
   Injectable,
   OnDestroy,
 } from "@angular/core";
