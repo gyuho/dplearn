@@ -270,12 +270,31 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 		}
 		key := v.Key
 
-		// TODO: wait for changes
-		// ch <-chan *etcdqueue.Item
 		glog.Infof("start watching %q for status update (request ID: %q)", key, requestID)
-		_ = qu
-		_ = key
-		glog.Infof("sent status update for key %q (request ID: %q)", key, requestID)
+		cctx, ccancel := context.WithCancel(ctx)
+		defer ccancel()
+		watcher := qu.Watch(cctx, key)
+		for {
+			select {
+			case item := <-watcher:
+				if item.Progress == etcdqueue.MaxProgress {
+					glog.Infof("sent status update for key %q (request ID: %q)", key, requestID)
+					return json.NewEncoder(w).Encode(item)
+				}
+				glog.Infof("key %q (request ID: %q) is not done yet... keep watching (item: %+v)", key, requestID, item)
+				continue
+
+			case <-ctx.Done():
+				glog.Warningf("watch canceld on key %q (request ID: %q)", key, requestID)
+				glog.Warning(ctx.Err())
+				return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: reqPath, Progress: 0, Error: ctx.Err().Error()})
+
+			case <-cctx.Done():
+				glog.Warningf("watch canceld on key %q (request ID: %q)", key, requestID)
+				glog.Warning(cctx.Err())
+				return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: reqPath, Progress: 0, Error: cctx.Err().Error()})
+			}
+		}
 
 	case http.MethodPost: // item creation/cancel
 		rb, err := ioutil.ReadAll(req.Body)
