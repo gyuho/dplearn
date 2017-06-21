@@ -11,6 +11,10 @@ import {
 } from "@angular/http";
 
 import {
+  Router,
+} from "@angular/router";
+
+import {
   Observable,
 } from "rxjs/Rx";
 
@@ -79,15 +83,22 @@ export class BackendService implements OnDestroy {
   private requestID: string;
   private intervalSet: boolean;
   private pollingHandler;
+  private url: string;
 
-  constructor(private http: Http, private snackBar: MdSnackBar) {
+  constructor(
+    private router: Router,
+    private http: Http,
+    private snackBar: MdSnackBar,
+  ) {
     this.inputValue = "";
     this.result = "Nothing to show yet...";
     this.intervalSet = false;
+
+    this.url = router.url;
   }
 
   public ngOnDestroy() {
-    console.log("user left page; destroying!");
+    console.log("user left page; destroying!", this.url);
     this.intervalSet = false;
     clearInterval(this.pollingHandler);
 
@@ -111,7 +122,7 @@ export class BackendService implements OnDestroy {
     this.result = "Nothing to show yet...";
     this.progress = 0;
     this.errorFromServer = "";
-    console.log("user left page; destroyed!");
+    console.log("user left page; destroyed!", this.url);
 
     return;
   }
