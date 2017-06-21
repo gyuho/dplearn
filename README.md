@@ -14,20 +14,19 @@ It is a set of small projects on [Deep Learning](https://en.wikipedia.org/wiki/D
 <img src="./architecture.png" alt="architecture" width="620">
 
 - [`frontend`](https://github.com/gyuho/deephardway/tree/master/frontend) implements user-facing UI, sends user requests to [`backend/*`](https://github.com/gyuho/deephardway/tree/master/backend).
-- [`backend/web`](https://github.com/gyuho/deephardway/tree/master/backend/web) schedules user requests on [`pkg/etcd-queue`](https://github.com/gyuho/deephardway/tree/master/pkg/etcd-queue) service on top of [`etcd`](https://github.com/coreos/etcd).
-- [`backend/worker`](https://github.com/gyuho/deephardway/tree/master/backend/worker) fetches/processes the list of jobs, and writes results back to queue.
-- [`backend/web`](https://github.com/gyuho/deephardway/tree/master/backend/web) gets notified with [Watch API](https://godoc.org/github.com/coreos/etcd/clientv3#Watcher) when the job is done, and returns results back to users.
-- Data serialization from [`frontend`](https://github.com/gyuho/deephardway/tree/master/frontend) to [`backend/web`](https://github.com/gyuho/deephardway/tree/master/backend/web) is defined in [`backend/web.Request`](https://github.com/gyuho/deephardway/blob/master/backend/web/handler.go) and [`frontend/app/request.component.Request`](https://github.com/gyuho/deephardway/blob/master/frontend/app/request.component.ts).
-- Data serialization from [`backend/web`](https://github.com/gyuho/deephardway/tree/master/backend/web) to [`frontend`](https://github.com/gyuho/deephardway/tree/master/frontend) is defined in [`pkg/etcd-queue.Item`](https://github.com/gyuho/deephardway/blob/master/pkg/etcd-queue/queue.go) and [`frontend/app/request.component.Item`](https://github.com/gyuho/deephardway/blob/master/frontend/app/request.component.ts).
-- Data serialization between [`backend/web`](https://github.com/gyuho/deephardway/tree/master/backend/web) and [`backend/worker`](https://github.com/gyuho/deephardway/tree/master/backend/worker) is defined in [`pkg/etcd-queue.Item`](https://github.com/gyuho/deephardway/blob/master/pkg/etcd-queue/queue.go) and [`backend/worker/worker.py`](https://github.com/gyuho/deephardway/blob/master/backend/worker/worker.py).
+- [`backend/web`](https://github.com/gyuho/deephardway/tree/master/backend/web) schedules user requests on [`pkg/etcd-queue`](https://github.com/gyuho/deephardway/tree/master/pkg/etcd-queue).
+- [`backend/worker`](https://github.com/gyuho/deephardway/tree/master/backend/worker) processes jobs from queue, and writes back the results.
+- `backend/web` gets notified with [Watch API](https://godoc.org/github.com/coreos/etcd/clientv3#Watcher) when the job is done, and returns results back to users.
+- Data serialization from `frontend` to `backend/web` is defined in [`backend/web.Request`](https://github.com/gyuho/deephardway/blob/master/backend/web/handler.go) and [`frontend/app/request.component.Request`](https://github.com/gyuho/deephardway/blob/master/frontend/app/request.component.ts).
+- Data serialization from `backend/web` to `frontend` is defined in [`pkg/etcd-queue.Item`](https://github.com/gyuho/deephardway/blob/master/pkg/etcd-queue/queue.go) and [`frontend/app/request.component.Item`](https://github.com/gyuho/deephardway/blob/master/frontend/app/request.component.ts).
+- Data serialization between `backend/web` and `backend/worker` is defined in [`pkg/etcd-queue.Item`](https://github.com/gyuho/deephardway/blob/master/pkg/etcd-queue/queue.go) and [`backend/worker/worker.py`](https://github.com/gyuho/deephardway/blob/master/backend/worker/worker.py).
 
 Notes:
 
 - **Why is the queue service needed?** To process concurrent users requests. Worker has limited resources. Requests can be serialized into the queue, so that worker performance is maximized for each task.
 - **Why Go?** To natively use [`embedded etcd`](https://github.com/coreos/etcd/tree/master/embed).
-- **Why etcd?** It has *really great* [Watch API implementation](https://godoc.org/github.com/coreos/etcd/clientv3#Watcher)! Highly recommend [`etcd`](https://github.com/coreos/etcd)!
+- **Why etcd?** It has *really great* [Watch API implementation](https://godoc.org/github.com/coreos/etcd/clientv3#Watcher)! Highly recommend [`etcd`](https://github.com/coreos/etcd)! `pkg/etcd-queue` uses Watch API to stream updates to `backend/worker` and `frontend`. This minimizes TCP socket creation and slow TCP starts (e.g. streaming vs. polling). *TODO: use streaming to broadcast more fine-grained job status.*
 - **How is this deployed?** everything is run in *one container*, since I have limited budget on public serving. In production, [`etcd`](https://github.com/coreos/etcd) can be distributed for higher availability, and [Tensorflow/serving](https://tensorflow.github.io/serving/) can serve the pre-trained models.
-- [`pkg/etcd-queue`](https://github.com/gyuho/deephardway/tree/master/pkg/etcd-queue) uses [Watch API](https://godoc.org/github.com/coreos/etcd/clientv3#Watcher) to stream updates to [`backend/worker`](https://github.com/gyuho/deephardway/tree/master/backend/worker) and [`frontend`](https://github.com/gyuho/deephardway/tree/master/frontend). This minimizes TCP socket creation and slow TCP starts. *TODO: use stream to broadcast more fine-grained job status.*
 
 
 ### Development Workflow

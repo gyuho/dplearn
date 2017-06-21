@@ -1,0 +1,5 @@
+
+Built on top of https://github.com/coreos/etcd.
+
+See http://godoc.org/github.com/gyuho/deephardway/pkg/etcd-queue.
+
