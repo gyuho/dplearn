@@ -17,8 +17,8 @@ It is a set of small projects on [Deep Learning](https://en.wikipedia.org/wiki/D
 - [`backend/web`](https://github.com/gyuho/deephardway/tree/master/backend/web) schedules user requests on [`pkg/etcd-queue`](https://github.com/gyuho/deephardway/tree/master/pkg/etcd-queue).
 - [`backend/worker`](https://github.com/gyuho/deephardway/tree/master/backend/worker) processes jobs from queue, and writes back the results.
 - `backend/web` gets notified with [Watch API](https://godoc.org/github.com/coreos/etcd/clientv3#Watcher) when the job is done, and returns results back to users.
-- Data serialization from `frontend` to `backend/web` is defined in [`backend/web.Request`](https://github.com/gyuho/deephardway/blob/master/backend/web/handler.go) and [`frontend/app/request.component.Request`](https://github.com/gyuho/deephardway/blob/master/frontend/app/request.component.ts).
-- Data serialization from `backend/web` to `frontend` is defined in [`pkg/etcd-queue.Item`](https://github.com/gyuho/deephardway/blob/master/pkg/etcd-queue/queue.go) and [`frontend/app/request.component.Item`](https://github.com/gyuho/deephardway/blob/master/frontend/app/request.component.ts).
+- Data serialization from `frontend` to `backend/web` is defined in [`backend/web.Request`](https://github.com/gyuho/deephardway/blob/master/backend/web/handler.go) and [`frontend/app/request.service.Request`](https://github.com/gyuho/deephardway/blob/master/frontend/app/request.service.ts).
+- Data serialization from `backend/web` to `frontend` is defined in [`pkg/etcd-queue.Item`](https://github.com/gyuho/deephardway/blob/master/pkg/etcd-queue/queue.go) and [`frontend/app/request.service.Item`](https://github.com/gyuho/deephardway/blob/master/frontend/app/request.service.ts).
 - Data serialization between `backend/web` and `backend/worker` is defined in [`pkg/etcd-queue.Item`](https://github.com/gyuho/deephardway/blob/master/pkg/etcd-queue/queue.go) and [`backend/worker/worker.py`](https://github.com/gyuho/deephardway/blob/master/backend/worker/worker.py).
 
 Notes:
