@@ -26,3 +26,7 @@ fi
 echo "Running tests..." $TESTS
 go test -v $TESTS;
 go test -v -race $TESTS;
+
+<<COMMENT
+GCP_TEST_KEY_PATH=/etc/gcp-key-deephardway.json SKIP_DELETE=false ./scripts/tests/go.sh
+COMMENT
