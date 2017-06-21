@@ -147,7 +147,7 @@ export class BackendService implements OnDestroy {
   // Blocks until the item is completed.
   // TODO: time out?
   public fetchStatus() {
-    const headers = new Headers({"request_id" : this.requestID});
+    const headers = new Headers({ request_id: this.requestID });
     const options = new RequestOptions({headers});
 
     let itemFromServer: Item;
