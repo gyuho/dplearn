@@ -80,7 +80,7 @@ export class BackendService implements OnDestroy {
   private intervalSet: boolean;
   private pollingHandler;
 
-  constructor(private http: Http, public snackBar: MdSnackBar) {
+  constructor(private http: Http, private snackBar: MdSnackBar) {
     this.inputValue = "";
     this.result = "Nothing to show yet...";
     this.intervalSet = false;
