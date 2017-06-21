@@ -126,9 +126,6 @@ if __name__ == "__main__":
             if POST_RESPONSE['error'] not in ['', u'']:
                 log.warning(POST_RESPONSE['error'])
 
-        elif ITEM['bucket'] == '/mnist-request':
-            log.info('/mnist-request is not ready yet')
-
         elif ITEM['bucket'] == '/word-predict-request':
             TXT = ITEM['value']
             if len(TXT) < 5:

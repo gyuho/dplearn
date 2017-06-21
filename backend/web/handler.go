@@ -85,10 +85,6 @@ func StartServer(webPort int, qu etcdqueue.Queue) (*Server, error) {
 		ctx:     rootCtx,
 		handler: with(ContextHandlerFunc(queueHandler), srv, qu, cache),
 	})
-	// mux.Handle("/mnist-request", &ContextAdapter{
-	// 	ctx:     rootCtx,
-	// 	handler: with(ContextHandlerFunc(clientRequestHandler), srv, qu, cache),
-	// })
 	mux.Handle("/word-predict-request", &ContextAdapter{
 		ctx:     rootCtx,
 		handler: with(ContextHandlerFunc(clientRequestHandler), srv, qu, cache),
@@ -281,8 +277,6 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 				return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: reqPath, Progress: 0, Error: err.Error()})
 			}
 			creq.DataFromFrontend = fpath
-
-		case "/mnist-request":
 
 		case "/word-predict-request":
 
