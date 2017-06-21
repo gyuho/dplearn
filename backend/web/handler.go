@@ -142,8 +142,8 @@ func (srv *Server) gcCache(period time.Duration) {
 			glog.Warningf("%q should have been requested to delete when user leaves browser (missed DELETE request?)", id)
 			if time.Since(item.CreatedAt) > period {
 				delete(srv.requestCache, id)
-				if item.Progress == 100 {
-					glog.Infof("deleted %q because its progress is 100 (created at %s)", id, item.CreatedAt)
+				if item.Progress == etcdqueue.MaxProgress {
+					glog.Infof("deleted %q because its progress is %d (created at %s)", id, etcdqueue.MaxProgress, item.CreatedAt)
 				} else {
 					glog.Warningf("deleted %q and its progress is %d (created at %s)", id, item.Progress, item.CreatedAt)
 				}
@@ -236,6 +236,7 @@ func queueHandler(ctx context.Context, w http.ResponseWriter, req *http.Request)
 type Request struct {
 	DataFromFrontend string `json:"data_from_frontend"`
 	CreateRequest    bool   `json:"create_request"`
+	RequestID        string `json:"request_id"`
 }
 
 func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.Request) error {
@@ -246,6 +247,36 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 	userID := ctx.Value(userKey).(string)
 
 	switch req.Method {
+	case http.MethodGet: // item status fetch
+		requestID := req.Header.Get("request_id")
+		if requestID == "" {
+			err := fmt.Errorf("expected 'request_id' from GET header (got %+v)", req.Header)
+			glog.Warning(err)
+			return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: reqPath, Progress: 0, Error: err.Error()})
+		}
+
+		glog.Infof("fetching %q for status", requestID)
+		srv.requestCacheMu.Lock()
+		v, ok := srv.requestCache[requestID]
+		srv.requestCacheMu.Unlock()
+		if !ok {
+			err := fmt.Errorf("cannot find request ID %q (something seriously wrong!)", requestID)
+			glog.Warning(err)
+			return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: reqPath, Progress: 0, Error: err.Error()})
+		}
+		if v.Progress == etcdqueue.MaxProgress {
+			glog.Infof("fetched %q with completed status", requestID)
+			return json.NewEncoder(w).Encode(v)
+		}
+		key := v.Key
+
+		// TODO: wait for changes
+		// ch <-chan *etcdqueue.Item
+		glog.Infof("start watching %q for status update (request ID: %q)", key, requestID)
+		_ = qu
+		_ = key
+		glog.Infof("sent status update for key %q (request ID: %q)", key, requestID)
+
 	case http.MethodPost: // item creation/cancel
 		rb, err := ioutil.ReadAll(req.Body)
 		if err != nil {
@@ -261,9 +292,12 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 			glog.Warning(err)
 			return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: reqPath, Progress: 0, Error: err.Error()})
 		}
-
-		if creq.DataFromFrontend == "" { // TODO: bug in ngOnDestroy?
-			glog.Warning("skipping empty request...")
+		if creq.RequestID != "" {
+			glog.Warningf("TODO: skipping non-empty request... bug in frontend? %+v", creq)
+			return nil
+		}
+		if creq.DataFromFrontend == "" {
+			glog.Warning("TODO: skipping empty request... bug in frontend ngOnDestroy?")
 			return nil
 		}
 
@@ -290,11 +324,11 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 
 		switch creq.CreateRequest {
 		case true:
-			glog.Infof("fetching %q", requestID)
+			glog.Infof("fetching %q before creating item", requestID)
 			srv.requestCacheMu.Lock()
 			v, ok := srv.requestCache[requestID]
 			if ok {
-				glog.Infof("fetched %q", requestID)
+				glog.Infof("fetched %q before creating item, no need to create", requestID)
 				srv.requestCacheMu.Unlock()
 				return json.NewEncoder(w).Encode(v)
 			}
@@ -324,7 +358,7 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 
 			glog.Infof("created an item with request ID %s", requestID)
 			copied := *item
-			copied.Value = fmt.Sprintf("Requested %q", copied.Value)
+			copied.Value = fmt.Sprintf("[BACKEND - ACK] Requested %q (request ID: %s)", copied.Value, requestID)
 			return json.NewEncoder(w).Encode(&copied)
 
 		case false:
@@ -356,7 +390,7 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 
 func (srv *Server) watch(ctx context.Context, requestID string, ch <-chan *etcdqueue.Item) {
 	item := &etcdqueue.Item{Progress: 0}
-	for item.Progress < 100 && !item.Canceled {
+	for item.Progress < etcdqueue.MaxProgress && !item.Canceled {
 		srv.requestCacheMu.Lock()
 		_, ok := srv.requestCache[requestID]
 		if !ok {
