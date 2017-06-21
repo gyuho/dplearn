@@ -26,15 +26,12 @@ import {
 export class Request {
   public data_from_frontend: string;
   public create_request: boolean;
-  public request_id: string;
   constructor(
     d: string,
     create: boolean,
-    id: string,
   ) {
     this.data_from_frontend = d;
     this.create_request = create;
-    this.request_id = id;
   }
 }
 
@@ -102,7 +99,7 @@ export class BackendService implements OnDestroy {
     this.intervalSet = false;
     clearInterval(this.pollingHandler);
 
-    const body = JSON.stringify(new Request(this.inputValue, false, ""));
+    const body = JSON.stringify(new Request(this.inputValue, false));
     const headers = new Headers({"Content-Type" : "application/json"});
     const options = new RequestOptions({headers});
 
@@ -194,7 +191,7 @@ export class BackendService implements OnDestroy {
     this.progress = 0;
     this.result = `[FRONTEND - ACK] Requested '${this.inputValue}' (request ID: ${this.requestID})`;
 
-    const body = JSON.stringify(new Request(this.inputValue, true, ""));
+    const body = JSON.stringify(new Request(this.inputValue, true));
     const headers = new Headers({"Content-Type" : "application/json"});
     const options = new RequestOptions({headers});
 
