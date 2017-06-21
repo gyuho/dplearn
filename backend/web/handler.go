@@ -238,7 +238,6 @@ func queueHandler(ctx context.Context, w http.ResponseWriter, req *http.Request)
 type Request struct {
 	DataFromFrontend string `json:"data_from_frontend"`
 	CreateRequest    bool   `json:"create_request"`
-	RequestID        string `json:"request_id"`
 }
 
 func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.Request) error {
