@@ -21,13 +21,16 @@ import {
 // Request represents TypeScript version of Request in https://github.com/gyuho/deephardway/blob/master/backend/web/web.go.
 export class Request {
   public data_from_frontend: string;
-  public cancel_request: boolean;
+  public create_request: boolean;
+  public request_id: string;
   constructor(
     d: string,
-    cancel: boolean,
+    create: boolean,
+    id: string,
   ) {
     this.data_from_frontend = d;
-    this.cancel_request = cancel;
+    this.create_request = create;
+    this.request_id = id;
   }
 }
 
@@ -64,51 +67,61 @@ export class Item {
 export class BackendService implements OnDestroy {
   public endpoint = "";
 
-  public mode = "Observable";
-
   public inputValue: string;
-
-  public sresp: Item;
-  public srespError: string;
   public result: string;
 
   public progress = 0;
   public spinnerColor = "primary";
   public spinnerMode = "indeterminate";
 
+  private errorFromServer = "";
+  private mode = "Observable";
+  private requestID: string;
   private pollingHandler;
 
   constructor(private http: Http, public snackBar: MdSnackBar) {
     this.inputValue = "";
-    this.srespError = "";
-    this.result = "No results to show yet...";
+    this.result = "Nothing to show yet...";
   }
 
   public ngOnDestroy() {
-    console.log("user left page!");
+    console.log("user left page; destroying!");
     clearInterval(this.pollingHandler);
 
-    const creq = new Request(this.inputValue, true);
-    let responseFromSubscribe: Item;
-    this.cancelRequest(creq).subscribe(
-      (sresp) => responseFromSubscribe = sresp,
-      (error) => this.srespError = error as any,
-      () => this.processItem(responseFromSubscribe), // on-complete
-    );
+    const body = JSON.stringify(new Request(this.inputValue, false, ""));
+    const headers = new Headers({"Content-Type" : "application/json"});
+    const options = new RequestOptions({headers});
+
+    // this.http.post().map().catch() returns 'Observable<Item>'
+    // which is non-blocking, 'subscribe' is the blocking operation
+    let itemFromServer: Item;
+    this.http.post(this.endpoint, body, options)
+      .map(this.processHTTPResponseClient)
+      .catch(this.processHTTPErrorClient)
+      .subscribe(
+        (resp) => itemFromServer = resp,
+        (error) => this.errorFromServer = error as any,
+        () => this.processItemFromServer(itemFromServer), // on-complete
+      );
 
     this.inputValue = "";
-    this.srespError = "";
+    this.result = "Nothing to show yet...";
+    this.progress = 0;
+    this.errorFromServer = "";
+    console.log("user left page; destroyed!");
+
     return;
   }
 
-  public processItem(resp: Item) {
-    this.sresp = resp;
+  public processItemFromServer(resp: Item) {
     this.result = resp.value;
+    this.requestID = resp.request_id;
     if (resp.error !== "") {
       clearInterval(this.pollingHandler);
       this.result = (this.result === "") ? resp.error : `${resp.value} (${resp.error})`;
     }
     if (resp.canceled === true) {
+      clearInterval(this.pollingHandler);
       this.result += " - canceled!";
     }
 
@@ -119,51 +132,63 @@ export class BackendService implements OnDestroy {
   }
 
   public processHTTPResponseClient(res: Response) {
-    const jsonBody = res.json();
-    const sresp = jsonBody as Item;
-    return sresp || {};
+    return (res.json() as Item) || {};
   }
 
   public processHTTPErrorClient(error: any) {
     const errMsg = (error.message) ? error.message :
       error.status ? `${error.status} - ${error.statusText}` : "Server error";
     console.error(errMsg);
-    this.srespError = errMsg;
+    this.errorFromServer = errMsg;
     return Observable.throw(errMsg);
   }
 
-  public postRequest(creq: Request): Observable<Item> {
-    const body = JSON.stringify(creq);
-    const headers = new Headers({"Content-Type" : "application/json"});
+  // fetchStatus requests status updates from backend server.
+  // Blocks until the item is completed.
+  // TODO: time out?
+  public fetchStatus() {
+    const headers = new Headers({
+      "Content-Type" : "application/plain",
+      "request_id" : this.requestID,
+    });
     const options = new RequestOptions({headers});
 
-    // this returns without waiting for POST response
-    const obser = this.http.post(this.endpoint, body, options)
+    let itemFromServer: Item;
+    this.http.get(this.endpoint, options)
       .map(this.processHTTPResponseClient)
-      .catch(this.processHTTPErrorClient);
-    return obser;
-  }
-
-  public cancelRequest(creq: Request): Observable<Item> {
-    creq.cancel_request = true;
-    return this.postRequest(creq);
-  }
-
-  public processRequest() {
-    const creq = new Request(this.inputValue, false);
-    let responseFromSubscribe: Item;
-    this.postRequest(creq).subscribe(
-      (sresp) => responseFromSubscribe = sresp,
-      (error) => this.srespError = error as any,
-      () => this.processItem(responseFromSubscribe), // on-complete
-    );
+      .catch(this.processHTTPErrorClient)
+      .subscribe(
+        (resp) => itemFromServer = resp,
+        (error) => this.errorFromServer = error as any,
+        () => this.processItemFromServer(itemFromServer), // on-complete
+      );
   }
 
   public clickPOST() {
     this.snackBar.open("Job scheduled! Waiting...", "Requested!", {
-      duration: 7000,
+      duration: 10000,
     });
+
     this.progress = 0;
-    this.pollingHandler = setInterval(() => this.processRequest(), 1000);
+    this.result = `[FRONTEND - ACK] Requested '${this.inputValue}' (request ID: ${this.requestID})`;
+
+    const body = JSON.stringify(new Request(this.inputValue, true, ""));
+    const headers = new Headers({"Content-Type" : "application/json"});
+    const options = new RequestOptions({headers});
+
+    // this.http.post().map().catch() returns 'Observable<Item>'
+    // which is non-blocking, 'subscribe' is the blocking operation
+    let itemFromServer: Item;
+    this.http.post(this.endpoint, body, options)
+      .map(this.processHTTPResponseClient)
+      .catch(this.processHTTPErrorClient)
+      .subscribe(
+        (resp) => itemFromServer = resp,
+        (error) => this.errorFromServer = error as any,
+        () => this.processItemFromServer(itemFromServer), // on-complete
+      );
+
+    // retry in case of network glitches
+    this.pollingHandler = setInterval(() => this.fetchStatus(), 500);
   }
 }
