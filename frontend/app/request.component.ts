@@ -159,7 +159,7 @@ export class BackendService implements OnDestroy {
     );
   }
 
-  public clickProcessRequest() {
+  public clickPOST() {
     this.snackBar.open("Job scheduled! Waiting...", "Requested!", {
       duration: 7000,
     });
