@@ -295,13 +295,14 @@ func (qu *queue) Enqueue(ctx context.Context, item *Item) ItemWatcher {
 
 	wch := qu.cli.Watch(ctx, key, clientv3.WithPrevKV())
 	go func() {
+		defer close(ch)
+
 		for {
 			select {
 			case wresp := <-wch:
 				if len(wresp.Events) != 1 {
 					cur.Error = fmt.Sprintf("enqueue-watcher: %q expects 1 event from watch, got %+v", cur.Key, wresp.Events)
 					ch <- &cur
-					close(ch)
 					return
 				}
 
@@ -311,7 +312,6 @@ func (qu *queue) Enqueue(ctx context.Context, item *Item) ItemWatcher {
 					if err := json.Unmarshal(wresp.Events[0].PrevKv.Value, &prev); err != nil {
 						prev.Error = fmt.Sprintf("enqueue-watcher: cannot parse %q", string(wresp.Events[0].PrevKv.Value))
 						ch <- &prev
-						close(ch)
 						return
 					}
 
@@ -321,26 +321,22 @@ func (qu *queue) Enqueue(ctx context.Context, item *Item) ItemWatcher {
 					}
 
 					ch <- &prev
-					close(ch)
 					return
 				}
 
 				if err := json.Unmarshal(wresp.Events[0].Kv.Value, &cur); err != nil {
 					cur.Error = fmt.Sprintf("enqueue-watcher: cannot parse %q", string(wresp.Events[0].Kv.Value))
 					ch <- &cur
-					close(ch)
 					return
 				}
 
 				ch <- &cur
 				if cur.Error != "" {
 					glog.Warningf("enqueue-watcher: %q contains error %v", cur.Key, cur.Error)
-					close(ch)
 					return
 				}
 				if cur.Progress == 100 {
 					glog.Infof("enqueue-watcher: %q is finished", cur.Key)
-					close(ch)
 					return
 				}
 				glog.Infof("enqueue-watcher: %q has been updated (waiting for next updates)", cur.Key)
@@ -348,7 +344,6 @@ func (qu *queue) Enqueue(ctx context.Context, item *Item) ItemWatcher {
 			case <-ctx.Done():
 				cur.Error = ctx.Err().Error()
 				ch <- &cur
-				close(ch)
 				return
 			}
 		}
@@ -385,6 +380,7 @@ func (qu *queue) Front(ctx context.Context, bucket string) ItemWatcher {
 				} else {
 					ch <- &item
 				}
+
 			case <-ctx.Done():
 				ch <- &Item{Error: ctx.Err().Error()}
 			}
@@ -446,6 +442,7 @@ func (qu *queue) Watch(ctx context.Context, key string) ItemWatcher {
 					ch <- &item
 					glog.Infof("watch: sent event on %q", key)
 				}
+
 			case <-ctx.Done():
 				glog.Infof("watch: canceled on %q (closing channel)", key)
 				close(ch)
