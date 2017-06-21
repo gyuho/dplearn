@@ -220,7 +220,9 @@ func queueHandler(ctx context.Context, w http.ResponseWriter, req *http.Request)
 		itemWatcher := qu.Enqueue(ctx, &item)
 		select {
 		case ev := <-itemWatcher:
-			item.Error = fmt.Sprintf("unexpected event from Enqueue with %+v", ev)
+			if item.Progress != etcdqueue.MaxProgress {
+				item.Error = fmt.Sprintf("unexpected event from Enqueue with %+v", ev)
+			}
 		default:
 		}
 		return json.NewEncoder(w).Encode(&item)
