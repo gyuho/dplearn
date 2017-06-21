@@ -6,6 +6,12 @@ if ! [[ "$0" =~ "./scripts/dep/frontend.sh" ]]; then
   exit 255
 fi
 
+source ${NVM_DIR}/nvm.sh
+nvm install v7.10.0
+
+go install -v ./cmd/gen-package-json
+gen-package-json --output package.json --logtostderr
+
 # npm install -g tslint
 yarn install
 npm rebuild node-sass
