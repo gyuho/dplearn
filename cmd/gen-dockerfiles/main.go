@@ -150,6 +150,7 @@ ADD nginx.conf /etc/nginx/sites-available/default
 # install 'conda install --name py36 ...' just for Python 3 (source activate py36)
 # https://github.com/Anaconda-Platform/nb_conda
 # https://github.com/jupyter/docker-stacks/blob/master/r-notebook/Dockerfile
+# https://github.com/fchollet/keras
 RUN pip --no-cache-dir install \
   requests \
   glog \
