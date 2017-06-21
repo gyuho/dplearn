@@ -235,12 +235,23 @@ func (qu *queue) delete(ctx context.Context, key string) error {
 	return err
 }
 
-func (qu *queue) Enqueue(ctx context.Context, it *Item) ItemWatcher {
-	key := path.Join(pfxScheduled, it.Key)
-	data, err := json.Marshal(it)
+func (qu *queue) Enqueue(ctx context.Context, item *Item) ItemWatcher {
+	// TODO: make this configurable
+	ch := make(chan *Item, 100)
+
+	if item == nil {
+		ch <- &Item{Error: "received <nil> Item"}
+		close(ch)
+		return ch
+	}
+
+	cur := *item
+	key := path.Join(pfxScheduled, cur.Key)
+
+	data, err := json.Marshal(&cur)
 	if err != nil {
-		ch := make(chan *Item, 1)
-		ch <- &Item{Error: err.Error()}
+		cur.Error = err.Error()
+		ch <- &cur
 		close(ch)
 		return ch
 	}
@@ -250,30 +261,30 @@ func (qu *queue) Enqueue(ctx context.Context, it *Item) ItemWatcher {
 	defer qu.mu.Unlock()
 
 	if err = qu.put(ctx, key, val); err != nil {
-		ch := make(chan *Item, 1)
-		ch <- &Item{Error: err.Error()}
+		cur.Error = err.Error()
+		ch <- &cur
 		close(ch)
 		return ch
 	}
-	glog.Infof("enqueue: wrote %q", it.Key)
+	glog.Infof("enqueue: wrote %q", item.Key)
 
-	// TODO: make this configurable
-	ch := make(chan *Item, 100)
-	item := *it
-
-	if item.Progress == maxProgress {
+	if cur.Progress == maxProgress {
 		if err = qu.delete(ctx, key); err != nil {
-			ch <- &Item{Error: err.Error()}
+			cur.Error = err.Error()
+			ch <- &cur
 			close(ch)
 			return ch
 		}
-		if err := qu.put(ctx, path.Join(pfxCompleted, item.Key), val); err != nil {
-			ch <- &Item{Error: err.Error()}
+
+		if err := qu.put(ctx, path.Join(pfxCompleted, cur.Key), val); err != nil {
+			cur.Error = err.Error()
+			ch <- &cur
 			close(ch)
 			return ch
 		}
-		glog.Infof("enqueue: %q is finished", item.Key)
-		ch <- &item
+
+		glog.Infof("enqueue: %q is finished", cur.Key)
+		ch <- &cur
 		close(ch)
 		return ch
 	}
@@ -284,14 +295,14 @@ func (qu *queue) Enqueue(ctx context.Context, it *Item) ItemWatcher {
 			select {
 			case wresp := <-wch:
 				if len(wresp.Events) != 1 {
-					item.Error = fmt.Sprintf("enqueue-watcher: %q expects 1 event from watch, got %+v", item.Key, wresp.Events)
-					ch <- &item
+					cur.Error = fmt.Sprintf("enqueue-watcher: %q expects 1 event from watch, got %+v", cur.Key, wresp.Events)
+					ch <- &cur
 					close(ch)
 					return
 				}
 
 				if wresp.Events[0].Type == mvccpb.DELETE {
-					glog.Infof("enqueue-watcher: %q has been deleted; either completed or canceled", item.Key)
+					glog.Infof("enqueue-watcher: %q has been deleted; either completed or canceled", cur.Key)
 					var prev Item
 					if err := json.Unmarshal(wresp.Events[0].PrevKv.Value, &prev); err != nil {
 						prev.Error = fmt.Sprintf("enqueue-watcher: cannot parse %q", string(wresp.Events[0].PrevKv.Value))
@@ -299,38 +310,40 @@ func (qu *queue) Enqueue(ctx context.Context, it *Item) ItemWatcher {
 						close(ch)
 						return
 					}
+
 					if prev.Progress != 100 {
 						prev.Canceled = true
 						glog.Infof("enqueue-watcher: found %q progress is only %d (canceled)", prev.Key, prev.Progress)
 					}
+
 					ch <- &prev
 					close(ch)
 					return
 				}
 
-				if err := json.Unmarshal(wresp.Events[0].Kv.Value, &item); err != nil {
-					item.Error = fmt.Sprintf("enqueue-watcher: cannot parse %q", string(wresp.Events[0].Kv.Value))
-					ch <- &item
+				if err := json.Unmarshal(wresp.Events[0].Kv.Value, &cur); err != nil {
+					cur.Error = fmt.Sprintf("enqueue-watcher: cannot parse %q", string(wresp.Events[0].Kv.Value))
+					ch <- &cur
 					close(ch)
 					return
 				}
 
-				ch <- &item
-				if item.Error != "" {
-					glog.Warningf("enqueue-watcher: %q contains error %v", item.Key, item.Error)
+				ch <- &cur
+				if cur.Error != "" {
+					glog.Warningf("enqueue-watcher: %q contains error %v", cur.Key, cur.Error)
 					close(ch)
 					return
 				}
-				if item.Progress == 100 {
-					glog.Infof("enqueue-watcher: %q is finished", item.Key)
+				if cur.Progress == 100 {
+					glog.Infof("enqueue-watcher: %q is finished", cur.Key)
 					close(ch)
 					return
 				}
-				glog.Infof("enqueue-watcher: %q has been updated", item.Key)
+				glog.Infof("enqueue-watcher: %q has been updated (waiting for next updates)", cur.Key)
 
 			case <-ctx.Done():
-				item.Error = ctx.Err().Error()
-				ch <- &item
+				cur.Error = ctx.Err().Error()
+				ch <- &cur
 				close(ch)
 				return
 			}
