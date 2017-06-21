@@ -120,7 +120,7 @@ if __name__ == "__main__":
                     # process_cats_vs_dogs(ITEM['value'])
                     ITEM['progress'] = 100
                     NOW = datetime.datetime.now().isoformat()
-                    ITEM['value'] = "[FAKE] it's a cat! " + NOW
+                    ITEM['value'] = "[WORKER - ACK] it's a cat! " + NOW
 
             POST_RESPONSE = post_item(EP, ITEM)
             if POST_RESPONSE['error'] not in ['', u'']:
@@ -137,7 +137,7 @@ if __name__ == "__main__":
                 """
                 ITEM['progress'] = 100
                 NOW = datetime.datetime.now().isoformat()
-                ITEM['value'] = "[FAKE] it's ... " + NOW
+                ITEM['value'] = "[WORKER - ACK] it's ... " + NOW
 
             POST_RESPONSE = post_item(EP, ITEM)
             if POST_RESPONSE['error'] not in ['', u'']:
