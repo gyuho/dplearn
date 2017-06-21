@@ -111,9 +111,9 @@
   dependencies:
     tslib "^1.7.1"
 
-"@angular/material@2.0.0-beta.6":
-  version "2.0.0-beta.6"
-  resolved "https://registry.yarnpkg.com/@angular/material/-/material-2.0.0-beta.6.tgz#83bfdf00f540a8c7db900a1e7b8ed2cff49df821"
+"@angular/material@2.0.0-beta.7":
+  version "2.0.0-beta.7"
+  resolved "https://registry.yarnpkg.com/@angular/material/-/material-2.0.0-beta.7.tgz#2584aaf1ffbe24779916345f1ac82921ccbc2577"
   dependencies:
     tslib "^1.7.1"
 
@@ -197,9 +197,15 @@
   dependencies:
     "@types/angular" "*"
 
-"@types/angular@*", "@types/angular@1.6.19":
+"@types/angular@*":
   version "1.6.19"
   resolved "https://registry.yarnpkg.com/@types/angular/-/angular-1.6.19.tgz#a81137c2c5b046495bf2bc794cd4c30b349e2edd"
+  dependencies:
+    "@types/jquery" "*"
+
+"@types/angular@1.6.20":
+  version "1.6.20"
+  resolved "https://registry.yarnpkg.com/@types/angular/-/angular-1.6.20.tgz#6d1556494cf06683f19e36ff25028af9ef1e2d31"
   dependencies:
     "@types/jquery" "*"
 
@@ -215,9 +221,9 @@
   version "2.0.45"
   resolved "https://registry.yarnpkg.com/@types/jquery/-/jquery-2.0.45.tgz#cb99133aac1d997a820d6cf7258c91291c0a2adf"
 
-"@types/node@7.0.31":
-  version "7.0.31"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-7.0.31.tgz#80ea4d175599b2a00149c29a10a4eb2dff592e86"
+"@types/node@8.0.1":
+  version "8.0.1"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-8.0.1.tgz#89c271e0c3b9ebb6a3756dd601336970b6228b77"
 
 "@types/node@^6.0.46":
   version "6.0.46"
@@ -959,9 +965,9 @@ code-point-at@^1.0.0:
   dependencies:
     number-is-nan "^1.0.0"
 
-codelyzer@3.0.1:
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/codelyzer/-/codelyzer-3.0.1.tgz#ba66b7b2aa564fe9f45d6004b4003ad2cf116828"
+codelyzer@3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/codelyzer/-/codelyzer-3.1.0.tgz#0ff9f118c0dbdf2d648e448f68c762c146512c12"
   dependencies:
     app-root-path "^2.0.1"
     css-selector-tokenizer "^0.7.0"
