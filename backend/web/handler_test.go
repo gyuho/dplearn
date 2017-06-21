@@ -50,10 +50,7 @@ func TestServer(t *testing.T) {
 	resp, err = http.Post(
 		srv.webURL.String()+"/word-predict-request",
 		"application/json",
-		strings.NewReader(`{
-	"data_from_frontend": "hello world!",
-	"create_request": true
-}`))
+		strings.NewReader(`{"data_from_frontend": "hello world!", "create_request": true}`))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -150,7 +147,7 @@ func TestServer(t *testing.T) {
 	req := &http.Request{
 		Method: http.MethodGet,
 		URL:    u,
-		Header: map[string][]string{"request_id": []string{itemDone.RequestID}},
+		Header: map[string][]string{"request_id": {itemDone.RequestID}},
 	}
 	resp, err = http.DefaultClient.Do(req)
 	if err != nil {
