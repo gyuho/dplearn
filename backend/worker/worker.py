@@ -7,26 +7,25 @@ from __future__ import print_function
 import copy
 import datetime
 import json
-import sys
 import os.path
+import sys
 import time
 
 import glog as log
 import requests
 
-
 ITEM_KEYS = ['bucket', 'key', 'value', 'progress', 'canceled', 'error',
              'request_id']
 
 
-def fetch_item(endpoint):
+def fetch_item(endpoint, timeout=None):
     """fetch_item fetches a scheduled job from queue service.
     """
     while True:
         try:
             # blocks until first item is available
             log.info('fetching item from {0}'.format(endpoint))
-            rresp = requests.get(endpoint)
+            rresp = requests.get(endpoint, timeout=timeout)
             log.info('fetched item from {0}'.format(endpoint))
 
             # even empty, Go backend should encode every field
@@ -53,7 +52,7 @@ def post_item(endpoint, item):
     headers = {'Content-Type': 'application/json'}
     while True:
         try:
-            req_id = ITEM['request_id']
+            req_id = item['request_id']
             log.info('posting item to {0} with request ID {1}'.format(endpoint, req_id))
             rresp = requests.post(endpoint, data=json.dumps(item),
                                   headers=headers)

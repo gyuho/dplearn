@@ -14,6 +14,7 @@ import time
 import unittest
 
 import glog as log
+import requests
 
 from .worker import fetch_item, post_item
 
@@ -92,6 +93,7 @@ class TestBackend(unittest.TestCase):
             'bucket': '/word-predict-request',
             'key': '/word-predict-request',
             'value': '',
+            'request_id': '',
         }
         itemresp1 = post_item(endpoint, item)
         self.assertIsNot(itemresp1['error'], '')
@@ -102,20 +104,25 @@ class TestBackend(unittest.TestCase):
         itemresp2 = post_item(endpoint, item)
         self.assertEqual(itemresp2['error'], u'unknown request ID \"id\"')
 
+        def cleanup():
+            """Clean up.
+            """
+            log.info('Killing backend-web-server...')
+            backend_proc.kill()
+
+            backend_proc.join()
+            log.info('backend-web-server output: {0}'.format(backend_proc.stderr))
+
+        self.addCleanup(cleanup)
+
         time.sleep(3)
 
         log.info('Fetching items...')
-        itemresp3 = fetch_item(endpoint)
-        self.assertEqual(itemresp3['bucket'], '/word-predict-request')
-        self.assertEqual(itemresp3['key'], u'')
-        self.assertEqual(itemresp3['value'], u'')
-        self.assertEqual(itemresp3['error'], u'"/word-predict-request" has no item')
+        try:
+            fetch_item(endpoint, timeout=5)
 
-        log.info('Killing backend-web-server...')
-        backend_proc.kill()
-
-        backend_proc.join()
-        log.info('backend-web-server output: {0}'.format(backend_proc.stderr))
+        except requests.exceptions.ReadTimeout:
+            log.info('Got expected timeout!')
 
         log.info('Done!')
 
