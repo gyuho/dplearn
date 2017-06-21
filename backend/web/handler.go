@@ -250,9 +250,9 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 
 	switch req.Method {
 	case http.MethodGet: // item status fetch
-		requestID := req.Header.Get("request_id")
+		requestID := req.Header.Get("Request-Id")
 		if requestID == "" {
-			err := fmt.Errorf("expected 'request_id' from GET header (got %+v)", req.Header)
+			err := fmt.Errorf("expected 'Request-Id' from header (got %+v)", req.Header)
 			glog.Warning(err)
 			return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: reqPath, Progress: 0, Error: err.Error()})
 		}
