@@ -235,7 +235,7 @@ func queueHandler(ctx context.Context, w http.ResponseWriter, req *http.Request)
 // Request defines requests from frontend.
 type Request struct {
 	DataFromFrontend string `json:"data_from_frontend"`
-	CancelRequest    bool   `json:"cancel_request"`
+	CreateRequest    bool   `json:"create_request"`
 }
 
 func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.Request) error {
@@ -246,7 +246,7 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 	userID := ctx.Value(userKey).(string)
 
 	switch req.Method {
-	case http.MethodPost:
+	case http.MethodPost: // item creation/cancel
 		rb, err := ioutil.ReadAll(req.Body)
 		if err != nil {
 			return err
@@ -288,8 +288,8 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 
 		requestID := generateRequestID(reqPath, userID, creq.DataFromFrontend)
 
-		switch creq.CancelRequest {
-		case false:
+		switch creq.CreateRequest {
+		case true:
 			glog.Infof("fetching %q", requestID)
 			srv.requestCacheMu.Lock()
 			v, ok := srv.requestCache[requestID]
@@ -327,7 +327,7 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 			copied.Value = fmt.Sprintf("Requested %q", copied.Value)
 			return json.NewEncoder(w).Encode(&copied)
 
-		case true:
+		case false:
 			glog.Infof("deleting %q", requestID)
 			srv.requestCacheMu.Lock()
 			item, ok := srv.requestCache[requestID]
