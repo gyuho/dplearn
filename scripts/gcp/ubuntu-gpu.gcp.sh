@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-if ! [[ "$0" =~ "./scripts/gcp/create-instance.sh" ]]; then
+if ! [[ "$0" =~ "./scripts/gcp/ubuntu-gpu.gcp.sh" ]]; then
   echo "must be from repository root"
   exit 255
 fi

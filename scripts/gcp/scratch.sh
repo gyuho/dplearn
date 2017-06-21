@@ -8,7 +8,7 @@ Source IP ranges: 0.0.0.0/0
 Protocols and ports: tcp:80; tcp:4200; tcp:8888;
 COMMENT
 
-GCP_KEY_PATH=/etc/gcp-key-deephardway.json ./scripts/gcp/create-instance.sh
+GCP_KEY_PATH=/etc/gcp-key-deephardway.json ./scripts/gcp/ubuntu-gpu.gcp.sh
 
 gcloud compute ssh --zone=us-west1-b deephardway
 

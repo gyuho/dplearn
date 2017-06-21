@@ -91,7 +91,7 @@ To run `deephardway` application (backend, web UI, worker) locally:
 To deploy `deephardway` application to Google Cloud Platform:
 
 ```bash
-GCP_KEY_PATH=/etc/gcp-key-deephardway.json ./scripts/gcp/create-instance.sh
+GCP_KEY_PATH=/etc/gcp-key-deephardway.json ./scripts/gcp/ubuntu-gpu.gcp.sh
 
 # create a Google Cloud Platform Compute Engine VM with a start-up
 # to provision GPU, init system, reverse proxy, and others
