@@ -30,14 +30,17 @@
   name = "golang.org/x/oauth2"
   revision = "f047394b6d14284165300fd82dad67edb3a4d7f6"
 
-[[constraint]]
-  name = "cloud.google.com/go"
-  revision = "69931d826ffbbcb4f8451b42d5cf7fc2ac6c7443"
-
+# https://github.com/google/google-api-go-client
 [[constraint]]
   name = "google.golang.org/api"
   revision = "1faa39f42f12a54fa82ca5902a7ab642d5b09ad1"
 
+# https://github.com/golang/appengine
 [[constraint]]
   name = "google.golang.org/appengine"
   revision = "a2f4131514e563cedfdb6e7d267df9ad48591e93"
+
+# https://github.com/GoogleCloudPlatform/google-cloud-go
+[[constraint]]
+  name = "cloud.google.com/go"
+  revision = "d4f8670e9dba7e0c9dd3f6da843d678afd21c587"
