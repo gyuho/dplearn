@@ -21,13 +21,13 @@ import {
 // Request represents TypeScript version of Request in https://github.com/gyuho/deephardway/blob/master/backend/web/web.go.
 export class Request {
   public data_from_frontend: string;
-  public delete_request: boolean;
+  public cancel_request: boolean;
   constructor(
     d: string,
-    delReq: boolean,
+    cancel: boolean,
   ) {
     this.data_from_frontend = d;
-    this.delete_request = delReq;
+    this.cancel_request = cancel;
   }
 }
 
@@ -90,7 +90,7 @@ export class BackendService implements OnDestroy {
 
     const creq = new Request(this.inputValue, true);
     let responseFromSubscribe: Item;
-    this.deleteRequest(creq).subscribe(
+    this.cancelRequest(creq).subscribe(
       (sresp) => responseFromSubscribe = sresp,
       (error) => this.srespError = error as any,
       () => this.processItem(responseFromSubscribe), // on-complete
@@ -144,8 +144,8 @@ export class BackendService implements OnDestroy {
     return obser;
   }
 
-  public deleteRequest(creq: Request): Observable<Item> {
-    creq.delete_request = true;
+  public cancelRequest(creq: Request): Observable<Item> {
+    creq.cancel_request = true;
     return this.postRequest(creq);
   }
 
