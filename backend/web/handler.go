@@ -194,14 +194,7 @@ func queueHandler(ctx context.Context, w http.ResponseWriter, req *http.Request)
 
 	switch req.Method {
 	case http.MethodGet:
-		item, err := qu.Front(ctx, bucket)
-		if err != nil {
-			return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: bucket, Progress: 0, Error: err.Error()})
-		}
-		if item == nil {
-			item = &etcdqueue.Item{Bucket: bucket, Error: fmt.Sprintf("%q has no item", bucket)}
-		}
-		return json.NewEncoder(w).Encode(item)
+		return json.NewEncoder(w).Encode(<-qu.Front(ctx, bucket))
 
 	case http.MethodPost:
 		rb, err := ioutil.ReadAll(req.Body)
@@ -228,8 +221,11 @@ func queueHandler(ctx context.Context, w http.ResponseWriter, req *http.Request)
 			return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: bucket, Progress: 0, Error: fmt.Sprintf("unknown request ID %q", item.RequestID)})
 		}
 
-		if _, err := qu.Enqueue(ctx, &item); err != nil {
-			return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: bucket, Progress: 0, Error: err.Error()})
+		itemWatcher := qu.Enqueue(ctx, &item)
+		select {
+		case ev := <-itemWatcher:
+			item.Error = fmt.Sprintf("unexpected event from Enqueue with %q", ev)
+		default:
 		}
 		return json.NewEncoder(w).Encode(&item)
 
@@ -333,12 +329,14 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 			item.RequestID = requestID
 
 			// enqueue(schedule) the job
-			ch, err := qu.Enqueue(ctx, item)
-			if err != nil {
+			ch := qu.Enqueue(ctx, item)
+			select {
+			case ev := <-ch:
 				srv.requestCacheMu.Unlock()
-				err = fmt.Errorf("qu.Enqueue error %q", err.Error())
+				err := fmt.Sprintf("unexpected event from Enqueue with %q", ev)
 				glog.Warning(err)
-				return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: reqPath, Progress: 0, Error: err.Error()})
+				return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: reqPath, Progress: 0, Error: err})
+			default:
 			}
 
 			// watch for changes from worker, keep the cache up-to-date
