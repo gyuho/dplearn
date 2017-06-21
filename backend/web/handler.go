@@ -311,10 +311,6 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 			glog.Warning(err)
 			return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: reqPath, Progress: 0, Error: err.Error()})
 		}
-		if creq.RequestID != "" {
-			glog.Warningf("TODO: skipping non-empty request... bug in frontend? %+v", creq)
-			return nil
-		}
 		if creq.DataFromFrontend == "" {
 			glog.Warning("TODO: skipping empty request... bug in frontend ngOnDestroy?")
 			return nil
@@ -409,6 +405,7 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 
 func (srv *Server) watch(ctx context.Context, requestID string, ch <-chan *etcdqueue.Item) {
 	item := &etcdqueue.Item{Progress: 0}
+	var stillOpen bool
 	for item.Progress < etcdqueue.MaxProgress && !item.Canceled {
 		srv.requestCacheMu.Lock()
 		_, ok := srv.requestCache[requestID]
@@ -424,7 +421,11 @@ func (srv *Server) watch(ctx context.Context, requestID string, ch <-chan *etcdq
 			return
 		case <-ctx.Done():
 			return
-		case item = <-ch:
+		case item, stillOpen = <-ch:
+			if item == nil && !stillOpen {
+				glog.Warningf("watch channel on %q is closed", requestID)
+				return
+			}
 			if item.Canceled {
 				glog.Infof("watcher: %q is canceld", requestID)
 			} else {
