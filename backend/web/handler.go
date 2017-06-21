@@ -224,7 +224,7 @@ func queueHandler(ctx context.Context, w http.ResponseWriter, req *http.Request)
 		itemWatcher := qu.Enqueue(ctx, &item)
 		select {
 		case ev := <-itemWatcher:
-			item.Error = fmt.Sprintf("unexpected event from Enqueue with %q", ev)
+			item.Error = fmt.Sprintf("unexpected event from Enqueue with %+v", ev)
 		default:
 		}
 		return json.NewEncoder(w).Encode(&item)
@@ -333,7 +333,7 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 			select {
 			case ev := <-ch:
 				srv.requestCacheMu.Unlock()
-				err := fmt.Sprintf("unexpected event from Enqueue with %q", ev)
+				err := fmt.Sprintf("unexpected event from Enqueue with %+v", ev)
 				glog.Warning(err)
 				return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: reqPath, Progress: 0, Error: err})
 			default:
