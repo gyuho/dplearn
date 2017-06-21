@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/coreos/etcd/clientv3"
+	"github.com/golang/glog"
 )
 
 /*
@@ -152,7 +153,10 @@ func TestQueue(t *testing.T) {
 		t.Fatalf("expected %+v, got %+v (%v)", item1, item1a, err)
 	}
 
-	// proceed 'item1'
+	ctx, cancel := context.WithCancel(context.Background())
+	item1aW := qu.Watch(ctx, item1a.Key)
+
+	glog.Info("proceeding with 'item1'")
 	item1a.Progress = 50
 	item1a.Value = "new-data"
 	wch1a := qu.Enqueue(context.Background(), item1a)
@@ -171,6 +175,32 @@ func TestQueue(t *testing.T) {
 		}
 	case <-time.After(5 * time.Second):
 		t.Fatal("expected events from wch1 in 5-sec")
+	}
+
+	select {
+	case item1aWresp, stillOpen := <-item1aW:
+		if !stillOpen {
+			t.Fatalf("%q watcher must still be open, got open %v", item1a.Key, stillOpen)
+		}
+		if err = equalItem(item1aWresp, item1a); err != nil {
+			t.Fatalf("expected %+v, got %+v (%v)", item1aWresp, item1a, err)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatalf("expected watch response on %q watcher, but got none", item1a.Key)
+	}
+
+	cancel()
+
+	select {
+	case item1aWresp, stillOpen := <-item1aW:
+		if stillOpen {
+			t.Fatalf("%q watcher must be closed after cancel, got open %v", item1a.Key, stillOpen)
+		}
+		if item1aWresp != nil {
+			t.Fatalf("expected nil, got %+v (%v)", item1aWresp, err)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatalf("expected watch response on %q watcher, but got none", item1a.Key)
 	}
 
 	// cancel 'item1'
@@ -237,8 +267,8 @@ func equalItem(item1, item2 *Item) error {
 	return nil
 }
 
-// TestQueueEtcd tests some etcd-specific behaviors.
-func TestQueueEtcd(t *testing.T) {
+// TestEtcd tests some etcd-specific behaviors.
+func TestEtcd(t *testing.T) {
 	cport := int(atomic.LoadInt32(&basePort))
 	atomic.StoreInt32(&basePort, int32(cport)+2)
 

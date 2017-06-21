@@ -94,6 +94,11 @@ type Queue interface {
 	// Dequeue deletes the item in the queue, whether the item is completed
 	// or in progress. The item needs not be the first one in the queue.
 	Dequeue(ctx context.Context, it *Item) error
+
+	// Watch creates a item watcher, assuming that the job is already scheduled
+	// by 'Enqueue' method. The returned channel is never closed until the
+	// context is canceled.
+	Watch(ctx context.Context, key string) ItemWatcher
 }
 
 const (
@@ -381,7 +386,7 @@ func (qu *queue) Front(ctx context.Context, bucket string) ItemWatcher {
 					ch <- &item
 				}
 			case <-ctx.Done():
-				ch <- &Item{Error: err.Error()}
+				ch <- &Item{Error: ctx.Err().Error()}
 			}
 		}()
 		return ch
@@ -415,4 +420,39 @@ func (qu *queue) Dequeue(ctx context.Context, it *Item) error {
 	}
 	glog.Infof("dequeue-ed %q", key)
 	return nil
+}
+
+func (qu *queue) Watch(ctx context.Context, key string) ItemWatcher {
+	glog.Infof("watch: started watching on %q", key)
+
+	key = path.Join(pfxScheduled, key)
+	ch := make(chan *Item, 100)
+
+	wch := qu.cli.Watch(ctx, key)
+	go func() {
+		for {
+			select {
+			case wresp := <-wch:
+				if len(wresp.Events) != 1 {
+					ch <- &Item{Error: fmt.Sprintf("watch: %q did not return 1 event via watch (got %+v)", key, wresp)}
+					continue
+				}
+				glog.Infof("watch: received event on %q", key)
+				v := wresp.Events[0].Kv.Value
+				var item Item
+				if err := json.Unmarshal(v, &item); err != nil {
+					ch <- &Item{Error: fmt.Sprintf("watch: %q returned wrong JSON value %q (%v)", key, string(v), err)}
+				} else {
+					ch <- &item
+					glog.Infof("watch: sent event on %q", key)
+				}
+			case <-ctx.Done():
+				glog.Infof("watch: canceled on %q (closing channel)", key)
+				close(ch)
+				return
+			}
+		}
+	}()
+
+	return ch
 }
