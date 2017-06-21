@@ -1,31 +1,39 @@
+# https://github.com/coreos/etcd
 [[constraint]]
   name = "github.com/coreos/etcd"
   revision = "a40cdc7baa333e230098ee3de5d4d36b31716dda"
 
+# https://github.com/dustin/go-humanize
 [[constraint]]
   name = "github.com/dustin/go-humanize"
   revision = "259d2a102b871d17f30e3cd9881a642961a1e486"
 
+# https://github.com/golang/glog
 [[constraint]]
   name = "github.com/golang/glog"
   revision = "23def4e6c14b4da8ac2ed8007337bc5eb5007998"
 
+# https://github.com/petar/GoLLRB
 [[constraint]]
   name = "github.com/petar/GoLLRB"
   revision = "53be0d36a84c2a886ca057d34b6aa4468df9ccb4"
 
+# https://github.com/go-yaml/yaml
 [[constraint]]
   name = "gopkg.in/yaml.v2"
   revision = "cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b"
 
+# https://github.com/gyuho/archiver
 [[constraint]]
   name = "github.com/gyuho/archiver"
   revision = "9498f426722d1e0f1c4d5801b282ba7a8720f717"
 
+# https://github.com/golang/sys
 [[constraint]]
   name = "golang.org/x/sys"
-  revision = "0b25a408a50076fbbcae6b7ac0ea5fbb0b085e79"
+  revision = "fb4cac33e3196ff7f507ab9b2d2a44b0142f5b5a"
 
+# https://github.com/golang/oauth2
 [[constraint]]
   name = "golang.org/x/oauth2"
   revision = "f047394b6d14284165300fd82dad67edb3a4d7f6"
