@@ -290,6 +290,13 @@ func TestEtcd(t *testing.T) {
 		t.Fatalf("len(resp.Kvs) expected 0, got %+v", resp.Kvs)
 	}
 
+	prevChan := cli.Watch(context.Background(), "foo", clientv3.WithPrevKV())
+	select {
+	case ev := <-prevChan:
+		t.Fatalf("unexpected watch event: %+v", ev)
+	case <-time.After(2 * time.Second):
+	}
+
 	watchChan := cli.Watch(context.Background(), "foo", clientv3.WithPrefix())
 	donec := make(chan struct{})
 	go func() {
