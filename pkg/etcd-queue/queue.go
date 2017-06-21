@@ -48,8 +48,7 @@ type Item struct {
 	RequestID string `json:"request_id"`
 }
 
-// CreateItem creates an item with auto-generated ID. The ID uses unix
-// nano seconds, so that items created later are added in order.
+// CreateItem creates an item with auto-generated ID of unix nano seconds.
 // The maximum weight(priority) is 99999.
 func CreateItem(bucket string, weight uint64, value string) *Item {
 	if weight > 99999 {
@@ -78,22 +77,22 @@ type Queue interface {
 	// Client returns the client.
 	Client() *clientv3.Client
 
-	// Stop stops the queue and its clients.
+	// Stop stops the queue service.
 	Stop()
 
-	// Enqueue adds or overwrites an item into the queue.
-	// Updates are sent to the returned channel.
-	// And the channel is closed after key deletion(dequeue),
-	// which is the last event when the job is completed.
+	// Enqueue adds/overwrites an item in the queue. Updates are to be
+	// done by other external worker services. The worker first fetches
+	// the first item via 'Front' method, and writes back with 'Enqueue'
+	// method. Enqueue returns a channel that notifies any events on the
+	// item. The channel is closed when the job is completed or canceled.
 	Enqueue(ctx context.Context, it *Item) ItemWatcher
 
-	// Front returns ItemWatcher that returns the first item
-	// in the queue. It blocks until there is an item.
+	// Front returns ItemWatcher that returns the first item in the queue.
+	// It blocks until there is at least one item to return.
 	Front(ctx context.Context, bucket string) ItemWatcher
 
-	// Dequeue deletes the item from the queue. Item is dequeue-ed
-	// from the queue, and canceled if in progress. The item does not
-	// need to be the first one in the queue.
+	// Dequeue deletes the item in the queue, whether the item is completed
+	// or in progress. The item needs not be the first one in the queue.
 	Dequeue(ctx context.Context, it *Item) error
 }
 
