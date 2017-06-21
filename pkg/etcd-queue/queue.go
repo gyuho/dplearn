@@ -100,8 +100,8 @@ const (
 	pfxScheduled = "_schd" // requested by client, added to queue
 	pfxCompleted = "_cmpl" // finished by worker
 
-	// progress value 100 means that the job is done!
-	maxProgress = 100
+	// MaxProgress is the progress value when the job is done!
+	MaxProgress = 100
 )
 
 type queue struct {
@@ -267,7 +267,7 @@ func (qu *queue) Enqueue(ctx context.Context, item *Item) ItemWatcher {
 	}
 	glog.Infof("enqueue: wrote %q", item.Key)
 
-	if cur.Progress == maxProgress {
+	if cur.Progress == MaxProgress {
 		if err = qu.delete(ctx, key); err != nil {
 			cur.Error = err.Error()
 			ch <- &cur
