@@ -40,10 +40,6 @@ To update dependencies:
 ./scripts/dep/go-dep.sh
 
 # update 'cmd/gen-package-json' and then
-./scripts/dep/package-json.sh
-
-# not needed if run inside container
-# docker build fetches all frontend dependencies
 ./scripts/dep/frontend.sh
 ```
 
