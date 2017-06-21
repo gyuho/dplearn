@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/coreos/etcd/clientv3"
-	"github.com/golang/glog"
 )
 
 /*
@@ -22,7 +21,7 @@ go test -v -run TestQueue -logtostderr=true
 
 var basePort int32 = 22379
 
-func TestQueue(t *testing.T) {
+func TestQueueEnqueueFront(t *testing.T) {
 	cport := int(atomic.LoadInt32(&basePort))
 	atomic.StoreInt32(&basePort, int32(cport)+2)
 
@@ -38,207 +37,228 @@ func TestQueue(t *testing.T) {
 	}
 	defer qu.Stop()
 
-	var cli *clientv3.Client
-	cli, err = clientv3.New(clientv3.Config{Endpoints: qu.ClientEndpoints()})
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer cli.Close()
-
-	if _, err = cli.Put(context.Background(), "foo", "bar"); err != nil {
-		t.Fatal(err)
-	}
-	if _, err = qu.Client().Put(context.Background(), "foo", "bar"); err != nil {
-		t.Fatal(err)
-	}
-
 	testBucket := "test-bucket"
 
-	firstCreate := qu.Front(context.Background(), testBucket)
+	frontChanFirstCreate := qu.Front(context.Background(), testBucket)
 	select {
-	case fi := <-firstCreate:
-		t.Fatalf("unexpected events: %+v", fi)
+	case item := <-frontChanFirstCreate:
+		t.Fatalf("unexpected events: %+v", item)
 	default:
 	}
 
-	item1 := CreateItem(testBucket, 1500, "test-data-1")
-	wch1 := qu.Enqueue(context.Background(), item1)
-	item2 := CreateItem(testBucket, 15000, "test-data-2")
-	wch2 := qu.Enqueue(context.Background(), item2)
+	item1 := CreateItem(testBucket, 1000, "test-data")
+	item1EnqueueWatcher := qu.Enqueue(context.Background(), item1)
+
+	item2 := CreateItem(testBucket, 9000, "test-data-2")
+	item2EnqueuWatcher := qu.Enqueue(context.Background(), item2)
 
 	time.Sleep(3 * time.Second)
 
 	select {
-	case fi := <-firstCreate:
-		if err = equalItem(item1, fi); err != nil {
-			t.Fatalf("expected %+v, got %+v (%v)", item1, fi, err)
+	case item := <-frontChanFirstCreate:
+		if err = equalItem(item1, item); err != nil {
+			t.Fatalf("expected %+v, got %+v (%v)", item1, item, err)
 		}
-	default:
+	case <-time.After(2 * time.Second):
 		t.Fatal("expected events, but got none")
 	}
 
-	// first element in the queue must be item2 with higher priority
-	fch2a := qu.Front(context.Background(), testBucket)
+	// first element must be the one with higher weight
+	frontChan := qu.Front(context.Background(), testBucket)
 	if err != nil {
 		t.Fatal(err)
 	}
-	item2a := <-fch2a
-	if err = equalItem(item2, item2a); err != nil {
-		t.Fatalf("expected %+v, got %+v (%v)", item2, item2a, err)
+	var item2FromQueue *Item
+	select {
+	case item2FromQueue = <-frontChan:
+		if item2FromQueue.Error != "" {
+			t.Fatalf("unexpected error: %+v", item2FromQueue)
+		}
+		if err = equalItem(item2, item2FromQueue); err != nil {
+			t.Fatalf("expected %+v, got %+v (%v)", item2, item2FromQueue, err)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("expected events, but got none")
 	}
 
 	select {
-	case ev := <-wch1:
-		t.Fatalf("unexpected event from wch1 %+v", ev)
-	case ev := <-wch2:
-		t.Fatalf("unexpected event from wch2 %+v", ev)
+	case ev := <-item1EnqueueWatcher:
+		t.Fatalf("unexpected event from item1EnqueueWatcher %+v", ev)
+	case ev := <-item2EnqueuWatcher:
+		t.Fatalf("unexpected event from item2EnqueuWatcher %+v", ev)
 	default:
 	}
 
-	// finish 'item2'
-	item2a.Progress = 100
-	item2a.Value = "new-data"
-	wch2a := qu.Enqueue(context.Background(), item2a)
+	// simulate worker
+	item2FromQueue.Progress = 100
+	item2FromQueue.Value = "new-data"
+	item2FromQueueEnqueueWatcher := qu.Enqueue(context.Background(), item2FromQueue)
 	select {
-	case item2b := <-wch2a:
-		if item2b.Error != "" {
-			t.Fatalf("unexpected error: %+v", item2b)
+	case item := <-item2FromQueueEnqueueWatcher:
+		if item.Error != "" {
+			t.Fatalf("unexpected error: %+v", item)
 		}
-		if err = equalItem(item2a, item2b); err != nil {
-			t.Fatalf("expected %+v, got %+v (%v)", item2, item2b, err)
+		if err = equalItem(item2FromQueue, item); err != nil {
+			t.Fatalf("expected %+v, got %+v (%v)", item2, item, err)
 		}
 	default:
 		t.Fatal("expected events from qu.Enqueue(item3)")
 	}
 
 	select {
-	case item2c := <-wch2:
-		if err = equalItem(item2a, item2c); err != nil {
-			t.Fatalf("expected %+v, got %+v (%v)", item2, item2c, err)
+	case item := <-item2EnqueuWatcher:
+		if err = equalItem(item2FromQueue, item); err != nil {
+			t.Fatalf("expected %+v, got %+v (%v)", item2FromQueue, item, err)
 		}
 	default:
-		t.Fatal("expected events from wch2")
+		t.Fatal("expected events from item2EnqueuWatcher")
 	}
 
-	resp, err := cli.Get(context.Background(), path.Join(pfxCompleted, item2.Key))
+	resp, err := qu.Client().Get(context.Background(), path.Join(pfxCompleted, item2.Key))
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(resp.Kvs) != 1 {
 		t.Fatalf("len(resp.Kvs) expected 1, got %+v", resp.Kvs)
 	}
-	var item2d Item
-	if err := json.Unmarshal(resp.Kvs[0].Value, &item2d); err != nil {
+	var item Item
+	if err := json.Unmarshal(resp.Kvs[0].Value, &item); err != nil {
 		t.Fatalf("cannot parse %q (%v)", string(resp.Kvs[0].Value), err)
 	}
-	if err = equalItem(item2a, &item2d); err != nil {
-		t.Fatalf("expected %+v, got %+v (%v)", item2a, item2d, err)
+	if err = equalItem(item2FromQueue, &item); err != nil {
+		t.Fatalf("expected %+v, got %+v (%v)", item2FromQueue, item, err)
 	}
 
-	// if finished, the channel must be closed
-	if v, ok := <-wch2; ok {
-		t.Fatalf("unexpected event from wch2, got %+v", v)
+	// if finished, channel must be closed
+	if v, stillOpen := <-item2EnqueuWatcher; stillOpen {
+		t.Fatalf("unexpected event from item2EnqueuWatcher, got %+v", v)
 	}
-	if v, ok := <-wch2a; ok {
-		t.Fatalf("unexpected event from wch2a, got %+v", v)
+	if v, stillOpen := <-item2FromQueueEnqueueWatcher; stillOpen {
+		t.Fatalf("unexpected event from item2FromQueueEnqueueWatcher, got %+v", v)
 	}
 
 	// next item in the queue must be item1
-	fch1a := qu.Front(context.Background(), testBucket)
-	item1a := <-fch1a
-	if item1a.Error != "" {
-		t.Fatalf("unexpected error: %+v", item1a)
-	}
-	if err = equalItem(item1, item1a); err != nil {
-		t.Fatalf("expected %+v, got %+v (%v)", item1, item1a, err)
-	}
-
-	ctx, cancel := context.WithCancel(context.Background())
-	item1aW := qu.Watch(ctx, item1a.Key)
-
-	glog.Info("proceeding with 'item1'")
-	item1a.Progress = 50
-	item1a.Value = "new-data"
-	wch1a := qu.Enqueue(context.Background(), item1a)
+	frontChan = qu.Front(context.Background(), testBucket)
+	var item1FromQueue *Item
 	select {
-	case it := <-wch1a:
-		t.Fatalf("unexpected events from wch1a %+v", it)
-	default:
-	}
-	select {
-	case item1c := <-wch1:
-		if item1c.Error != "" {
-			t.Fatalf("unexpected error: %+v", item1c)
+	case item1FromQueue = <-frontChan:
+		if item1FromQueue.Error != "" {
+			t.Fatalf("unexpected error: %+v", item1FromQueue)
 		}
-		if err = equalItem(item1a, item1c); err != nil {
-			t.Fatalf("expected %+v, got %+v (%v)", item1a, item1c, err)
+		if err = equalItem(item1, item1FromQueue); err != nil {
+			t.Fatalf("expected %+v, got %+v (%v)", item1, item1FromQueue, err)
 		}
-	case <-time.After(5 * time.Second):
-		t.Fatal("expected events from wch1 in 5-sec")
-	}
-
-	select {
-	case item1aWresp, stillOpen := <-item1aW:
-		if !stillOpen {
-			t.Fatalf("%q watcher must still be open, got open %v", item1a.Key, stillOpen)
-		}
-		if err = equalItem(item1aWresp, item1a); err != nil {
-			t.Fatalf("expected %+v, got %+v (%v)", item1aWresp, item1a, err)
-		}
-	case <-time.After(5 * time.Second):
-		t.Fatalf("expected watch response on %q watcher, but got none", item1a.Key)
-	}
-
-	cancel()
-
-	select {
-	case item1aWresp, stillOpen := <-item1aW:
-		if stillOpen {
-			t.Fatalf("%q watcher must be closed after cancel, got open %v", item1a.Key, stillOpen)
-		}
-		if item1aWresp != nil {
-			t.Fatalf("expected nil, got %+v (%v)", item1aWresp, err)
-		}
-	case <-time.After(5 * time.Second):
-		t.Fatalf("expected watch response on %q watcher, but got none", item1a.Key)
-	}
-
-	// cancel 'item1'
-	if err = qu.Dequeue(context.Background(), item1a); err != nil {
-		t.Fatal(err)
-	}
-	select {
-	case it := <-wch1:
-		if it.Error != "" {
-			t.Fatalf("unexpected error: %+v", it)
-		}
-		if it.Canceled != true {
-			t.Fatalf("%q expected cancel, got %+v", it.Key, it)
-		}
-	case <-time.After(5 * time.Second):
-		t.Fatalf("expected events from wch1 in 5-sec")
-	}
-	select {
-	case it := <-wch1a:
-		if it.Error != "" {
-			t.Fatalf("unexpected error: %+v", it)
-		}
-		if it.Canceled != true {
-			t.Fatalf("%q expected cancel, got %+v", it.Key, it)
-		}
-	case <-time.After(5 * time.Second):
-		t.Fatalf("expected events from wch1a in 5-sec")
-	}
-	// if canceled, the channel must be closed
-	if v, ok := <-wch1; ok {
-		t.Fatalf("unexpected event from wch1, got %+v", v)
-	}
-	if v, ok := <-wch1a; ok {
-		t.Fatalf("unexpected event from wch1a, got %+v", v)
+	case <-time.After(2 * time.Second):
+		t.Fatal("expected events, but got none")
 	}
 }
 
-// truncate CreatedAt to handle added timestamp texts while serialization
+func TestQueueCancel(t *testing.T) {
+	cport := int(atomic.LoadInt32(&basePort))
+	atomic.StoreInt32(&basePort, int32(cport)+2)
+
+	dataDir, err := ioutil.TempDir(os.TempDir(), "etcd-queue")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dataDir)
+
+	qu, err := NewEmbeddedQueue(context.Background(), cport, cport+1, dataDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer qu.Stop()
+
+	testBucket := "test-bucket"
+
+	item1 := CreateItem(testBucket, 1000, "test-data")
+	item1EnqueueWatcher := qu.Enqueue(context.Background(), item1)
+
+	time.Sleep(3 * time.Second)
+
+	// cancel 'item1' before finish
+	if err = qu.Dequeue(context.Background(), item1); err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case item := <-item1EnqueueWatcher:
+		if item.Error != "" {
+			t.Fatalf("unexpected error: %+v", item)
+		}
+		if item.Canceled != true {
+			t.Fatalf("%q expected cancel, got %+v", item.Key, item)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatalf("expected events from item1EnqueueWatcher in 5-sec")
+	}
+
+	// if canceled, the channel must be closed
+	if v, ok := <-item1EnqueueWatcher; ok {
+		t.Fatalf("unexpected event from item1EnqueueWatcher, got %+v", v)
+	}
+}
+
+func TestQueueWatch(t *testing.T) {
+	cport := int(atomic.LoadInt32(&basePort))
+	atomic.StoreInt32(&basePort, int32(cport)+2)
+
+	dataDir, err := ioutil.TempDir(os.TempDir(), "etcd-queue")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dataDir)
+
+	qu, err := NewEmbeddedQueue(context.Background(), cport, cport+1, dataDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer qu.Stop()
+
+	testBucket := "test-bucket"
+
+	item1 := CreateItem(testBucket, 5000, "test-data")
+	qu.Enqueue(context.Background(), item1)
+
+	time.Sleep(3 * time.Second)
+
+	// spawn watcher after item writes on the queue
+	ctx, cancel := context.WithCancel(context.Background())
+	item1Watcher := qu.Watch(ctx, item1.Key)
+
+	// simulate worker to trigger watch event
+	item1.Progress = 50
+	item1.Value = "new-data"
+	qu.Enqueue(context.Background(), item1)
+
+	select {
+	case item, stillOpen := <-item1Watcher:
+		if !stillOpen {
+			t.Fatalf("%q watcher must still be open, got stillOpen %v", item1.Key, stillOpen)
+		}
+		if err = equalItem(item1, item); err != nil {
+			t.Fatalf("expected %+v, got %+v (%v)", item1, item, err)
+		}
+	case <-time.After(3 * time.Second):
+		t.Fatalf("expected watch response on %q watcher, but got none", item1.Key)
+	}
+
+	// cancel the watcher to exit watch routine
+	cancel()
+
+	select {
+	case item, stillOpen := <-item1Watcher:
+		if stillOpen {
+			t.Fatalf("%q watcher must still be closed after cancel, got stillOpen %v", item1.Key, stillOpen)
+		}
+		if item != nil {
+			t.Fatalf("expected nil, got %+v (%v)", item, err)
+		}
+	case <-time.After(3 * time.Second):
+		t.Fatalf("expected watch response on %q watcher, but got none", item1.Key)
+	}
+}
+
+// truncate CreatedAt to handle modified timestamp string after serialization
 func equalItem(item1, item2 *Item) error {
 	if item1.CreatedAt.String()[:29] != item2.CreatedAt.String()[:29] {
 		return fmt.Errorf("expected CreatedAt %q, got %q", item1.CreatedAt.String()[:29], item2.CreatedAt.String()[:29])
