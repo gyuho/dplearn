@@ -56,7 +56,7 @@ func TestQueueEnqueueFront(t *testing.T) {
 
 	select {
 	case item := <-frontChanFirstCreate:
-		if err = EqualItem(item1, item); err != nil {
+		if err = item1.Equal(item); err != nil {
 			t.Fatalf("expected %+v, got %+v (%v)", item1, item, err)
 		}
 	case <-time.After(2 * time.Second):
@@ -74,7 +74,7 @@ func TestQueueEnqueueFront(t *testing.T) {
 		if item2FromQueue.Error != "" {
 			t.Fatalf("unexpected error: %+v", item2FromQueue)
 		}
-		if err = EqualItem(item2, item2FromQueue); err != nil {
+		if err = item2.Equal(item2FromQueue); err != nil {
 			t.Fatalf("expected %+v, got %+v (%v)", item2, item2FromQueue, err)
 		}
 	case <-time.After(2 * time.Second):
@@ -98,8 +98,8 @@ func TestQueueEnqueueFront(t *testing.T) {
 		if item.Error != "" {
 			t.Fatalf("unexpected error: %+v", item)
 		}
-		if err = EqualItem(item2FromQueue, item); err != nil {
-			t.Fatalf("expected %+v, got %+v (%v)", item2, item, err)
+		if err = item2FromQueue.Equal(item); err != nil {
+			t.Fatalf("expected %+v, got %+v (%v)", item2FromQueue, item, err)
 		}
 	default:
 		t.Fatal("expected events from qu.Enqueue(item3)")
@@ -107,7 +107,7 @@ func TestQueueEnqueueFront(t *testing.T) {
 
 	select {
 	case item := <-item2EnqueuWatcher:
-		if err = EqualItem(item2FromQueue, item); err != nil {
+		if err = item2FromQueue.Equal(item); err != nil {
 			t.Fatalf("expected %+v, got %+v (%v)", item2FromQueue, item, err)
 		}
 	default:
@@ -125,7 +125,7 @@ func TestQueueEnqueueFront(t *testing.T) {
 	if err := json.Unmarshal(resp.Kvs[0].Value, &item); err != nil {
 		t.Fatalf("cannot parse %q (%v)", string(resp.Kvs[0].Value), err)
 	}
-	if err = EqualItem(item2FromQueue, &item); err != nil {
+	if err = item2FromQueue.Equal(&item); err != nil {
 		t.Fatalf("expected %+v, got %+v (%v)", item2FromQueue, item, err)
 	}
 
@@ -145,7 +145,7 @@ func TestQueueEnqueueFront(t *testing.T) {
 		if item1FromQueue.Error != "" {
 			t.Fatalf("unexpected error: %+v", item1FromQueue)
 		}
-		if err = EqualItem(item1, item1FromQueue); err != nil {
+		if err = item1.Equal(item1FromQueue); err != nil {
 			t.Fatalf("expected %+v, got %+v (%v)", item1, item1FromQueue, err)
 		}
 	case <-time.After(2 * time.Second):
@@ -235,7 +235,7 @@ func TestQueueWatch(t *testing.T) {
 		if !stillOpen {
 			t.Fatalf("%q watcher must still be open, got stillOpen %v", item1.Key, stillOpen)
 		}
-		if err = EqualItem(item1, item); err != nil {
+		if err = item1.Equal(item); err != nil {
 			t.Fatalf("expected %+v, got %+v (%v)", item1, item, err)
 		}
 	case <-time.After(3 * time.Second):
