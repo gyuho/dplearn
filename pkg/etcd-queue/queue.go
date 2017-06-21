@@ -87,8 +87,8 @@ type Queue interface {
 	// which is the last event when the job is completed.
 	Enqueue(ctx context.Context, it *Item) ItemWatcher
 
-	// Front returns the first item in the queue.
-	// It returns nil if there is no item.
+	// Front returns ItemWatcher that returns the first item
+	// in the queue. It blocks until there is an item.
 	Front(ctx context.Context, bucket string) ItemWatcher
 
 	// Dequeue deletes the item from the queue. Item is dequeue-ed
