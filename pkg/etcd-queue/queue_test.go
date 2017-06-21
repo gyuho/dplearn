@@ -56,7 +56,7 @@ func TestQueueEnqueueFront(t *testing.T) {
 
 	select {
 	case item := <-frontChanFirstCreate:
-		if err = equalItem(item1, item); err != nil {
+		if err = EqualItem(item1, item); err != nil {
 			t.Fatalf("expected %+v, got %+v (%v)", item1, item, err)
 		}
 	case <-time.After(2 * time.Second):
@@ -74,7 +74,7 @@ func TestQueueEnqueueFront(t *testing.T) {
 		if item2FromQueue.Error != "" {
 			t.Fatalf("unexpected error: %+v", item2FromQueue)
 		}
-		if err = equalItem(item2, item2FromQueue); err != nil {
+		if err = EqualItem(item2, item2FromQueue); err != nil {
 			t.Fatalf("expected %+v, got %+v (%v)", item2, item2FromQueue, err)
 		}
 	case <-time.After(2 * time.Second):
@@ -98,7 +98,7 @@ func TestQueueEnqueueFront(t *testing.T) {
 		if item.Error != "" {
 			t.Fatalf("unexpected error: %+v", item)
 		}
-		if err = equalItem(item2FromQueue, item); err != nil {
+		if err = EqualItem(item2FromQueue, item); err != nil {
 			t.Fatalf("expected %+v, got %+v (%v)", item2, item, err)
 		}
 	default:
@@ -107,7 +107,7 @@ func TestQueueEnqueueFront(t *testing.T) {
 
 	select {
 	case item := <-item2EnqueuWatcher:
-		if err = equalItem(item2FromQueue, item); err != nil {
+		if err = EqualItem(item2FromQueue, item); err != nil {
 			t.Fatalf("expected %+v, got %+v (%v)", item2FromQueue, item, err)
 		}
 	default:
@@ -125,7 +125,7 @@ func TestQueueEnqueueFront(t *testing.T) {
 	if err := json.Unmarshal(resp.Kvs[0].Value, &item); err != nil {
 		t.Fatalf("cannot parse %q (%v)", string(resp.Kvs[0].Value), err)
 	}
-	if err = equalItem(item2FromQueue, &item); err != nil {
+	if err = EqualItem(item2FromQueue, &item); err != nil {
 		t.Fatalf("expected %+v, got %+v (%v)", item2FromQueue, item, err)
 	}
 
@@ -145,7 +145,7 @@ func TestQueueEnqueueFront(t *testing.T) {
 		if item1FromQueue.Error != "" {
 			t.Fatalf("unexpected error: %+v", item1FromQueue)
 		}
-		if err = equalItem(item1, item1FromQueue); err != nil {
+		if err = EqualItem(item1, item1FromQueue); err != nil {
 			t.Fatalf("expected %+v, got %+v (%v)", item1, item1FromQueue, err)
 		}
 	case <-time.After(2 * time.Second):
@@ -235,7 +235,7 @@ func TestQueueWatch(t *testing.T) {
 		if !stillOpen {
 			t.Fatalf("%q watcher must still be open, got stillOpen %v", item1.Key, stillOpen)
 		}
-		if err = equalItem(item1, item); err != nil {
+		if err = EqualItem(item1, item); err != nil {
 			t.Fatalf("expected %+v, got %+v (%v)", item1, item, err)
 		}
 	case <-time.After(3 * time.Second):
@@ -256,35 +256,6 @@ func TestQueueWatch(t *testing.T) {
 	case <-time.After(3 * time.Second):
 		t.Fatalf("expected watch response on %q watcher, but got none", item1.Key)
 	}
-}
-
-// truncate CreatedAt to handle modified timestamp string after serialization
-func equalItem(item1, item2 *Item) error {
-	if item1.CreatedAt.String()[:29] != item2.CreatedAt.String()[:29] {
-		return fmt.Errorf("expected CreatedAt %q, got %q", item1.CreatedAt.String()[:29], item2.CreatedAt.String()[:29])
-	}
-	if item1.Bucket != item2.Bucket {
-		return fmt.Errorf("expected Bucket %q, got %q", item1.Bucket, item2.Bucket)
-	}
-	if item1.Key != item2.Key {
-		return fmt.Errorf("expected Key %q, got %q", item1.Key, item2.Key)
-	}
-	if item1.Value != item2.Value {
-		return fmt.Errorf("expected Value %q, got %q", item1.Value, item2.Value)
-	}
-	if item1.Progress != item2.Progress {
-		return fmt.Errorf("expected Progress %d, got %d", item1.Progress, item2.Progress)
-	}
-	if item1.Canceled != item2.Canceled {
-		return fmt.Errorf("expected Canceled %v, got %v", item1.Canceled, item2.Canceled)
-	}
-	if item1.Error != item2.Error {
-		return fmt.Errorf("expected Error %s, got %s", item1.Error, item2.Error)
-	}
-	if item1.RequestID != item2.RequestID {
-		return fmt.Errorf("expected RequestID %s, got %s", item1.RequestID, item2.RequestID)
-	}
-	return nil
 }
 
 // TestEtcd tests some etcd-specific behaviors.

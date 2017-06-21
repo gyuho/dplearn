@@ -466,3 +466,33 @@ func (qu *queue) delete(ctx context.Context, key string) error {
 	_, err := qu.cli.Delete(ctx, key)
 	return err
 }
+
+// EqualItem compares two items with truncated CreatedAt field string,
+// to handle modified timestamp string after serialization
+func EqualItem(item1, item2 *Item) error {
+	if item1.CreatedAt.String()[:29] != item2.CreatedAt.String()[:29] {
+		return fmt.Errorf("expected CreatedAt %q, got %q", item1.CreatedAt.String()[:29], item2.CreatedAt.String()[:29])
+	}
+	if item1.Bucket != item2.Bucket {
+		return fmt.Errorf("expected Bucket %q, got %q", item1.Bucket, item2.Bucket)
+	}
+	if item1.Key != item2.Key {
+		return fmt.Errorf("expected Key %q, got %q", item1.Key, item2.Key)
+	}
+	if item1.Value != item2.Value {
+		return fmt.Errorf("expected Value %q, got %q", item1.Value, item2.Value)
+	}
+	if item1.Progress != item2.Progress {
+		return fmt.Errorf("expected Progress %d, got %d", item1.Progress, item2.Progress)
+	}
+	if item1.Canceled != item2.Canceled {
+		return fmt.Errorf("expected Canceled %v, got %v", item1.Canceled, item2.Canceled)
+	}
+	if item1.Error != item2.Error {
+		return fmt.Errorf("expected Error %s, got %s", item1.Error, item2.Error)
+	}
+	if item1.RequestID != item2.RequestID {
+		return fmt.Errorf("expected RequestID %s, got %s", item1.RequestID, item2.RequestID)
+	}
+	return nil
+}
