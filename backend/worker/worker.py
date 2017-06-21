@@ -24,13 +24,18 @@ def fetch_item(endpoint):
     """
     while True:
         try:
+            # blocks until first item is available
+            log.info('fetching item from {0}'.format(endpoint))
             rresp = requests.get(endpoint)
-            item = json.loads(rresp.text)
+            log.info('fetched item from {0}'.format(endpoint))
+
             # even empty, Go backend should encode every field
+            item = json.loads(rresp.text)
             for key in ITEM_KEYS:
                 if key not in item:
                     log.warning('{0} not in {1}'.format(key, rresp.text))
                     return None
+
             return item
 
         except requests.exceptions.ConnectionError as err:
@@ -48,14 +53,19 @@ def post_item(endpoint, item):
     headers = {'Content-Type': 'application/json'}
     while True:
         try:
+            req_id = ITEM['request_id']
+            log.info('posting item to {0} with request ID {1}'.format(endpoint, req_id))
             rresp = requests.post(endpoint, data=json.dumps(item),
                                   headers=headers)
+            log.info('posted item to {0} with request ID {1}'.format(endpoint, req_id))
+
             item = json.loads(rresp.text)
             # even empty, Go backend should encode every field
             for key in ITEM_KEYS:
                 if key not in item:
                     log.warning('{0} not in {1}'.format(key, rresp.text))
                     return None
+
             return item
 
         except requests.exceptions.ConnectionError as err:
@@ -79,23 +89,13 @@ if __name__ == "__main__":
 
     log.info("starting worker on {0}".format(EP))
 
-    NO_ITEM_COUNT = 0
     PREV_ITEM = None
     while True:
         ITEM = fetch_item(EP)
         if ITEM['error'] not in ['', u'']:
-            if '" has no item' in str(ITEM['error']):
-                NO_ITEM_COUNT += 1
-                if NO_ITEM_COUNT == 300:
-                    NO_ITEM_COUNT = 0
-                    log.warning(ITEM['error'])
-                time.sleep(2)
-            else:
-                log.warning(ITEM['error'])
-                time.sleep(5)
+            log.warning(ITEM['error'])
+            time.sleep(5)
             continue
-
-        REQ_ID = ITEM['request_id']
 
         # in case previous post request is
         # not processed yet in backend
@@ -126,8 +126,6 @@ if __name__ == "__main__":
             POST_RESPONSE = post_item(EP, ITEM)
             if POST_RESPONSE['error'] not in ['', u'']:
                 log.warning(POST_RESPONSE['error'])
-            else:
-                log.info('posted to {0} for {1}'.format(EP, REQ_ID))
 
         elif ITEM['bucket'] == '/mnist-request':
             log.info('/mnist-request is not ready yet')
@@ -148,5 +146,3 @@ if __name__ == "__main__":
             POST_RESPONSE = post_item(EP, ITEM)
             if POST_RESPONSE['error'] not in ['', u'']:
                 log.warning(POST_RESPONSE['error'])
-            else:
-                log.info('posted to {0} for {1}'.format(EP, REQ_ID))
