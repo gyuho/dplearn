@@ -77,15 +77,18 @@ export class BackendService implements OnDestroy {
   private errorFromServer = "";
   private mode = "Observable";
   private requestID: string;
+  private intervalSet: boolean;
   private pollingHandler;
 
   constructor(private http: Http, public snackBar: MdSnackBar) {
     this.inputValue = "";
     this.result = "Nothing to show yet...";
+    this.intervalSet = false;
   }
 
   public ngOnDestroy() {
     console.log("user left page; destroying!");
+    this.intervalSet = false;
     clearInterval(this.pollingHandler);
 
     const body = JSON.stringify(new Request(this.inputValue, false, ""));
@@ -116,10 +119,18 @@ export class BackendService implements OnDestroy {
   public processItemFromServer(resp: Item) {
     this.result = resp.value;
     this.requestID = resp.request_id;
+
+    // set interval only after first response
+    if (!this.intervalSet) {
+      this.intervalSet = true;
+      this.pollingHandler = setInterval(() => this.fetchStatus(), 500);
+    }
+
     if (resp.error !== "") {
       clearInterval(this.pollingHandler);
       this.result = (this.result === "") ? resp.error : `${resp.value} (${resp.error})`;
     }
+
     if (resp.canceled === true) {
       clearInterval(this.pollingHandler);
       this.result += " - canceled!";
@@ -147,7 +158,10 @@ export class BackendService implements OnDestroy {
   // Blocks until the item is completed.
   // TODO: time out?
   public fetchStatus() {
-    const headers = new Headers({ request_id: this.requestID });
+    const headers = new Headers({
+      "Content-Type" : "application/plain",
+      "Request-Id" : this.requestID,
+    });
     const options = new RequestOptions({headers});
 
     let itemFromServer: Item;
@@ -186,6 +200,7 @@ export class BackendService implements OnDestroy {
       );
 
     // retry in case of network glitches
-    this.pollingHandler = setInterval(() => this.fetchStatus(), 500);
+    // DO NOT DO THIS because this.http.post is asynchronous
+    // this.pollingHandler = setInterval(() => this.fetchStatus(), 500);
   }
 }
