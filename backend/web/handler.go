@@ -235,7 +235,7 @@ func queueHandler(ctx context.Context, w http.ResponseWriter, req *http.Request)
 // Request defines requests from frontend.
 type Request struct {
 	DataFromFrontend string `json:"data_from_frontend"`
-	DeleteRequest    bool   `json:"delete_request"`
+	CancelRequest    bool   `json:"cancel_request"`
 }
 
 func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.Request) error {
@@ -288,26 +288,7 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 
 		requestID := generateRequestID(reqPath, userID, creq.DataFromFrontend)
 
-		switch creq.DeleteRequest {
-		case true:
-			glog.Infof("deleting %q", requestID)
-			srv.requestCacheMu.Lock()
-			item, ok := srv.requestCache[requestID]
-			if !ok {
-				srv.requestCacheMu.Unlock()
-				glog.Infof("already deleted %q", requestID)
-				return nil
-			}
-			delete(srv.requestCache, requestID)
-			if err = qu.Dequeue(ctx, item); err != nil {
-				err = fmt.Errorf("qu.Dequeue error %q", err.Error())
-				glog.Warning(err)
-				srv.requestCacheMu.Unlock()
-				return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: reqPath, Progress: 0, Error: err.Error()})
-			}
-			srv.requestCacheMu.Unlock()
-			glog.Infof("deleted %q", requestID)
-
+		switch creq.CancelRequest {
 		case false:
 			glog.Infof("fetching %q", requestID)
 			srv.requestCacheMu.Lock()
@@ -345,6 +326,25 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 			copied := *item
 			copied.Value = fmt.Sprintf("Requested %q", copied.Value)
 			return json.NewEncoder(w).Encode(&copied)
+
+		case true:
+			glog.Infof("deleting %q", requestID)
+			srv.requestCacheMu.Lock()
+			item, ok := srv.requestCache[requestID]
+			if !ok {
+				srv.requestCacheMu.Unlock()
+				glog.Infof("already deleted %q", requestID)
+				return nil
+			}
+			delete(srv.requestCache, requestID)
+			if err = qu.Dequeue(ctx, item); err != nil {
+				err = fmt.Errorf("qu.Dequeue error %q", err.Error())
+				glog.Warning(err)
+				srv.requestCacheMu.Unlock()
+				return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: reqPath, Progress: 0, Error: err.Error()})
+			}
+			srv.requestCacheMu.Unlock()
+			glog.Infof("deleted %q", requestID)
 		}
 
 	default:
