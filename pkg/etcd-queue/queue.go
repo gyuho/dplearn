@@ -165,6 +165,9 @@ func NewQueue(cli *clientv3.Client) (Queue, error) {
 		return nil, err
 	}
 
+	// TODO: 'etcd/clientv3/concurrency' to limit access
+	// of concurrent clients
+
 	ctx, cancel = context.WithCancel(context.Background())
 	return &queue{
 		cli:        cli,
@@ -221,6 +224,9 @@ func NewEmbeddedQueue(ctx context.Context, cport, pport int, dataDir string) (Qu
 	}
 	glog.Infof("started %q with endpoint %q", cfg.Name, curl.String())
 
+	// TODO: for now, single embedded client is good enough
+	// for all queue requests, maybe use 'etcd/clientv3/concurrency'
+	// for multiple clients
 	cli := v3client.New(srv.Server)
 
 	// issue linearized read to ensure leader election
