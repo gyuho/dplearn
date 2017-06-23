@@ -269,14 +269,18 @@ RUN pushd ${GOPATH}/src/github.com/gyuho/deephardway \
   && echo "Running nvm scripts..." \
   && source $NVM_DIR/nvm.sh \
   && nvm ls-remote \
-  && nvm install {{.NodeVersion}} \
+  && nvm install v{{.NodeVersion}} \
   && curl https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
   && echo "deb http://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
   && apt-get -y update && apt-get -y install yarn \
   && rm -rf ./node_modules \
   && yarn install \
-  && npm rebuild node-sass \
+  && npm rebuild node-sass --force \
   && npm install \
+  && nvm alias default {{.NodeVersion}} \
+  && nvm alias default node \
+  && which node \
+  && node -v \
   && cp /usr/local/nvm/versions/node/v{{.NodeVersion}}/bin/node /usr/bin/node \
   && popd
 ##########################
