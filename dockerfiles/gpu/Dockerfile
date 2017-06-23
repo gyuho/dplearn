@@ -1,4 +1,4 @@
-# Last updated at 2017-06-22 10:04:29.948401025 -0700 PDT
+# Last updated at 2017-06-23 13:49:15.904708796 -0700 PDT
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile.gpu
 # https://gcr.io/tensorflow/tensorflow
@@ -78,6 +78,10 @@ ADD nginx.conf /etc/nginx/sites-available/default
 # https://github.com/Anaconda-Platform/nb_conda
 # https://github.com/jupyter/docker-stacks/blob/master/r-notebook/Dockerfile
 # https://github.com/fchollet/keras
+# ${HOME}/.keras/keras.json
+# Keras 1.2.2 "backend": "theano", "image_dim_ordering": "th",
+# Keras 1.2.2 "backend": "tensorflow", "image_dim_ordering": "tf",
+# Keras 2.0.5 "image_data_format": "channels_last"
 RUN pip --no-cache-dir install \
   requests \
   glog \
@@ -86,7 +90,7 @@ RUN pip --no-cache-dir install \
   Pillow \
   bcolz \
   theano \
-  keras==2.0.5 \
+  keras==1.2.2 \
   && echo $'[global]\n\
 device = gpu\n\
 floatX = float32\n\
@@ -97,7 +101,8 @@ root = /usr/local/cuda\n'\
   && mkdir -p ${HOME}/.keras/datasets \
   && mkdir -p ${HOME}/.keras/models \
   && echo $'{\n\
-  "image_data_format": "channels_last"\n\
+  "backend": "theano",\n\
+  "image_dim_ordering": "th"\n\
 }\n'\
 > ${HOME}/.keras/keras.json \
   && cat ${HOME}/.keras/keras.json \
