@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/coreos/etcd/clientv3"
+	"github.com/coreos/etcd/compactor"
 	"github.com/coreos/etcd/embed"
 	"github.com/coreos/etcd/etcdserver/api/v3client"
 	"github.com/coreos/etcd/mvcc/mvccpb"
@@ -201,6 +202,7 @@ func NewEmbeddedQueue(ctx context.Context, cport, pport int, dataDir string) (Qu
 	cfg.InitialCluster = fmt.Sprintf("%s=%s", cfg.Name, cfg.APUrls[0].String())
 
 	// auto-compaction every hour
+	cfg.AutoCompactionMode = compactor.Periodic
 	cfg.AutoCompactionRetention = 1
 	// single-node, so aggressively snapshot/discard Raft log entries
 	cfg.SnapCount = 1000
