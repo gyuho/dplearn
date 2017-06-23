@@ -1,7 +1,7 @@
 # https://github.com/coreos/etcd
 [[constraint]]
   name = "github.com/coreos/etcd"
-  revision = "a40cdc7baa333e230098ee3de5d4d36b31716dda"
+  revision = "310a09691f07ab142cb38a654aed1eccafb7237e"
 
 # https://github.com/dustin/go-humanize
 [[constraint]]
@@ -51,4 +51,4 @@
 # https://github.com/GoogleCloudPlatform/google-cloud-go
 [[constraint]]
   name = "cloud.google.com/go"
-  revision = "d4f8670e9dba7e0c9dd3f6da843d678afd21c587"
+  revision = "b25da57bd19d9e15a9f72534e93c4ec4fec374df"

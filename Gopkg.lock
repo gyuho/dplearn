@@ -4,7 +4,7 @@
 [[projects]]
   name = "cloud.google.com/go"
   packages = ["compute/metadata","iam","internal","internal/optional","internal/version","storage"]
-  revision = "d4f8670e9dba7e0c9dd3f6da843d678afd21c587"
+  revision = "b25da57bd19d9e15a9f72534e93c4ec4fec374df"
 
 [[projects]]
   branch = "master"
@@ -27,7 +27,7 @@
 [[projects]]
   name = "github.com/coreos/etcd"
   packages = ["alarm","auth","auth/authpb","client","clientv3","clientv3/concurrency","compactor","discovery","embed","error","etcdserver","etcdserver/api","etcdserver/api/v2http","etcdserver/api/v2http/httptypes","etcdserver/api/v3client","etcdserver/api/v3election","etcdserver/api/v3election/v3electionpb","etcdserver/api/v3election/v3electionpb/gw","etcdserver/api/v3lock","etcdserver/api/v3lock/v3lockpb","etcdserver/api/v3lock/v3lockpb/gw","etcdserver/api/v3rpc","etcdserver/api/v3rpc/rpctypes","etcdserver/auth","etcdserver/etcdserverpb","etcdserver/etcdserverpb/gw","etcdserver/membership","etcdserver/stats","lease","lease/leasehttp","lease/leasepb","mvcc","mvcc/backend","mvcc/mvccpb","pkg/adt","pkg/contention","pkg/cors","pkg/cpuutil","pkg/crc","pkg/debugutil","pkg/fileutil","pkg/httputil","pkg/idutil","pkg/ioutil","pkg/logutil","pkg/monotime","pkg/netutil","pkg/pathutil","pkg/pbutil","pkg/runtime","pkg/schedule","pkg/srv","pkg/tlsutil","pkg/transport","pkg/types","pkg/wait","proxy/grpcproxy/adapter","raft","raft/raftpb","rafthttp","snap","snap/snappb","store","version","wal","wal/walpb"]
-  revision = "a40cdc7baa333e230098ee3de5d4d36b31716dda"
+  revision = "310a09691f07ab142cb38a654aed1eccafb7237e"
 
 [[projects]]
   name = "github.com/coreos/go-semver"
@@ -174,7 +174,7 @@
   branch = "master"
   name = "github.com/prometheus/common"
   packages = ["expfmt","internal/bitbucket.org/ww/goautoneg","model"]
-  revision = "0d0c3d572886e0f2323ed376557f9eb99b97d25b"
+  revision = "0866df4b85a18d652b6965be022d007cdf076822"
 
 [[projects]]
   branch = "master"
@@ -210,7 +210,7 @@
   branch = "master"
   name = "golang.org/x/net"
   packages = ["context","context/ctxhttp","http2","http2/hpack","idna","internal/timeseries","lex/httplex","trace"]
-  revision = "fe686d45ea04bc1bd4eff6a52865ce8757320325"
+  revision = "057a25b06247e0c51ba15d8ae475feb2fcb72164"
 
 [[projects]]
   name = "golang.org/x/oauth2"
@@ -266,6 +266,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "ae1683d9d2d551ee1f4d301ad523301c45907073f49ec7c345cfa6b83caa6507"
+  inputs-digest = "531b7277c42aed655100f1fdd69898690c64674b1b5d99300375b8cabd9e4e61"
   solver-name = "gps-cdcl"
   solver-version = 1
