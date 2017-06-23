@@ -27,7 +27,7 @@
 [[projects]]
   name = "github.com/coreos/etcd"
   packages = ["alarm","auth","auth/authpb","client","clientv3","clientv3/concurrency","compactor","discovery","embed","error","etcdserver","etcdserver/api","etcdserver/api/v2http","etcdserver/api/v2http/httptypes","etcdserver/api/v3client","etcdserver/api/v3election","etcdserver/api/v3election/v3electionpb","etcdserver/api/v3election/v3electionpb/gw","etcdserver/api/v3lock","etcdserver/api/v3lock/v3lockpb","etcdserver/api/v3lock/v3lockpb/gw","etcdserver/api/v3rpc","etcdserver/api/v3rpc/rpctypes","etcdserver/auth","etcdserver/etcdserverpb","etcdserver/etcdserverpb/gw","etcdserver/membership","etcdserver/stats","lease","lease/leasehttp","lease/leasepb","mvcc","mvcc/backend","mvcc/mvccpb","pkg/adt","pkg/contention","pkg/cors","pkg/cpuutil","pkg/crc","pkg/debugutil","pkg/fileutil","pkg/httputil","pkg/idutil","pkg/ioutil","pkg/logutil","pkg/monotime","pkg/netutil","pkg/pathutil","pkg/pbutil","pkg/runtime","pkg/schedule","pkg/srv","pkg/tlsutil","pkg/transport","pkg/types","pkg/wait","proxy/grpcproxy/adapter","raft","raft/raftpb","rafthttp","snap","snap/snappb","store","version","wal","wal/walpb"]
-  revision = "310a09691f07ab142cb38a654aed1eccafb7237e"
+  revision = "0fe8fdcb291166b3a7fe354f3d113ab078f40875"
 
 [[projects]]
   name = "github.com/coreos/go-semver"
@@ -85,7 +85,7 @@
   branch = "master"
   name = "github.com/golang/protobuf"
   packages = ["jsonpb","proto","protoc-gen-go/descriptor","ptypes/any","ptypes/struct"]
-  revision = "1fb8fd32a09087bcd727225167edd31e1b9ceb24"
+  revision = "6a1fa9404c0aebf36c879bc50152edcc953910d2"
 
 [[projects]]
   branch = "master"
@@ -255,8 +255,8 @@
 [[projects]]
   name = "google.golang.org/grpc"
   packages = [".","codes","credentials","credentials/oauth","grpclb/grpc_lb_v1","grpclog","health","health/grpc_health_v1","internal","keepalive","metadata","naming","peer","stats","status","tap","transport"]
-  revision = "42c095b6c9bdd80d4435b064508c398afdb0ec99"
-  version = "v1.4.1"
+  revision = "b15215fb911b24a5d61d57feec4233d610530464"
+  version = "v1.4.2"
 
 [[projects]]
   name = "gopkg.in/yaml.v2"
@@ -266,6 +266,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "531b7277c42aed655100f1fdd69898690c64674b1b5d99300375b8cabd9e4e61"
+  inputs-digest = "869073e1141ae4765bfd0dd3c6417e368e647ddacc519c00c9eb5a4dddea5522"
   solver-name = "gps-cdcl"
   solver-version = 1
