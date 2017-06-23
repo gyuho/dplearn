@@ -21,7 +21,7 @@ docker run \
   --rm \
   -it \
   --volume=${LOCAL_DIR}:/var/lib/etcd \
-  --volume=${HOME}/.keras/datasets:/root/.keras/datasets \
+  --volume=${HOME}/.keras:/root/.keras \
   -p 4200:4200 \
   --ulimit nofile=262144:262144 \
   gcr.io/deephardway/deephardway:latest-cpu \

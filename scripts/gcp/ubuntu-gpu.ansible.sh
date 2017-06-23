@@ -11,7 +11,27 @@ cat > /etc/ansible-install.yml <<EOF
 - name: a play that runs entirely on the ansible host
   hosts: localhost
   connection: local
+
+  environment:
+    PATH: /usr/local/go/bin:/opt/bin:/home/gyuho/go/bin:{{ ansible_env.PATH }}
+    GOPATH: /home/gyuho/go
+
   tasks:
+  - file:
+      path: /opt/bin
+      state: directory
+      mode: 0755
+
+  - file:
+      path: /var/lib/etcd
+      state: directory
+      mode: 0755
+
+  - file:
+      path: /home/gyuho/.keras
+      state: directory
+      mode: 0755
+
   - name: Install Linux utils
     become: yes
     apt:
@@ -122,7 +142,7 @@ ExecStartPre=/usr/bin/docker pull gcr.io/deephardway/deephardway:latest-gpu
 ExecStart=/usr/bin/nvidia-docker run \
   --rm \
   --name ipython-gpu \
-  --volume=${HOME}/.keras/datasets:/root/.keras/datasets \
+  --volume=${HOME}/.keras:/root/.keras \
   -p 8888:8888 \
   --ulimit nofile=262144:262144 \
   gcr.io/deephardway/deephardway:latest-gpu \
@@ -155,7 +175,7 @@ ExecStartPre=/usr/bin/docker pull gcr.io/deephardway/deephardway
 ExecStart=/usr/bin/docker run \
   --rm \
   --name download-data \
-  --volume=${HOME}/.keras/datasets:/root/.keras/datasets \
+  --volume=${HOME}/.keras:/root/.keras \
   --net=host \
   --ulimit nofile=262144:262144 \
   gcr.io/deephardway/deephardway:latest-gpu \
@@ -189,7 +209,7 @@ ExecStart=/usr/bin/nvidia-docker run \
   --rm \
   --name deephardway-gpu \
   --volume=/var/lib/etcd:/var/lib/etcd \
-  --volume=${HOME}/.keras/datasets:/root/.keras/datasets \
+  --volume=${HOME}/.keras:/root/.keras \
   -p 4200:4200 \
   --ulimit nofile=262144:262144 \
   gcr.io/deephardway/deephardway:latest-gpu \
@@ -255,3 +275,18 @@ systemctl start deephardway-gpu.service
 systemctl enable reverse-proxy.service
 systemctl start reverse-proxy.service
 ##########################################################
+
+<<COMMENT
+if grep -q GOPATH "$(echo $HOME)/.bashrc"; then
+  echo "bashrc already has GOPATH";
+else
+  echo "adding GOPATH to bashrc";
+  echo "export GOPATH=$(echo $HOME)/go" >> $HOME/.bashrc;
+  PATH_VAR=$PATH":/opt/bin:/usr/local/go/bin:$(echo $HOME)/go/bin";
+  echo "export PATH=$(echo $PATH_VAR)" >> $HOME/.bashrc;
+  source $HOME/.bashrc;
+fi
+
+mkdir -p $GOPATH/bin/
+source $HOME/.bashrc
+COMMENT

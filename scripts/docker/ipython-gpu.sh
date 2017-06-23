@@ -21,7 +21,7 @@ nvidia-docker run \
   --rm \
   -it \
   --volume=`pwd`/notebooks:/gopath/src/github.com/gyuho/deephardway/notebooks \
-  --volume=${HOME}/.keras/datasets:/root/.keras/datasets \
+  --volume=${HOME}/.keras:/root/.keras \
   -p 8888:8888 \
   gcr.io/deephardway/deephardway:latest-gpu \
   /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && ${ACTIVATE_COMMAND} PASSWORD='' ./run_jupyter.sh -y  --allow-root --notebook-dir=./notebooks"
