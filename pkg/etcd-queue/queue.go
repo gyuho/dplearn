@@ -202,7 +202,7 @@ func NewEmbeddedQueue(ctx context.Context, cport, pport int, dataDir string) (Qu
 	cfg.InitialCluster = fmt.Sprintf("%s=%s", cfg.Name, cfg.APUrls[0].String())
 
 	// auto-compaction every hour
-	cfg.AutoCompactionMode = compactor.Periodic
+	cfg.AutoCompactionMode = compactor.ModePeriodic
 	cfg.AutoCompactionRetention = 1
 	// single-node, so aggressively snapshot/discard Raft log entries
 	cfg.SnapCount = 1000
