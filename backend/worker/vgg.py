@@ -7,19 +7,31 @@ Reference:
 
 from __future__ import division, print_function
 
+import os
+
 import glog as log
 from keras import backend as K
 from keras.layers import Conv2D, Dense, Flatten, Input, MaxPooling2D
 from keras.models import Model
 from keras.utils.data_utils import get_file
 
+KERAS_DIR = os.path.join(os.path.expanduser('~'), '.keras')
+DOGS_AND_CATS_DATASETS_DIR = os.path.join(KERAS_DIR, 'datasets', 'dogscats')
 WEIGHTS_PATH = 'https://github.com/fchollet/deep-learning-models/releases/download/v0.1/vgg16_weights_tf_dim_ordering_tf_kernels.h5'
 
 
 def VGG():
     """VGG implements VGG 16 Imagenet model.
-    Reference: keras/applications/vgg16.py
+
+    Reference
+        keras/applications/vgg16.py
+
+    Examples
+        vgg = Vgg16()
     """
+    if not os.path.exists(KERAS_DIR):
+        raise ValueError('{0} not exist'.format(KERAS_DIR))
+
     if K.backend() == 'theano' or K.backend() != 'tensorflow':
         raise ValueError('only support TensorFlow for now')
 
@@ -49,6 +61,9 @@ def VGG():
     # instantiate a Keras tensor, `shape=(32,)` indicates that
     # expected input will be batches of 32-dimensional vectors.
     img_input = Input(shape=input_shape)
+
+    # Convolution layers are for finding patterns in images
+    # Dense (fully connected) layers are for combining patterns across an image
 
     # Block 1
     layer = Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv1')(img_input)
@@ -84,11 +99,12 @@ def VGG():
     layer = Dense(4096, activation='relu', name='fc2')(layer)
     layer = Dense(classes, activation='softmax', name='predictions')(layer)
 
-    # assume no 'input_tensor'
+    # (assume no 'input_tensor')
     log.info("creating model with include_top {0}, weights {1}".format(include_top, weights))
     model = Model(img_input, layer, name='vgg16')
     log.info("created model with include_top {0}, weights {1}".format(include_top, weights))
 
+    # weights that the VGG creators trained, part of the model, learnt from data
     wgt_path = get_file('vgg16_weights_tf_dim_ordering_tf_kernels.h5',
                         WEIGHTS_PATH,
                         cache_subdir='models')
