@@ -32,6 +32,16 @@ cat > /etc/ansible-install.yml <<EOF
       state: directory
       mode: 0777
 
+  - file:
+      path: /home/gyuho/.keras/datasets
+      state: directory
+      mode: 0777
+
+  - file:
+      path: /home/gyuho/.keras/models
+      state: directory
+      mode: 0777
+
   - name: Install Linux utils
     become: yes
     apt:
@@ -142,7 +152,8 @@ ExecStartPre=/usr/bin/docker pull gcr.io/deephardway/deephardway:latest-gpu
 ExecStart=/usr/bin/nvidia-docker run \
   --rm \
   --name ipython-gpu \
-  --volume=${HOME}/.keras:/root/.keras \
+  --volume=${HOME}/.keras/datasets:/root/.keras/datasets \
+  --volume=${HOME}/.keras/models:/root/.keras/models \
   -p 8888:8888 \
   --ulimit nofile=262144:262144 \
   gcr.io/deephardway/deephardway:latest-gpu \
@@ -175,7 +186,8 @@ ExecStartPre=/usr/bin/docker pull gcr.io/deephardway/deephardway
 ExecStart=/usr/bin/docker run \
   --rm \
   --name download-data \
-  --volume=${HOME}/.keras:/root/.keras \
+  --volume=${HOME}/.keras/datasets:/root/.keras/datasets \
+  --volume=${HOME}/.keras/models:/root/.keras/models \
   --net=host \
   --ulimit nofile=262144:262144 \
   gcr.io/deephardway/deephardway:latest-gpu \
@@ -209,7 +221,8 @@ ExecStart=/usr/bin/nvidia-docker run \
   --rm \
   --name deephardway-gpu \
   --volume=/var/lib/etcd:/var/lib/etcd \
-  --volume=${HOME}/.keras:/root/.keras \
+  --volume=${HOME}/.keras/datasets:/root/.keras/datasets \
+  --volume=${HOME}/.keras/models:/root/.keras/models \
   -p 4200:4200 \
   --ulimit nofile=262144:262144 \
   gcr.io/deephardway/deephardway:latest-gpu \

@@ -21,6 +21,7 @@ nvidia-docker run \
 nvidia-docker run \
   --rm \
   --volume=`pwd`:/gopath/src/github.com/gyuho/deephardway \
-  --volume=${HOME}/.keras:/root/.keras \
+  --volume=${HOME}/.keras/datasets:/root/.keras/datasets \
+  --volume=${HOME}/.keras/models:/root/.keras/models \
   gcr.io/deephardway/deephardway:latest-gpu \
   /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && ETCD_EXEC=/etcd BACKEND_WEB_SERVER_EXEC=/gopath/bin/backend-web-server ./scripts/tests/python.sh"
