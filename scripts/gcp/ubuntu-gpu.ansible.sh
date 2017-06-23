@@ -20,17 +20,17 @@ cat > /etc/ansible-install.yml <<EOF
   - file:
       path: /opt/bin
       state: directory
-      mode: 0755
+      mode: 0777
 
   - file:
       path: /var/lib/etcd
       state: directory
-      mode: 0755
+      mode: 0777
 
   - file:
       path: /home/gyuho/.keras
       state: directory
-      mode: 0755
+      mode: 0777
 
   - name: Install Linux utils
     become: yes
