@@ -24,3 +24,5 @@ fi
 
 dep ensure -update -v
 dep prune -v
+
+rm -rf ./vendor.orig
