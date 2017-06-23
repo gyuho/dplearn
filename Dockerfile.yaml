@@ -10,8 +10,7 @@ go-version: 1.9beta1
 nvm-version: 0.33.2
 
 # https://github.com/nodejs/LTS#lts-schedule1
-# 8.0.0
-node-version: 7.10.0
+node-version: 8.1.2
 
 dockerfile-paths:
 - ./Dockerfile
