@@ -45,6 +45,7 @@ class ETCD(threading.Thread):
             '--initial-cluster', 's1=http://localhost:2380',
             '--initial-cluster-token', 'mytoken',
             '--initial-cluster-state', 'new',
+            '--auto-compaction-mode', 'periodic',
             '--auto-compaction-retention', '1',
         ], shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
