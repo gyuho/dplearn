@@ -4,11 +4,10 @@ import (
 	"context"
 	"io/ioutil"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
-
-	"strconv"
 
 	"github.com/golang/glog"
 	compute "google.golang.org/api/compute/v1"
