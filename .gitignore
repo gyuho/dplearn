@@ -1,5 +1,6 @@
 /.DS_Store
 /.vscode
+/dist
 /node_modules
 /backend-web-server
 /gen-package-json
