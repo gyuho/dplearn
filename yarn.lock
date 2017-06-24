@@ -8,12 +8,12 @@
   dependencies:
     tslib "^1.7.1"
 
-"@angular/cli@1.2.0-rc.0":
-  version "1.2.0-rc.0"
-  resolved "https://registry.yarnpkg.com/@angular/cli/-/cli-1.2.0-rc.0.tgz#a8e4335bcb2749b84c16d4c26877ea5b69d43777"
+"@angular/cli@1.2.0-rc.1":
+  version "1.2.0-rc.1"
+  resolved "https://registry.yarnpkg.com/@angular/cli/-/cli-1.2.0-rc.1.tgz#984ea238956f88b27eb46f3026b0105316c39e0a"
   dependencies:
     "@ngtools/json-schema" "1.1.0"
-    "@ngtools/webpack" "1.5.0-rc.0"
+    "@ngtools/webpack" "1.5.0-rc.1"
     autoprefixer "^6.5.3"
     chalk "^1.1.3"
     common-tags "^1.3.1"
@@ -151,9 +151,9 @@
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@ngtools/json-schema/-/json-schema-1.1.0.tgz#c3a0c544d62392acc2813a42c8a0dc6f58f86922"
 
-"@ngtools/webpack@1.5.0-rc.0":
-  version "1.5.0-rc.0"
-  resolved "https://registry.yarnpkg.com/@ngtools/webpack/-/webpack-1.5.0-rc.0.tgz#5fbdb9733e2916f8ebeb45cf7d6d1b0c42f0976c"
+"@ngtools/webpack@1.5.0-rc.1":
+  version "1.5.0-rc.1"
+  resolved "https://registry.yarnpkg.com/@ngtools/webpack/-/webpack-1.5.0-rc.1.tgz#cf1b2a2f7094004a44683b46365295c67c27d4e6"
   dependencies:
     enhanced-resolve "^3.1.0"
     loader-utils "^1.0.2"
@@ -197,9 +197,15 @@
   dependencies:
     "@types/angular" "*"
 
-"@types/angular@*", "@types/angular@1.6.20":
+"@types/angular@*":
   version "1.6.20"
   resolved "https://registry.yarnpkg.com/@types/angular/-/angular-1.6.20.tgz#6d1556494cf06683f19e36ff25028af9ef1e2d31"
+  dependencies:
+    "@types/jquery" "*"
+
+"@types/angular@1.6.21":
+  version "1.6.21"
+  resolved "https://registry.yarnpkg.com/@types/angular/-/angular-1.6.21.tgz#010c15954cbfe875b144b095b88b93a7293e8f12"
   dependencies:
     "@types/jquery" "*"
 
@@ -207,17 +213,17 @@
   version "2.0.34"
   resolved "https://registry.yarnpkg.com/@types/hammerjs/-/hammerjs-2.0.34.tgz#9cbac4f41cb039436141785e1be50b3ab10a04a9"
 
-"@types/jasmine@2.5.52":
-  version "2.5.52"
-  resolved "https://registry.yarnpkg.com/@types/jasmine/-/jasmine-2.5.52.tgz#6ea5435d5c71562296e63ef27a4718f94f2fbb13"
+"@types/jasmine@2.5.53":
+  version "2.5.53"
+  resolved "https://registry.yarnpkg.com/@types/jasmine/-/jasmine-2.5.53.tgz#4e0cefad09df5ec48c8dd40433512f84b1568d61"
 
 "@types/jquery@*":
   version "2.0.45"
   resolved "https://registry.yarnpkg.com/@types/jquery/-/jquery-2.0.45.tgz#cb99133aac1d997a820d6cf7258c91291c0a2adf"
 
-"@types/node@8.0.1":
-  version "8.0.1"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-8.0.1.tgz#89c271e0c3b9ebb6a3756dd601336970b6228b77"
+"@types/node@8.0.2":
+  version "8.0.2"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-8.0.2.tgz#8ab9456efb87d57f11d04f313d3da1041948fb4d"
 
 "@types/node@^6.0.46":
   version "6.0.46"
@@ -2761,9 +2767,9 @@ jsprim@^1.2.2:
     json-schema "0.2.3"
     verror "1.3.6"
 
-karma-chrome-launcher@2.1.1:
-  version "2.1.1"
-  resolved "https://registry.yarnpkg.com/karma-chrome-launcher/-/karma-chrome-launcher-2.1.1.tgz#216879c68ac04d8d5140e99619ba04b59afd46cf"
+karma-chrome-launcher@2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/karma-chrome-launcher/-/karma-chrome-launcher-2.2.0.tgz#cf1b9d07136cc18fe239327d24654c3dbc368acf"
   dependencies:
     fs-access "^1.0.0"
     which "^1.2.1"
