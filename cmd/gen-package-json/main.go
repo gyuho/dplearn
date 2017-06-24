@@ -99,12 +99,6 @@ const tmplPackageJSON = `{
         "@angular/router": "4.3.0-beta.0",
         "@angular/tsc-wrapped": "4.3.0-beta.0",
         "@angular/upgrade": "4.3.0-beta.0",
-        "core-js": "2.4.1",
-        "rxjs": "5.4.1",
-        "ts-helpers": "1.1.2",
-        "zone.js": "0.8.12"
-    },
-    "devDependencies": {
         "@angular/cli": "1.2.0-rc.1",
         "@angular/material": "2.0.0-beta.7",
         "@types/angular": "1.6.21",
@@ -117,6 +111,13 @@ const tmplPackageJSON = `{
         "@types/hammerjs": "2.0.34",
         "@types/jasmine": "2.5.53",
         "@types/node": "8.0.2",
+        "core-js": "2.4.1",
+        "rxjs": "5.4.1",
+        "typescript": "2.3.4",
+        "ts-helpers": "1.1.2",
+        "zone.js": "0.8.12"
+    },
+    "devDependencies": {
         "codelyzer": "3.1.1",
         "jasmine-core": "2.6.4",
         "jasmine-spec-reporter": "4.1.1",
@@ -126,7 +127,6 @@ const tmplPackageJSON = `{
         "karma-jasmine": "1.1.0",
         "karma-remap-istanbul": "0.6.0",
         "protractor": "5.1.2",
-        "typescript": "2.3.4",
         "ts-node": "3.1.0",
         "tslint": "5.4.3"
     },
