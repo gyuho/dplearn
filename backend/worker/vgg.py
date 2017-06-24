@@ -10,14 +10,37 @@ from __future__ import division, print_function
 import os
 
 import glog as log
+import numpy as np
 from keras import backend as K
-from keras.layers import Conv2D, Dense, Flatten, Input, MaxPooling2D
-from keras.models import Model
+from keras.layers.convolutional import (Convolution2D, MaxPooling2D,
+                                        ZeroPadding2D)
+from keras.layers.core import Dense, Dropout, Flatten, Lambda
+from keras.models import Sequential
 from keras.utils.data_utils import get_file
 
 KERAS_DIR = os.path.join(os.path.expanduser('~'), '.keras')
 DOGS_AND_CATS_DATASETS_DIR = os.path.join(KERAS_DIR, 'datasets', 'dogscats')
-WEIGHTS_PATH = 'https://github.com/fchollet/deep-learning-models/releases/download/v0.1/vgg16_weights_tf_dim_ordering_tf_kernels.h5'
+CLASS_INDEX_PATH = 'http://files.fast.ai/models/imagenet_class_index.json'
+WEIGHTS_PATH = 'http://files.fast.ai/models/vgg16.h5'
+WEIGHTS_PATH_TF = 'https://github.com/fchollet/deep-learning-models/releases/download/v0.1/vgg16_weights_tf_dim_ordering_tf_kernels.h5'
+
+
+VGG_MEAN = np.array([123.68, 116.779, 103.939], dtype=np.float32).reshape((3, 1, 1))
+
+
+def rgb_to_bgr(img):
+    """Subtracts the mean RGB value, and transposes RGB to BGR.
+    The mean RGB was computed on the image set used to train the VGG model.
+
+    Args
+        img: Image array (height x width x channels)
+
+    Returns
+        Image array (height x width x transposed_channels)
+    """
+    img = img - VGG_MEAN
+    # reverse axis rgb->bgr
+    return img[:, ::-1]
 
 
 def VGG():
@@ -32,85 +55,73 @@ def VGG():
     if not os.path.exists(KERAS_DIR):
         raise ValueError('{0} not exist'.format(KERAS_DIR))
 
-    if K.backend() == 'theano' or K.backend() != 'tensorflow':
-        raise ValueError('only support TensorFlow for now')
-
-    if K.image_data_format() != 'channels_last':
-        raise ValueError('TensorFlow backend image data format'
-                         'expects channels_last')
-
-    # include the 3 fully-connected layers at the top of the network.
-    include_top = True
-
-    # one of `None` (random initialization)
-    # or "imagenet" (pre-training on ImageNet)
-    weights = 'imagenet'
-
-    # optional number of classes to classify images into
-    classes = 1000
+    log.info('running backend {0}'.format(K.backend()))
 
     # default input width/height for the model (min_size 48)
+    # usef default shape when 'include_top' is true
     default_size = 224
 
     # optional shape tuple
-    # '(3, 224, 224)' with 'channels_first' data format
-    # '(224, 224, 3)' with 'channels_last' data format
-    # usef default shape when 'include_top' is true
-    input_shape = (default_size, default_size, 3)
+    # '(3, 224, 224)' with 'channels_first' data format (Theano)
+    # '(224, 224, 3)' with 'channels_last' data format (Tensorflow)
+    if K.backend() == 'theano':
+        input_shape = (3, default_size, default_size)
+    elif K.backend() == 'tensorflow':
+        input_shape = (default_size, default_size, 3)
 
-    # instantiate a Keras tensor, `shape=(32,)` indicates that
-    # expected input will be batches of 32-dimensional vectors.
-    img_input = Input(shape=input_shape)
+    layers = Sequential()
+    layers.add(Lambda(rgb_to_bgr, input_shape=input_shape, output_shape=input_shape))
 
     # Convolution layers are for finding patterns in images
     # Dense (fully connected) layers are for combining patterns across an image
 
     # Block 1
-    layer = Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv1')(img_input)
-    layer = Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv2')(layer)
-    layer = MaxPooling2D((2, 2), strides=(2, 2), name='block1_pool')(layer)
+    # add ZeroPadding and Covolution layers to the model, MaxPooling layer at the very end
+    for _ in range(2):
+        layers.add(ZeroPadding2D((1, 1)))
+        layers.add(Convolution2D(64, 3, 3, activation='relu'))
+    layers.add(MaxPooling2D((2, 2), strides=(2, 2)))
 
     # Block 2
-    layer = Conv2D(128, (3, 3), activation='relu', padding='same', name='block2_conv1')(layer)
-    layer = Conv2D(128, (3, 3), activation='relu', padding='same', name='block2_conv2')(layer)
-    layer = MaxPooling2D((2, 2), strides=(2, 2), name='block2_pool')(layer)
+    for _ in range(2):
+        layers.add(ZeroPadding2D((1, 1)))
+        layers.add(Convolution2D(128, 3, 3, activation='relu'))
+    layers.add(MaxPooling2D((2, 2), strides=(2, 2)))
 
     # Block 3
-    layer = Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv1')(layer)
-    layer = Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv2')(layer)
-    layer = Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv3')(layer)
-    layer = MaxPooling2D((2, 2), strides=(2, 2), name='block3_pool')(layer)
+    for _ in range(3):
+        layers.add(ZeroPadding2D((1, 1)))
+        layers.add(Convolution2D(256, 3, 3, activation='relu'))
+    layers.add(MaxPooling2D((2, 2), strides=(2, 2)))
 
     # Block 4
-    layer = Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv1')(layer)
-    layer = Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv2')(layer)
-    layer = Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv3')(layer)
-    layer = MaxPooling2D((2, 2), strides=(2, 2), name='block4_pool')(layer)
+    for _ in range(3):
+        layers.add(ZeroPadding2D((1, 1)))
+        layers.add(Convolution2D(512, 3, 3, activation='relu'))
+    layers.add(MaxPooling2D((2, 2), strides=(2, 2)))
 
     # Block 5
-    layer = Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv1')(layer)
-    layer = Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv2')(layer)
-    layer = Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv3')(layer)
-    layer = MaxPooling2D((2, 2), strides=(2, 2), name='block5_pool')(layer)
+    for _ in range(3):
+        layers.add(ZeroPadding2D((1, 1)))
+        layers.add(Convolution2D(512, 3, 3, activation='relu'))
+    layers.add(MaxPooling2D((2, 2), strides=(2, 2)))
 
     # Classification block
-    layer = Flatten(name='flatten')(layer)
-    layer = Dense(4096, activation='relu', name='fc1')(layer)
-    layer = Dense(4096, activation='relu', name='fc2')(layer)
-    layer = Dense(classes, activation='softmax', name='predictions')(layer)
+    layers.add(Flatten())
 
-    # (assume no 'input_tensor')
-    log.info("creating model with include_top {0}, weights {1}".format(include_top, weights))
-    model = Model(img_input, layer, name='vgg16')
-    log.info("created model with include_top {0}, weights {1}".format(include_top, weights))
+    for _ in range(2):
+        layers.add(Dense(4096, activation='relu'))
+        layers.add(Dropout(0.5))
+
+    # optional number of classes to classify images into
+    classes = 1000
+    layers.add(Dense(classes, activation='softmax'))
 
     # weights that the VGG creators trained, part of the model, learnt from data
-    wgt_path = get_file('vgg16_weights_tf_dim_ordering_tf_kernels.h5',
-                        WEIGHTS_PATH,
-                        cache_subdir='models')
+    wgt_path = get_file('vgg16.h5', WEIGHTS_PATH, cache_subdir='models')
 
     log.info("loading weights from {0}".format(wgt_path))
-    model.load_weights(wgt_path)
+    layers.load_weights(wgt_path)
     log.info("loaded weights from {0}".format(wgt_path))
 
-    return model
+    return layers
