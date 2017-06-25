@@ -28,17 +28,12 @@ cat > /etc/ansible-install.yml <<EOF
       mode: 0777
 
   - file:
-      path: /home/gyuho/.keras
+      path: /var/lib/keras/datasets
       state: directory
       mode: 0777
 
   - file:
-      path: /home/gyuho/.keras/datasets
-      state: directory
-      mode: 0777
-
-  - file:
-      path: /home/gyuho/.keras/models
+      path: /var/lib/keras/models
       state: directory
       mode: 0777
 
