@@ -1,9 +1,9 @@
 {
-    "/word-predict-request": {
+    "/cats-vs-dogs-request": {
         "target": "http://0.0.0.0:2200",
         "secure": "false"
     },
-    "/cats-vs-dogs-request": {
+    "/word-predict-request": {
         "target": "http://0.0.0.0:2200",
         "secure": "false"
     }
