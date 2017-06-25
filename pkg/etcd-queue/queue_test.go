@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/coreos/etcd/clientv3"
+	"github.com/golang/glog"
 )
 
 /*
@@ -255,6 +256,49 @@ func TestQueueWatch(t *testing.T) {
 		}
 	case <-time.After(3 * time.Second):
 		t.Fatalf("expected watch response on %q watcher, but got none", item1.Key)
+	}
+}
+
+func TestQueueEnqueueLeaseExpire(t *testing.T) {
+	cport := int(atomic.LoadInt32(&basePort))
+	atomic.StoreInt32(&basePort, int32(cport)+2)
+
+	dataDir, err := ioutil.TempDir(os.TempDir(), "etcd-queue")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dataDir)
+
+	qu, err := NewEmbeddedQueue(context.Background(), cport, cport+1, dataDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer qu.Stop()
+
+	testBucket := "test-bucket"
+
+	item1 := CreateItem(testBucket, 1000, "test-data")
+	item1EnqueueWatcher := qu.Enqueue(context.Background(), item1, WithTTL(7*time.Second))
+
+	glog.Infof("wait until lease revoke")
+	time.Sleep(10 * time.Second)
+
+	select {
+	case item := <-qu.Front(context.Background(), testBucket):
+		t.Fatalf("unexpected item %+v after lease revoke", item)
+	case <-time.After(2 * time.Second):
+	}
+
+	select {
+	case item := <-item1EnqueueWatcher:
+		if item.Error != "" {
+			t.Fatalf("unexpected error: %+v", item)
+		}
+		if item.Canceled != true {
+			t.Fatalf("%q expected cancel, got %+v", item.Key, item)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatalf("expected events from item1EnqueueWatcher in 5-sec")
 	}
 }
 
