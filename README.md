@@ -26,7 +26,7 @@ Notes:
 - **Why is the queue service needed?** To process concurrent users requests. Worker has limited resources. Requests can be serialized into the queue, so that worker performance is maximized for each task.
 - **Why Go?** To natively use [`embedded etcd`](https://github.com/coreos/etcd/tree/master/embed).
 - **Why etcd?** It has *really great* [Watch API implementation](https://godoc.org/github.com/coreos/etcd/clientv3#Watcher)! Highly recommend [`etcd`](https://github.com/coreos/etcd)! `pkg/etcd-queue` uses Watch API to stream updates to `backend/worker` and `frontend`. This minimizes TCP socket creation and slow TCP starts (e.g. streaming vs. polling). *TODO: use streaming to broadcast more fine-grained job status.*
-- **How is this deployed?** everything is run in *one container*, since I have limited budget on public serving. In production, [`etcd`](https://github.com/coreos/etcd) can be distributed for higher availability, and [Tensorflow/serving](https://tensorflow.github.io/serving/) can serve the pre-trained models.
+- **How is this deployed?** everything is run in *one container*, since I have limited budget on public serving. In production, [Tensorflow/serving](https://tensorflow.github.io/serving/) can serve the pre-trained models, and [`etcd`](https://github.com/coreos/etcd) can be distributed for higher availability and used for master-worker election.
 
 
 ### Development Workflow
