@@ -6,6 +6,13 @@ if ! [[ "$0" =~ "./scripts/docker/tests-cpu.sh" ]]; then
   exit 255
 fi
 
+KERAS_DIR=/var/lib/keras
+if [[ $(uname) = "Darwin" ]]; then
+  echo "Running locally with MacOS"
+  KERAS_DIR=${HOME}/.keras
+fi
+echo KERAS_DIR: ${KERAS_DIR}
+
 docker run \
   --rm \
   --volume=`pwd`:/gopath/src/github.com/gyuho/deephardway \
@@ -21,7 +28,7 @@ docker run \
 docker run \
   --rm \
   --volume=`pwd`:/gopath/src/github.com/gyuho/deephardway \
-  --volume=${HOME}/.keras/datasets:/root/.keras/datasets \
-  --volume=${HOME}/.keras/models:/root/.keras/models \
+  --volume=${KERAS_DIR}/datasets:/root/.keras/datasets \
+  --volume=${KERAS_DIR}/models:/root/.keras/models \
   gcr.io/deephardway/deephardway:latest-cpu \
   /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && ETCD_EXEC=/etcd BACKEND_WEB_SERVER_EXEC=/gopath/bin/backend-web-server ./scripts/tests/python.sh"

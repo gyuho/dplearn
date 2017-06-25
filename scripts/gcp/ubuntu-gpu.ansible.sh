@@ -147,8 +147,8 @@ ExecStartPre=/usr/bin/docker pull gcr.io/deephardway/deephardway:latest-gpu
 ExecStart=/usr/bin/nvidia-docker run \
   --rm \
   --name ipython-gpu \
-  --volume=${HOME}/.keras/datasets:/root/.keras/datasets \
-  --volume=${HOME}/.keras/models:/root/.keras/models \
+  --volume=/var/lib/keras/datasets:/root/.keras/datasets \
+  --volume=/var/lib/keras/models:/root/.keras/models \
   -p 8888:8888 \
   --ulimit nofile=262144:262144 \
   gcr.io/deephardway/deephardway:latest-gpu \
@@ -181,8 +181,8 @@ ExecStartPre=/usr/bin/docker pull gcr.io/deephardway/deephardway
 ExecStart=/usr/bin/docker run \
   --rm \
   --name download-data \
-  --volume=${HOME}/.keras/datasets:/root/.keras/datasets \
-  --volume=${HOME}/.keras/models:/root/.keras/models \
+  --volume=/var/lib/keras/datasets:/root/.keras/datasets \
+  --volume=/var/lib/keras/models:/root/.keras/models \
   --net=host \
   --ulimit nofile=262144:262144 \
   gcr.io/deephardway/deephardway:latest-gpu \
@@ -216,8 +216,8 @@ ExecStart=/usr/bin/nvidia-docker run \
   --rm \
   --name deephardway-gpu \
   --volume=/var/lib/etcd:/var/lib/etcd \
-  --volume=${HOME}/.keras/datasets:/root/.keras/datasets \
-  --volume=${HOME}/.keras/models:/root/.keras/models \
+  --volume=/var/lib/keras/datasets:/root/.keras/datasets \
+  --volume=/var/lib/keras/models:/root/.keras/models \
   -p 4200:4200 \
   --ulimit nofile=262144:262144 \
   gcr.io/deephardway/deephardway:latest-gpu \

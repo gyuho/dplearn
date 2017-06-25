@@ -11,6 +11,12 @@ if [[ "${ACTIVATE_COMMAND}" ]]; then
 else
   echo ACTIVATE_COMMAND is not defined
 fi
+KERAS_DIR=/var/lib/keras
+if [[ $(uname) = "Darwin" ]]; then
+  echo "Running locally with MacOS"
+  KERAS_DIR=${HOME}/.keras
+fi
+echo KERAS_DIR: ${KERAS_DIR}
 
 # -P
 # -p hostPort:containerPort
@@ -22,8 +28,8 @@ docker run \
   --rm \
   -it \
   --volume=`pwd`/notebooks:/gopath/src/github.com/gyuho/deephardway/notebooks \
-  --volume=${HOME}/.keras/datasets:/root/.keras/datasets \
-  --volume=${HOME}/.keras/models:/root/.keras/models \
+  --volume=${KERAS_DIR}/datasets:/root/.keras/datasets \
+  --volume=${KERAS_DIR}/models:/root/.keras/models \
   -p 8888:8888 \
   gcr.io/deephardway/deephardway:latest-cpu \
   /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && ${ACTIVATE_COMMAND} PASSWORD='' ./run_jupyter.sh -y --allow-root --notebook-dir=./notebooks"

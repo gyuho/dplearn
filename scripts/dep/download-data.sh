@@ -11,7 +11,6 @@ if [[ $(uname) = "Darwin" ]]; then
   echo "Running locally with MacOS"
   KERAS_DIR=${HOME}/.keras
 fi
-
 echo KERAS_DIR: ${KERAS_DIR}
 
 go install -v ./cmd/download-data
