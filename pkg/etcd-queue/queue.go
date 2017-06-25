@@ -14,8 +14,6 @@ import (
 	"github.com/golang/glog"
 )
 
-// TODO: 'etcd/clientv3/concurrency' for worker master election
-
 // Queue is the queue service backed by etcd.
 type Queue interface {
 	// Enqueue adds/overwrites an item in the queue. Updates are to be
