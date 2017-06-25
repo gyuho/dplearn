@@ -91,6 +91,7 @@ ENV HOME /root
 # Update OS
 # Configure 'bash' for 'source' commands
 RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections \
+  && echo "root ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers \
   && rm /bin/sh \
   && ln -s /bin/bash /bin/sh \
   && ls -l $(which bash) \
@@ -121,7 +122,6 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
   fonts-dejavu \
   gfortran \
   nginx \
-  && echo "root ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers \
   && apt-get -y clean \
   && rm -rf /var/lib/apt/lists/* \
   && apt-get -y update \
@@ -143,18 +143,21 @@ ADD nginx.conf /etc/nginx/sites-available/default
 ##########################
 
 ##########################
-# Install additional Python libraries
+# Install basic packages
+#
 # install 'pip --no-cache-dir install' with default python
 # use vanilla python from tensorflow base image, as much as possible
+#
 # install 'conda install --name r ...' just for R (source activate r)
 # install 'conda install --name py36 ...' just for Python 3 (source activate py36)
-# https://github.com/Anaconda-Platform/nb_conda
 # https://github.com/jupyter/docker-stacks/blob/master/r-notebook/Dockerfile
+#
 # https://github.com/fchollet/keras
 # ${HOME}/.keras/keras.json
 # Keras 1.2.2 "backend": "theano", "image_dim_ordering": "th",
 # Keras 1.2.2 "backend": "tensorflow", "image_dim_ordering": "tf",
 # Keras 2.0.5 "image_data_format": "channels_last"
+#
 RUN pip --no-cache-dir install \
   requests \
   glog \
@@ -291,15 +294,8 @@ RUN pushd ${GOPATH}/src/github.com/gyuho/deephardway \
 ##########################
 
 ##########################
-# Backend, do not expose to host
-# Just run with frontend, in one container
-# EXPOSE 2200
-
 # Frontend
 EXPOSE 4200
-
-# TensorBoard
-# EXPOSE 6006
 
 # IPython
 EXPOSE 8888
@@ -361,21 +357,3 @@ func nowPST() time.Time {
 	}
 	return time.Now().In(tzone)
 }
-
-/*
-// FilesToDownload     []string `yaml:"files-to-download"`
-// FileDownloadCommand string
-// DownloadDirectory   string `yaml:"download-directory"`
-if len(cfg.FilesToDownload) > 0 {
-	lineBreak := ` \
-&& `
-	rootCommand := fmt.Sprintf("RUN mkdir -p %s", cfg.DownloadDirectory)
-	commands := []string{rootCommand}
-	for _, ep := range cfg.FilesToDownload {
-		commands = append(commands, fmt.Sprintf("wget %s -O %s", ep, filepath.Join(cfg.DownloadDirectory, filepath.Base(ep))))
-	}
-	cfg.FileDownloadCommand = strings.Join(commands, lineBreak)
-} else {
-	cfg.FileDownloadCommand = "# no files to download"
-}
-*/
