@@ -326,14 +326,14 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 
 		switch reqPath {
 		case "/cats-vs-dogs-request":
-			var fpath string
-			fpath, err = cacheImage(cache, creq.DataFromFrontend)
+			var imgFilePath string
+			imgFilePath, err = cacheImage(cache, creq.DataFromFrontend)
 			if err != nil {
 				err = fmt.Errorf("error %q while fetching %q", err.Error(), creq.DataFromFrontend)
 				glog.Warning(err)
 				return json.NewEncoder(w).Encode(&queue.Item{Bucket: reqPath, Progress: 0, Error: err.Error()})
 			}
-			creq.DataFromFrontend = fpath
+			creq.DataFromFrontend = imgFilePath
 
 		case "/word-predict-request":
 
@@ -452,60 +452,64 @@ const (
 )
 
 func cacheImage(cache lru.Cache, ep string) (string, error) {
-	rawPath := urlutil.TrimQuery(ep)
+	originURL := urlutil.TrimQuery(ep)
 
-	vi, err := cache.Get(imageCacheBucket, rawPath)
+	vi, err := cache.Get(imageCacheBucket, originURL)
 	if err != nil && err != lru.ErrKeyNotFound {
 		return "", err
 	}
 
-	var fpath string
+	var imgFilePath string
 	if err != lru.ErrKeyNotFound { // exist in cache, just use the one from cache
-		glog.Infof("fetching %q from cache", rawPath)
+		glog.Infof("fetching %q from cache", originURL)
 		var ok bool
-		fpath, ok = vi.(string)
+		imgFilePath, ok = vi.(string)
 		if !ok {
-			return fpath, fmt.Errorf("expected bytes type in 'image-cache' bucket, got %v", reflect.TypeOf(vi))
+			return imgFilePath, fmt.Errorf("expected bytes type in 'image-cache' bucket, got %v", reflect.TypeOf(vi))
 		}
-		glog.Infof("fetched %q from cache", rawPath)
+		glog.Infof("fetched %q from cache", originURL)
 	} else { // not exist in cache, download, and cache it!
-		switch filepath.Ext(rawPath) {
+		switch filepath.Ext(originURL) {
 		case ".jpg", ".jpeg":
 		case ".png":
 		default:
-			return "", fmt.Errorf("not support %q in %q (must be jpg, jpeg, png)", filepath.Ext(rawPath), rawPath)
+			return "", fmt.Errorf("not support %q in %q (must be jpg, jpeg, png)", filepath.Ext(originURL), originURL)
 		}
 
-		size, sizet, err := urlutil.GetContentLength(rawPath)
+		size, sizet, err := urlutil.GetContentLength(originURL)
 		if err != nil {
-			return "", fmt.Errorf("error when fetching %q", rawPath)
+			return "", fmt.Errorf("error when fetching %q", originURL)
 		}
 		if size > imageCacheSizeLimit {
-			return "", fmt.Errorf("%q is too big; %s > %s(limit)", rawPath, sizet, humanize.Bytes(uint64(imageCacheSizeLimit)))
+			return "", fmt.Errorf("%q is too big; %s > %s(limit)", originURL, sizet, humanize.Bytes(uint64(imageCacheSizeLimit)))
 		}
 
-		glog.Infof("downloading %q", rawPath)
+		glog.Infof("downloading %q", originURL)
 		var data []byte
-		data, err = urlutil.Get(rawPath)
+		data, err = urlutil.Get(originURL)
 		if err != nil {
 			return "", err
 		}
-		glog.Infof("downloaded %q (%s)", rawPath, humanize.Bytes(uint64(len(data))))
+		glog.Infof("downloaded %q (%s)", originURL, humanize.Bytes(uint64(len(data))))
 
-		fpath = filepath.Join("/tmp", base64.StdEncoding.EncodeToString([]byte(rawPath))+filepath.Ext(rawPath))
+		// TODO
+		glog.Infof("resizing %q (original size %s)", originURL, humanize.Bytes(uint64(len(data))))
+		resizedData := data
+		glog.Infof("resized %q (current size %s)", originURL, humanize.Bytes(uint64(len(resizedData))))
 
-		glog.Infof("saving %q to %q", rawPath, fpath)
-		if err = fileutil.WriteToFile(fpath, data); err != nil {
-			return fpath, err
+		imgFilePath = filepath.Join("/tmp", base64.StdEncoding.EncodeToString([]byte(originURL))+filepath.Ext(originURL))
+		glog.Infof("saving %q to %q", originURL, imgFilePath)
+		if err = fileutil.WriteToFile(imgFilePath, resizedData); err != nil {
+			return imgFilePath, err
 		}
-		glog.Infof("saved %q to %q", rawPath, fpath)
+		glog.Infof("saved %q to %q", originURL, imgFilePath)
 
-		glog.Infof("storing %q into cache", rawPath)
-		if err = cache.Put(imageCacheBucket, rawPath, fpath); err != nil {
+		glog.Infof("storing %q into cache", originURL)
+		if err = cache.Put(imageCacheBucket, originURL, imgFilePath); err != nil {
 			return "", err
 		}
-		glog.Infof("stored %q into cache", rawPath)
+		glog.Infof("stored %q into cache", originURL)
 	}
 
-	return fpath, nil
+	return imgFilePath, nil
 }
