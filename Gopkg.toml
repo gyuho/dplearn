@@ -1,7 +1,7 @@
 # https://github.com/coreos/etcd
 [[constraint]]
   name = "github.com/coreos/etcd"
-  revision = "47a8156851b5a59665421661edb7c813f8a7993e"
+  revision = "204c4aa0b07799fbad113ca6471292259465bd14"
 
 # https://github.com/dustin/go-humanize
 [[constraint]]
@@ -31,7 +31,12 @@
 # https://github.com/golang/sys
 [[constraint]]
   name = "golang.org/x/sys"
-  revision = "fb4cac33e3196ff7f507ab9b2d2a44b0142f5b5a"
+  revision = "c23410a886927bab8ca5e80b08af6a56faeb330d"
+
+# https://github.com/golang/net
+[[constraint]]
+  name = "golang.org/x/net"
+  revision = "5f8847ae0d0e90b6a9dc8148e7ad616874625171"
 
 # https://github.com/golang/oauth2
 [[constraint]]
@@ -41,7 +46,7 @@
 # https://github.com/google/google-api-go-client
 [[constraint]]
   name = "google.golang.org/api"
-  revision = "1faa39f42f12a54fa82ca5902a7ab642d5b09ad1"
+  revision = "1ba364a3bb616587dfd46d5009edefdfd7896ed9"
 
 # https://github.com/golang/appengine
 [[constraint]]
@@ -51,4 +56,4 @@
 # https://github.com/GoogleCloudPlatform/google-cloud-go
 [[constraint]]
   name = "cloud.google.com/go"
-  revision = "b25da57bd19d9e15a9f72534e93c4ec4fec374df"
+  revision = "9d0d2cf2897dfcd18a86e1666038caf1c38e77f8"
