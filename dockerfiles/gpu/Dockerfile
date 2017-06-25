@@ -1,4 +1,4 @@
-# Last updated at 2017-06-25 00:59:19.571443255 -0700 PDT
+# Last updated at 2017-06-25 01:19:50.204477147 -0700 PDT
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile.gpu
 # https://gcr.io/tensorflow/tensorflow

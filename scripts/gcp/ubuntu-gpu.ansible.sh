@@ -37,6 +37,11 @@ cat > /etc/ansible-install.yml <<EOF
       state: directory
       mode: 0777
 
+  - file:
+      path: /home/gyuho/go
+      state: directory
+      mode: 0777
+
   - name: Install Linux utils
     become: yes
     apt:
@@ -178,7 +183,8 @@ LimitNOFILE=40000
 ExecStartPre=/usr/bin/docker login -u oauth2accesstoken -p "$(/usr/bin/gcloud auth application-default print-access-token)" https://gcr.io
 ExecStartPre=/usr/bin/docker pull gcr.io/deephardway/deephardway
 
-ExecStart=/usr/bin/docker run \
+ExecStart=/usr/bin/docker \
+  run \
   --rm \
   --name download-data \
   --volume=/var/lib/keras/datasets:/root/.keras/datasets \
@@ -249,7 +255,8 @@ LimitNOFILE=40000
 ExecStartPre=/usr/bin/docker login -u oauth2accesstoken -p "$(/usr/bin/gcloud auth application-default print-access-token)" https://gcr.io
 ExecStartPre=/usr/bin/docker pull gcr.io/deephardway/deephardway
 
-ExecStart=/usr/bin/docker run \
+ExecStart=/usr/bin/docker \
+  run \
   --rm \
   --name reverse-proxy \
   --net=host \
