@@ -260,7 +260,7 @@ ADD . ${GOPATH}/src/github.com/gyuho/deephardway
 # Symlinks to notebooks notebooks
 RUN ln -s /gopath/src/github.com/gyuho/deephardway /git-deep \
   && pushd ${GOPATH}/src/github.com/gyuho/deephardway \
-  && echo "updating Go dependencies..." \
+  && echo "Updating Go dependencies..." \
   && ./scripts/dep/go-dep.sh \
   && go install -v ./cmd/backend-web-server \
   && go install -v ./cmd/download-data \
@@ -283,6 +283,7 @@ RUN pushd ${GOPATH}/src/github.com/gyuho/deephardway \
   && curl https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
   && echo "deb http://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
   && apt-get -y update && apt-get -y install yarn \
+  && echo "Updating frontend dependencies..." \
   && rm -rf ./node_modules \
   && yarn install \
   && npm rebuild node-sass --force \
