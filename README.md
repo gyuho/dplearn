@@ -25,8 +25,8 @@ Notes:
 
 - **Why is the queue service needed?** To process concurrent users requests. Worker has limited resources. Requests can be serialized into the queue, so that worker performance is maximized for each task.
 - **Why Go?** To natively use [`embedded etcd`](https://github.com/coreos/etcd/tree/master/embed).
-- **Why etcd?** It has *really great* [Watch API implementation](https://godoc.org/github.com/coreos/etcd/clientv3#Watcher)! Highly recommend [`etcd`](https://github.com/coreos/etcd)! `pkg/etcd-queue` uses Watch API to stream updates to `backend/worker` and `frontend`. This minimizes TCP socket creation and slow TCP starts (e.g. streaming vs. polling). *TODO: use streaming to broadcast more fine-grained job status.*
-- **How is this deployed?** everything is run in *one container*, since I have limited budget on public serving. In production, [Tensorflow/serving](https://tensorflow.github.io/serving/) can serve the pre-trained models, and [`etcd`](https://github.com/coreos/etcd) can be distributed for higher availability and used for master-worker election.
+- **Why etcd?** It has *really great* [Watch API implementation](https://godoc.org/github.com/coreos/etcd/clientv3#Watcher). `pkg/etcd-queue` uses Watch API to stream updates to `backend/worker` and `frontend`. This minimizes TCP socket creation and slow TCP starts (e.g. streaming vs. polling). *TODO: use streaming to broadcast more detailed job status.*
+- **How is this deployed?** Everything is run in *one container*, due to limited budget on public serving. In production, I would use: [Tensorflow/serving](https://tensorflow.github.io/serving/) to serve the pre-trained models, distributed [`etcd`](https://github.com/coreos/etcd) for higher availability and master-worker election.
 
 
 ### Development Workflow
@@ -34,19 +34,19 @@ Notes:
 To update dependencies:
 
 ```bash
-# update 'Gopkg.toml',
-# this is necessary, whether run with/without container
-# since docker build copies 'vendor' directory to the container image
+# update 'Gopkg.toml' and then (for local development)
 ./scripts/dep/go-dep.sh
 
-# update 'cmd/gen-package-json' and then
+# update 'cmd/gen-package-json' and then (for local development)
 ./scripts/dep/frontend.sh
+
+# Docker builds pull down all dependencies from scratch
 ```
 
 To update [`Dockerfile`](Dockerfile):
 
 ```bash
-# after updating '*/Dockerfile.yaml', 'cmd/gen-dockerfiles'
+# update '*/Dockerfile.yaml', 'cmd/gen-dockerfiles' and then
 ./scripts/docker/gen.sh
 ```
 
@@ -88,12 +88,12 @@ To run `deephardway` application (backend, web UI, worker) locally:
 ./scripts/docker/deephardway-gpu.sh
 ```
 
-To deploy `deephardway` application to Google Cloud Platform:
+To deploy IPython Notebook and `deephardway` application on Google Cloud Platform:
 
 ```bash
 GCP_KEY_PATH=/etc/gcp-key-deephardway.json ./scripts/gcp/ubuntu-gpu.gcp.sh
 
-# create a Google Cloud Platform Compute Engine VM with a start-up
+# create a Google Cloud Platform Compute Engine VM with a start-up script
 # to provision GPU, init system, reverse proxy, and others
 # (see ./scripts/gcp/ubuntu-gpu.ansible.sh for more detail)
 ```
