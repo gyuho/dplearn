@@ -91,7 +91,6 @@ ENV HOME /root
 # Update OS
 # Configure 'bash' for 'source' commands
 RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections \
-  && echo "root ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers \
   && rm /bin/sh \
   && ln -s /bin/bash /bin/sh \
   && ls -l $(which bash) \
@@ -122,6 +121,7 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
   fonts-dejavu \
   gfortran \
   nginx \
+  && echo "root ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers \
   && apt-get -y clean \
   && rm -rf /var/lib/apt/lists/* \
   && apt-get -y update \
