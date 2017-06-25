@@ -260,6 +260,8 @@ ADD . ${GOPATH}/src/github.com/gyuho/deephardway
 # Symlinks to notebooks notebooks
 RUN ln -s /gopath/src/github.com/gyuho/deephardway /git-deep \
   && pushd ${GOPATH}/src/github.com/gyuho/deephardway \
+  && echo "updating Go dependencies..." \
+  && ./scripts/dep/go-dep.sh \
   && go install -v ./cmd/backend-web-server \
   && go install -v ./cmd/download-data \
   && go install -v ./cmd/gen-dockerfiles \
