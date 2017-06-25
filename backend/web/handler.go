@@ -16,7 +16,7 @@ import (
 	"sync"
 	"time"
 
-	etcdqueue "github.com/gyuho/deephardway/pkg/etcd-queue"
+	queue "github.com/gyuho/deephardway/pkg/etcd-queue"
 	"github.com/gyuho/deephardway/pkg/fileutil"
 	"github.com/gyuho/deephardway/pkg/lru"
 	"github.com/gyuho/deephardway/pkg/urlutil"
@@ -32,12 +32,12 @@ type Server struct {
 	rootCancel func()
 	webURL     url.URL
 	httpServer *http.Server
-	qu         etcdqueue.Queue
+	qu         queue.Queue
 
 	donec chan struct{}
 
 	requestCacheMu sync.Mutex
-	requestCache   map[string]*etcdqueue.Item
+	requestCache   map[string]*queue.Item
 }
 
 type key int
@@ -49,7 +49,7 @@ const (
 	userKey
 )
 
-func with(h ContextHandler, srv *Server, qu etcdqueue.Queue, cache lru.Cache) ContextHandler {
+func with(h ContextHandler, srv *Server, qu queue.Queue, cache lru.Cache) ContextHandler {
 	return ContextHandlerFunc(func(ctx context.Context, w http.ResponseWriter, req *http.Request) error {
 		ctx = context.WithValue(ctx, serverKey, srv)
 		ctx = context.WithValue(ctx, queueKey, qu)
@@ -59,8 +59,15 @@ func with(h ContextHandler, srv *Server, qu etcdqueue.Queue, cache lru.Cache) Co
 	})
 }
 
+const (
+	enqueueTTL = 30 * time.Minute
+
+	// RequestIDHeader is the field name for request ID header.
+	RequestIDHeader = "Request-Id"
+)
+
 // StartServer starts a backend webserver with stoppable listener.
-func StartServer(webPort int, qu etcdqueue.Queue) (*Server, error) {
+func StartServer(webPort int, qu queue.Queue) (*Server, error) {
 	rootCtx, rootCancel := context.WithCancel(context.Background())
 	mux := http.NewServeMux()
 	webURL := url.URL{Scheme: "http", Host: fmt.Sprintf("localhost:%d", webPort)}
@@ -71,7 +78,7 @@ func StartServer(webPort int, qu etcdqueue.Queue) (*Server, error) {
 		httpServer:   &http.Server{Addr: webURL.Host, Handler: mux},
 		qu:           qu,
 		donec:        make(chan struct{}),
-		requestCache: make(map[string]*etcdqueue.Item),
+		requestCache: make(map[string]*queue.Item),
 	}
 
 	cache := lru.NewInMemory(imageCacheSize)
@@ -142,8 +149,8 @@ func (srv *Server) gcCache(period time.Duration) {
 			glog.Warningf("%q should have been requested to delete when user leaves browser (missed DELETE request?)", id)
 			if time.Since(item.CreatedAt) > period {
 				delete(srv.requestCache, id)
-				if item.Progress == etcdqueue.MaxProgress {
-					glog.Infof("deleted %q because its progress is %d (created at %s)", id, etcdqueue.MaxProgress, item.CreatedAt)
+				if item.Progress == queue.MaxProgress {
+					glog.Infof("deleted %q because its progress is %d (created at %s)", id, queue.MaxProgress, item.CreatedAt)
 				} else {
 					glog.Warningf("deleted %q and its progress is %d (created at %s)", id, item.Progress, item.CreatedAt)
 				}
@@ -186,7 +193,7 @@ func queueHandler(ctx context.Context, w http.ResponseWriter, req *http.Request)
 	reqPath := req.URL.Path
 	bucket := path.Dir(reqPath)
 	srv := ctx.Value(serverKey).(*Server)
-	qu := ctx.Value(queueKey).(etcdqueue.Queue)
+	qu := ctx.Value(queueKey).(queue.Queue)
 
 	switch req.Method {
 	case http.MethodGet:
@@ -201,26 +208,26 @@ func queueHandler(ctx context.Context, w http.ResponseWriter, req *http.Request)
 		io.Copy(ioutil.Discard, req.Body)
 		req.Body.Close()
 
-		var item etcdqueue.Item
+		var item queue.Item
 		if err = json.Unmarshal(rb, &item); err != nil {
-			return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: bucket, Progress: 0, Error: err.Error()})
+			return json.NewEncoder(w).Encode(&queue.Item{Bucket: bucket, Progress: 0, Error: err.Error()})
 		}
 
 		if item.Bucket == "" || item.Key == "" || item.Value == "" || item.RequestID == "" {
-			return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: bucket, Progress: 0, Error: fmt.Sprintf("invalid item: %+v", item)})
+			return json.NewEncoder(w).Encode(&queue.Item{Bucket: bucket, Progress: 0, Error: fmt.Sprintf("invalid item: %+v", item)})
 		}
 
 		srv.requestCacheMu.Lock()
 		_, ok := srv.requestCache[item.RequestID]
 		srv.requestCacheMu.Unlock()
 		if !ok {
-			return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: bucket, Progress: 0, Error: fmt.Sprintf("unknown request ID %q", item.RequestID)})
+			return json.NewEncoder(w).Encode(&queue.Item{Bucket: bucket, Progress: 0, Error: fmt.Sprintf("unknown request ID %q", item.RequestID)})
 		}
 
-		itemWatcher := qu.Enqueue(ctx, &item)
+		itemWatcher := qu.Enqueue(ctx, &item, queue.WithTTL(enqueueTTL))
 		select {
 		case ev := <-itemWatcher:
-			if item.Progress != etcdqueue.MaxProgress {
+			if item.Progress != queue.MaxProgress {
 				item.Error = fmt.Sprintf("unexpected event from Enqueue with %+v", ev)
 			}
 		default:
@@ -243,17 +250,17 @@ type Request struct {
 func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.Request) error {
 	reqPath := req.URL.Path
 	srv := ctx.Value(serverKey).(*Server)
-	qu := ctx.Value(queueKey).(etcdqueue.Queue)
+	qu := ctx.Value(queueKey).(queue.Queue)
 	cache := ctx.Value(cacheKey).(lru.Cache)
 	userID := ctx.Value(userKey).(string)
 
 	switch req.Method {
 	case http.MethodGet: // item status fetch
-		requestID := req.Header.Get("Request-Id")
+		requestID := req.Header.Get(RequestIDHeader)
 		if requestID == "" {
-			err := fmt.Errorf("expected 'Request-Id' from header (got %+v)", req.Header)
+			err := fmt.Errorf("expected %q from header (got %+v)", RequestIDHeader, req.Header)
 			glog.Warning(err)
-			return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: reqPath, Progress: 0, Error: err.Error()})
+			return json.NewEncoder(w).Encode(&queue.Item{Bucket: reqPath, Progress: 0, Error: err.Error()})
 		}
 
 		glog.Infof("fetching %q for status", requestID)
@@ -263,9 +270,9 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 		if !ok {
 			err := fmt.Errorf("cannot find request ID %q (something seriously wrong!)", requestID)
 			glog.Warning(err)
-			return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: reqPath, Progress: 0, Error: err.Error()})
+			return json.NewEncoder(w).Encode(&queue.Item{Bucket: reqPath, Progress: 0, Error: err.Error()})
 		}
-		if v.Progress == etcdqueue.MaxProgress {
+		if v.Progress == queue.MaxProgress {
 			glog.Infof("fetched %q with completed status", requestID)
 			return json.NewEncoder(w).Encode(v)
 		}
@@ -278,7 +285,7 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 		for {
 			select {
 			case item := <-watcher:
-				if item.Progress == etcdqueue.MaxProgress {
+				if item.Progress == queue.MaxProgress {
 					glog.Infof("sent status update for key %q (request ID: %q)", key, requestID)
 					return json.NewEncoder(w).Encode(item)
 				}
@@ -288,12 +295,12 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 			case <-ctx.Done():
 				glog.Warningf("watch canceld on key %q (request ID: %q)", key, requestID)
 				glog.Warning(ctx.Err())
-				return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: reqPath, Progress: 0, Error: ctx.Err().Error()})
+				return json.NewEncoder(w).Encode(&queue.Item{Bucket: reqPath, Progress: 0, Error: ctx.Err().Error()})
 
 			case <-cctx.Done():
 				glog.Warningf("watch canceld on key %q (request ID: %q)", key, requestID)
 				glog.Warning(cctx.Err())
-				return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: reqPath, Progress: 0, Error: cctx.Err().Error()})
+				return json.NewEncoder(w).Encode(&queue.Item{Bucket: reqPath, Progress: 0, Error: cctx.Err().Error()})
 			}
 		}
 
@@ -310,7 +317,7 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 		if err = json.Unmarshal(rb, &creq); err != nil {
 			err = fmt.Errorf("JSON parse error %q", err.Error())
 			glog.Warning(err)
-			return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: reqPath, Progress: 0, Error: err.Error()})
+			return json.NewEncoder(w).Encode(&queue.Item{Bucket: reqPath, Progress: 0, Error: err.Error()})
 		}
 		if creq.DataFromFrontend == "" {
 			glog.Warning("TODO: skipping empty request... bug in frontend ngOnDestroy?")
@@ -324,7 +331,7 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 			if err != nil {
 				err = fmt.Errorf("error %q while fetching %q", err.Error(), creq.DataFromFrontend)
 				glog.Warning(err)
-				return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: reqPath, Progress: 0, Error: err.Error()})
+				return json.NewEncoder(w).Encode(&queue.Item{Bucket: reqPath, Progress: 0, Error: err.Error()})
 			}
 			creq.DataFromFrontend = fpath
 
@@ -333,7 +340,7 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 		default:
 			err = fmt.Errorf("unknown request %q", reqPath)
 			glog.Warning(err)
-			return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: reqPath, Progress: 0, Error: err.Error()})
+			return json.NewEncoder(w).Encode(&queue.Item{Bucket: reqPath, Progress: 0, Error: err.Error()})
 		}
 
 		requestID := generateRequestID(reqPath, userID, creq.DataFromFrontend)
@@ -350,17 +357,16 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 			}
 
 			glog.Infof("creating an item with request ID %q", requestID)
-			item := etcdqueue.CreateItem(reqPath, 100, creq.DataFromFrontend)
+			item := queue.CreateItem(reqPath, 100, creq.DataFromFrontend)
 			item.RequestID = requestID
 
-			// enqueue(schedule) the job
-			ch := qu.Enqueue(ctx, item)
+			ch := qu.Enqueue(ctx, item, queue.WithTTL(enqueueTTL))
 			select {
 			case ev := <-ch:
 				srv.requestCacheMu.Unlock()
 				err := fmt.Sprintf("unexpected event from Enqueue with %+v", ev)
 				glog.Warning(err)
-				return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: reqPath, Progress: 0, Error: err})
+				return json.NewEncoder(w).Encode(&queue.Item{Bucket: reqPath, Progress: 0, Error: err})
 			default:
 			}
 
@@ -391,7 +397,7 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 				err = fmt.Errorf("qu.Dequeue error %q", err.Error())
 				glog.Warning(err)
 				srv.requestCacheMu.Unlock()
-				return json.NewEncoder(w).Encode(&etcdqueue.Item{Bucket: reqPath, Progress: 0, Error: err.Error()})
+				return json.NewEncoder(w).Encode(&queue.Item{Bucket: reqPath, Progress: 0, Error: err.Error()})
 			}
 			srv.requestCacheMu.Unlock()
 			glog.Infof("deleted %q", requestID)
@@ -404,10 +410,10 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 	return nil
 }
 
-func (srv *Server) watch(ctx context.Context, requestID string, ch <-chan *etcdqueue.Item) {
-	item := &etcdqueue.Item{Progress: 0}
+func (srv *Server) watch(ctx context.Context, requestID string, ch <-chan *queue.Item) {
+	item := &queue.Item{Progress: 0}
 	var stillOpen bool
-	for item.Progress < etcdqueue.MaxProgress && !item.Canceled {
+	for item.Progress < queue.MaxProgress && !item.Canceled {
 		srv.requestCacheMu.Lock()
 		_, ok := srv.requestCache[requestID]
 		if !ok {

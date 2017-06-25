@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	etcdqueue "github.com/gyuho/deephardway/pkg/etcd-queue"
+	queue "github.com/gyuho/deephardway/pkg/etcd-queue"
 
 	"github.com/golang/glog"
 )
@@ -32,7 +32,7 @@ func TestServer(t *testing.T) {
 	rootCtx, rootCancel := context.WithCancel(context.Background())
 	defer rootCancel()
 
-	qu, err := etcdqueue.NewEmbeddedQueue(rootCtx, 5555, 5556, dataDir)
+	qu, err := queue.NewEmbeddedQueue(rootCtx, 5555, 5556, dataDir)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -60,7 +60,7 @@ func TestServer(t *testing.T) {
 	}
 	io.Copy(ioutil.Discard, resp.Body)
 	resp.Body.Close()
-	var item etcdqueue.Item
+	var item queue.Item
 	if err = json.Unmarshal(rb, &item); err != nil {
 		t.Fatal(err)
 	}
@@ -93,7 +93,7 @@ func TestServer(t *testing.T) {
 	}
 	io.Copy(ioutil.Discard, resp.Body)
 	resp.Body.Close()
-	var itemFromQueueFetch etcdqueue.Item
+	var itemFromQueueFetch queue.Item
 	if err = json.Unmarshal(rb, &itemFromQueueFetch); err != nil {
 		t.Fatal(err)
 	}
@@ -129,7 +129,7 @@ func TestServer(t *testing.T) {
 	}
 	io.Copy(ioutil.Discard, resp.Body)
 	resp.Body.Close()
-	var itemFromQueuePost etcdqueue.Item
+	var itemFromQueuePost queue.Item
 	if err = json.Unmarshal(rb, &itemFromQueuePost); err != nil {
 		t.Fatal(err)
 	}
@@ -147,7 +147,7 @@ func TestServer(t *testing.T) {
 	req := &http.Request{
 		Method: http.MethodGet,
 		URL:    u,
-		Header: map[string][]string{"request_id": {itemDone.RequestID}},
+		Header: map[string][]string{RequestIDHeader: {itemDone.RequestID}},
 	}
 	resp, err = http.DefaultClient.Do(req)
 	if err != nil {
@@ -159,7 +159,7 @@ func TestServer(t *testing.T) {
 	}
 	io.Copy(ioutil.Discard, resp.Body)
 	resp.Body.Close()
-	var itemFromClientRequestFetch etcdqueue.Item
+	var itemFromClientRequestFetch queue.Item
 	if err = json.Unmarshal(rb, &itemFromClientRequestFetch); err != nil {
 		t.Fatal(err)
 	}
