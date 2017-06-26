@@ -9,7 +9,7 @@ fi
 rm -rf ./vendor
 rm -rf ./vendor.orig
 
-echo "Updating Go dependencies"
+echo "Updating Go dependencies with 'dep'..."
 DEP_ROOT="$GOPATH/src/github.com/golang/dep"
 go get -d -u github.com/golang/dep
 pushd "${DEP_ROOT}"

@@ -12,6 +12,7 @@ nvm install v8.1.2
 go install -v ./cmd/gen-package-json
 gen-package-json --output package.json --logtostderr
 
+echo "Updating frontend dependencies with 'yarn' and 'npm'..."
 # npm install -g tslint
 yarn install
 npm rebuild node-sass --force
