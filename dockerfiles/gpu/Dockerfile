@@ -1,4 +1,4 @@
-# Last updated at 2017-06-25 02:03:05.771894147 -0700 PDT
+# Last updated at 2017-06-26 20:22:13.09946251 -0700 PDT
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile.gpu
 # https://gcr.io/tensorflow/tensorflow
@@ -160,7 +160,7 @@ ADD ./run_jupyter.sh /
 ENV GOROOT /usr/local/go
 ENV GOPATH /gopath
 ENV PATH ${GOPATH}/bin:${GOROOT}/bin:${PATH}
-ENV GO_VERSION 1.9beta1
+ENV GO_VERSION 1.9beta2
 ENV GO_DOWNLOAD_URL https://storage.googleapis.com/golang
 RUN rm -rf ${GOROOT} \
   && curl -s ${GO_DOWNLOAD_URL}/go${GO_VERSION}.linux-amd64.tar.gz | tar -v -C /usr/local/ -xz \

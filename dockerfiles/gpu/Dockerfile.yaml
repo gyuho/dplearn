@@ -4,7 +4,7 @@ device: gpu
 tensorflow-base-image: gcr.io/tensorflow/tensorflow:1.2.0-gpu
 
 # https://golang.org/dl/
-go-version: 1.9beta1
+go-version: 1.9beta2
 
 # https://github.com/creationix/nvm/releases
 nvm-version: 0.33.2
