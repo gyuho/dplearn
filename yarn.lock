@@ -160,12 +160,11 @@
     magic-string "^0.19.0"
     source-map "^0.5.6"
 
-"@types/angular-animate@1.5.7":
-  version "1.5.7"
-  resolved "https://registry.yarnpkg.com/@types/angular-animate/-/angular-animate-1.5.7.tgz#bf062864b6021f3c9533fcb330d348c598398abf"
+"@types/angular-animate@1.5.8":
+  version "1.5.8"
+  resolved "https://registry.yarnpkg.com/@types/angular-animate/-/angular-animate-1.5.8.tgz#578e058ee0ca5539e1795421a91ae2f52581dc8f"
   dependencies:
     "@types/angular" "*"
-    "@types/jquery" "*"
 
 "@types/angular-cookies@1.4.4":
   version "1.4.4"
@@ -203,11 +202,9 @@
   dependencies:
     "@types/jquery" "*"
 
-"@types/angular@1.6.21":
-  version "1.6.21"
-  resolved "https://registry.yarnpkg.com/@types/angular/-/angular-1.6.21.tgz#010c15954cbfe875b144b095b88b93a7293e8f12"
-  dependencies:
-    "@types/jquery" "*"
+"@types/angular@1.6.23":
+  version "1.6.23"
+  resolved "https://registry.yarnpkg.com/@types/angular/-/angular-1.6.23.tgz#e313e23b2458a8c7e8fd29da421ca5d8ae1975c6"
 
 "@types/hammerjs@2.0.34":
   version "2.0.34"
@@ -221,9 +218,9 @@
   version "2.0.45"
   resolved "https://registry.yarnpkg.com/@types/jquery/-/jquery-2.0.45.tgz#cb99133aac1d997a820d6cf7258c91291c0a2adf"
 
-"@types/node@8.0.2":
-  version "8.0.2"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-8.0.2.tgz#8ab9456efb87d57f11d04f313d3da1041948fb4d"
+"@types/node@8.0.4":
+  version "8.0.4"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-8.0.4.tgz#d0ca03fa4a3d7ab66c1f4e78a0fd06e30e46a7a9"
 
 "@types/node@^6.0.46":
   version "6.0.46"
