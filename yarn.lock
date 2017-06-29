@@ -202,9 +202,9 @@
   dependencies:
     "@types/jquery" "*"
 
-"@types/angular@1.6.23":
-  version "1.6.23"
-  resolved "https://registry.yarnpkg.com/@types/angular/-/angular-1.6.23.tgz#e313e23b2458a8c7e8fd29da421ca5d8ae1975c6"
+"@types/angular@1.6.24":
+  version "1.6.24"
+  resolved "https://registry.yarnpkg.com/@types/angular/-/angular-1.6.24.tgz#f19510cf4efa5816158fa01b1aa2df94eb7bcde8"
 
 "@types/hammerjs@2.0.34":
   version "2.0.34"
@@ -218,9 +218,9 @@
   version "2.0.45"
   resolved "https://registry.yarnpkg.com/@types/jquery/-/jquery-2.0.45.tgz#cb99133aac1d997a820d6cf7258c91291c0a2adf"
 
-"@types/node@8.0.4":
-  version "8.0.4"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-8.0.4.tgz#d0ca03fa4a3d7ab66c1f4e78a0fd06e30e46a7a9"
+"@types/node@8.0.5":
+  version "8.0.5"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-8.0.5.tgz#71ac2a2c33a4231dd2427f1b5a5b66ad2b185b5f"
 
 "@types/node@^6.0.46":
   version "6.0.46"
