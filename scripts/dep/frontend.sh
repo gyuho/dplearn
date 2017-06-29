@@ -7,7 +7,7 @@ if ! [[ "$0" =~ "./scripts/dep/frontend.sh" ]]; then
 fi
 
 source ${NVM_DIR}/nvm.sh
-nvm install v8.1.2
+nvm install v8.1.3
 
 go install -v ./cmd/gen-package-json
 gen-package-json --output package.json --logtostderr
@@ -20,8 +20,8 @@ yarn install
 npm install
 # npm install -g tslint
 
-nvm install v8.1.2
-nvm alias default 8.1.2
+nvm install v8.1.3
+nvm alias default 8.1.3
 nvm alias default node
 which node
 node -v
