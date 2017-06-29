@@ -114,6 +114,7 @@ const tmplPackageJSON = `{
         "core-js": "2.4.1",
         "rxjs": "5.4.1",
         "typescript": "2.3.4",
+        "ts-node": "3.1.0",
         "ts-helpers": "1.1.2",
         "zone.js": "0.8.12"
     },
@@ -127,7 +128,6 @@ const tmplPackageJSON = `{
         "karma-jasmine": "1.1.0",
         "karma-remap-istanbul": "0.6.0",
         "protractor": "5.1.2",
-        "ts-node": "3.1.0",
         "tslint": "5.4.3"
     },
     "description": "website",
