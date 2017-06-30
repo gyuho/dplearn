@@ -20,14 +20,13 @@ echo "Updating frontend dependencies with 'yarn' and 'npm'..."
 rm -f ./package-lock.json
 yarn install
 if [[ "${SKIP_REBUILD}" ]]; then
-  echo "SKIP_REBUILD is defined"
+  echo "SKIP_REBUILD is defined; skipping..."
 else
-  echo "SKIP_REBUILD is not defined"
+  echo "SKIP_REBUILD is not defined; rebuilding..."
   npm rebuild node-sass --force
+  yarn install
 fi
-yarn install
 npm install
-# npm install -g tslint
 
 nvm install v8.1.3
 nvm alias default 8.1.3
