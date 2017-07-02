@@ -110,7 +110,7 @@ const tmplPackageJSON = `{
         "@types/angular-sanitize": "1.3.5",
         "@types/hammerjs": "2.0.34",
         "@types/jasmine": "2.5.53",
-        "@types/node": "8.0.6",
+        "@types/node": "8.0.7",
         "core-js": "2.4.1",
         "rxjs": "5.4.1",
         "typescript": "2.3.4",
