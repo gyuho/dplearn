@@ -35,7 +35,7 @@ To update dependencies:
 
 ```bash
 # update 'Gopkg.toml' and then (for local development)
-./scripts/dep/go-dep.sh
+./scripts/dep/go.sh
 
 # update 'cmd/gen-package-json' and then (for local development)
 ./scripts/dep/frontend.sh

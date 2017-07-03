@@ -1,4 +1,4 @@
-# Last updated at 2017-06-29 19:11:07.953897365 -0700 PDT
+# Last updated at 2017-07-02 20:43:50.247701613 -0700 PDT
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile.gpu
 # https://gcr.io/tensorflow/tensorflow
@@ -191,7 +191,7 @@ ADD . ${GOPATH}/src/github.com/gyuho/deephardway
 RUN ln -s /gopath/src/github.com/gyuho/deephardway /git-deep \
   && pushd ${GOPATH}/src/github.com/gyuho/deephardway \
   && echo "Updating Go dependencies..." \
-  && ./scripts/dep/go-dep.sh \
+  && ./scripts/dep/go.sh \
   && go install -v ./cmd/backend-web-server \
   && go install -v ./cmd/download-data \
   && go install -v ./cmd/gen-dockerfiles \
