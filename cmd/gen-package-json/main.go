@@ -114,7 +114,7 @@ const tmplPackageJSON = `{
         "core-js": "2.4.1",
         "rxjs": "5.4.2",
         "typescript": "2.3.4",
-        "ts-node": "3.1.0",
+        "ts-node": "3.2.0",
         "ts-helpers": "1.1.2",
         "zone.js": "0.8.12"
     },
