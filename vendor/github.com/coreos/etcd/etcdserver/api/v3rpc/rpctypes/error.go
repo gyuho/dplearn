@@ -59,7 +59,6 @@ var (
 	ErrGRPCInvalidAuthMgmt      = grpc.Errorf(codes.InvalidArgument, "etcdserver: invalid auth management")
 
 	ErrGRPCNoLeader                   = grpc.Errorf(codes.Unavailable, "etcdserver: no leader")
-	ErrGRPCNotLeader                  = grpc.Errorf(codes.Unavailable, "etcdserver: not leader")
 	ErrGRPCNotCapable                 = grpc.Errorf(codes.Unavailable, "etcdserver: not capable")
 	ErrGRPCStopped                    = grpc.Errorf(codes.Unavailable, "etcdserver: server stopped")
 	ErrGRPCTimeout                    = grpc.Errorf(codes.Unavailable, "etcdserver: request timed out")
@@ -107,7 +106,6 @@ var (
 		grpc.ErrorDesc(ErrGRPCInvalidAuthMgmt):      ErrGRPCInvalidAuthMgmt,
 
 		grpc.ErrorDesc(ErrGRPCNoLeader):                   ErrGRPCNoLeader,
-		grpc.ErrorDesc(ErrGRPCNotLeader):                  ErrGRPCNotLeader,
 		grpc.ErrorDesc(ErrGRPCNotCapable):                 ErrGRPCNotCapable,
 		grpc.ErrorDesc(ErrGRPCStopped):                    ErrGRPCStopped,
 		grpc.ErrorDesc(ErrGRPCTimeout):                    ErrGRPCTimeout,
@@ -155,7 +153,6 @@ var (
 	ErrInvalidAuthMgmt      = Error(ErrGRPCInvalidAuthMgmt)
 
 	ErrNoLeader                   = Error(ErrGRPCNoLeader)
-	ErrNotLeader                  = Error(ErrGRPCNotLeader)
 	ErrNotCapable                 = Error(ErrGRPCNotCapable)
 	ErrStopped                    = Error(ErrGRPCStopped)
 	ErrTimeout                    = Error(ErrGRPCTimeout)

@@ -25,7 +25,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	bolt "github.com/coreos/bbolt"
+	"github.com/boltdb/bolt"
 	"github.com/coreos/pkg/capnslog"
 )
 

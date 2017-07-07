@@ -28,7 +28,6 @@ type (
 	AlarmResponse      pb.AlarmResponse
 	AlarmMember        pb.AlarmMember
 	StatusResponse     pb.StatusResponse
-	MoveLeaderResponse pb.MoveLeaderResponse
 )
 
 type Maintenance interface {
@@ -52,10 +51,6 @@ type Maintenance interface {
 
 	// Snapshot provides a reader for a snapshot of a backend.
 	Snapshot(ctx context.Context) (io.ReadCloser, error)
-
-	// MoveLeader requests current leader to transfer its leadership to the transferee.
-	// Request must be made to the leader.
-	MoveLeader(ctx context.Context, transfereeID uint64) (*MoveLeaderResponse, error)
 }
 
 type maintenance struct {
@@ -184,9 +179,4 @@ func (m *maintenance) Snapshot(ctx context.Context) (io.ReadCloser, error) {
 		pw.Close()
 	}()
 	return pr, nil
-}
-
-func (m *maintenance) MoveLeader(ctx context.Context, transfereeID uint64) (*MoveLeaderResponse, error) {
-	resp, err := m.remote.MoveLeader(ctx, &pb.MoveLeaderRequest{TargetID: transfereeID}, grpc.FailFast(false))
-	return (*MoveLeaderResponse)(resp), toErr(ctx, err)
 }

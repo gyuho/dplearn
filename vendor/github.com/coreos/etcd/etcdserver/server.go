@@ -932,8 +932,9 @@ func (s *EtcdServer) isLeader() bool {
 	return uint64(s.ID()) == s.Lead()
 }
 
-// MoveLeader transfers the leader to the given transferee.
-func (s *EtcdServer) MoveLeader(ctx context.Context, lead, transferee uint64) error {
+// transferLeadership transfers the leader to the given transferee.
+// TODO: maybe expose to client?
+func (s *EtcdServer) transferLeadership(ctx context.Context, lead, transferee uint64) error {
 	now := time.Now()
 	interval := time.Duration(s.Cfg.TickMs) * time.Millisecond
 
@@ -972,7 +973,7 @@ func (s *EtcdServer) TransferLeadership() error {
 
 	tm := s.Cfg.ReqTimeout()
 	ctx, cancel := context.WithTimeout(s.ctx, tm)
-	err := s.MoveLeader(ctx, s.Lead(), uint64(transferee))
+	err := s.transferLeadership(ctx, s.Lead(), uint64(transferee))
 	cancel()
 	return err
 }

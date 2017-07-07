@@ -39,7 +39,6 @@ var toGRPCErrorMap = map[error]error{
 	etcdserver.ErrTooManyRequests: rpctypes.ErrTooManyRequests,
 
 	etcdserver.ErrNoLeader:                   rpctypes.ErrGRPCNoLeader,
-	etcdserver.ErrNotLeader:                  rpctypes.ErrGRPCNotLeader,
 	etcdserver.ErrStopped:                    rpctypes.ErrGRPCStopped,
 	etcdserver.ErrTimeout:                    rpctypes.ErrGRPCTimeout,
 	etcdserver.ErrTimeoutDueToLeaderFail:     rpctypes.ErrGRPCTimeoutDueToLeaderFail,

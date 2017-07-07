@@ -58,8 +58,6 @@
 		MemberListResponse
 		DefragmentRequest
 		DefragmentResponse
-		MoveLeaderRequest
-		MoveLeaderResponse
 		AlarmRequest
 		AlarmMember
 		AlarmResponse
