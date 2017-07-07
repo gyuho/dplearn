@@ -1,4 +1,4 @@
-# Last updated at 2017-07-06 20:34:44.72642561 -0700 PDT
+# Last updated at 2017-07-06 23:31:38.932447362 -0700 PDT
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile.gpu
 # https://gcr.io/tensorflow/tensorflow
@@ -48,7 +48,6 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
   fonts-dejavu \
   gfortran \
   nginx \
-  vim \
   && echo "root ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers \
   && apt-get -y clean \
   && rm -rf /var/lib/apt/lists/* \
@@ -64,6 +63,15 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
 
 # do not overwrite default '/usr/bin/python'
 ENV PATH ${PATH}:/root/miniconda/bin
+
+# install pandoc, latex for R
+# http://pandoc.org/installing.html
+# https://github.com/jgm/pandoc/releases
+RUN apt-get -y install \
+  vim \
+  texlive \
+  && wget https://github.com/jgm/pandoc/releases/download/1.19.2.1/pandoc-1.19.2.1-1-amd64.deb \
+  && dpkg -i pandoc-1.19.2.1-1-amd64.deb
 
 # Configure reverse proxy
 RUN mkdir -p /etc/nginx/sites-available/
@@ -276,6 +284,10 @@ RUN cat /etc/lsb-release >> /container-version.txt \
   && cat ${GOPATH}/src/github.com/gyuho/deephardway/git-tensorflow.json >> /container-version.txt \
   && printf "\n" >> /container-version.txt \
   && cat ${GOPATH}/src/github.com/gyuho/deephardway/git-fastai-courses.json >> /container-version.txt \
+  && printf "\n" >> /container-version.txt \
+  && echo pandoc: $(pandoc --version 2>&1) >> /container-version.txt \
+  && printf "\n" >> /container-version.txt \
+  && echo pandoc-citeproc: $(pandoc-citeproc --version 2>&1) >> /container-version.txt \
   && printf "\n" >> /container-version.txt \
   && cat /container-version.txt
 ##########################
