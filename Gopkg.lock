@@ -13,21 +13,21 @@
   revision = "4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9"
 
 [[projects]]
-  name = "github.com/boltdb/bolt"
-  packages = ["."]
-  revision = "583e8937c61f1af6513608ccc75c97b6abdf4ff9"
-  version = "v1.3.0"
-
-[[projects]]
   branch = "master"
   name = "github.com/cockroachdb/cmux"
   packages = ["."]
   revision = "30d10be492927e2dcae0089c374c455d42414fcb"
 
 [[projects]]
+  name = "github.com/coreos/bbolt"
+  packages = ["."]
+  revision = "583e8937c61f1af6513608ccc75c97b6abdf4ff9"
+  version = "v1.3.0"
+
+[[projects]]
   name = "github.com/coreos/etcd"
   packages = ["alarm","auth","auth/authpb","client","clientv3","clientv3/concurrency","compactor","discovery","embed","error","etcdserver","etcdserver/api","etcdserver/api/v2http","etcdserver/api/v2http/httptypes","etcdserver/api/v3client","etcdserver/api/v3election","etcdserver/api/v3election/v3electionpb","etcdserver/api/v3election/v3electionpb/gw","etcdserver/api/v3lock","etcdserver/api/v3lock/v3lockpb","etcdserver/api/v3lock/v3lockpb/gw","etcdserver/api/v3rpc","etcdserver/api/v3rpc/rpctypes","etcdserver/auth","etcdserver/etcdserverpb","etcdserver/etcdserverpb/gw","etcdserver/membership","etcdserver/stats","lease","lease/leasehttp","lease/leasepb","mvcc","mvcc/backend","mvcc/mvccpb","pkg/adt","pkg/contention","pkg/cors","pkg/cpuutil","pkg/crc","pkg/debugutil","pkg/fileutil","pkg/httputil","pkg/idutil","pkg/ioutil","pkg/logutil","pkg/monotime","pkg/netutil","pkg/pathutil","pkg/pbutil","pkg/runtime","pkg/schedule","pkg/srv","pkg/tlsutil","pkg/transport","pkg/types","pkg/wait","proxy/grpcproxy/adapter","raft","raft/raftpb","rafthttp","snap","snap/snappb","store","version","wal","wal/walpb"]
-  revision = "36c655f29b9fef15c4094093c7407967c5c5bb96"
+  revision = "67fa8b823f472080469a2e663de92661f3d57154"
 
 [[projects]]
   name = "github.com/coreos/go-semver"
@@ -174,13 +174,13 @@
   branch = "master"
   name = "github.com/prometheus/common"
   packages = ["expfmt","internal/bitbucket.org/ww/goautoneg","model"]
-  revision = "0866df4b85a18d652b6965be022d007cdf076822"
+  revision = "3e6a7635bac6573d43f49f97b47eb9bda195dba8"
 
 [[projects]]
   branch = "master"
   name = "github.com/prometheus/procfs"
   packages = [".","xfs"]
-  revision = "822d4a1f8edcbcbc71e8d1fd6527b12331a6d0ad"
+  revision = "e645f4e5aaa8506fc71d6edbc5c4ff02c04c46f2"
 
 [[projects]]
   branch = "master"
@@ -204,13 +204,13 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["bcrypt","blowfish"]
-  revision = "5ef0053f77724838734b6945dd364d3847e5de1d"
+  revision = "a48ac81e47fd6f9ed1258f3b60ae9e75f93cb7ed"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/net"
   packages = ["context","context/ctxhttp","http2","http2/hpack","idna","internal/timeseries","lex/httplex","trace"]
-  revision = "1f9224279e98554b6a6432d4dd998a739f8b2b7c"
+  revision = "054b33e6527139ad5b1ec2f6232c3b175bd9a30c"
 
 [[projects]]
   name = "golang.org/x/oauth2"
@@ -221,13 +221,13 @@
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix"]
-  revision = "90796e5a05ce440b41c768bd9af257005e470461"
+  revision = "6faef541c73732f438fb660a212750a9ba9f9362"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/text"
   packages = ["internal/gen","internal/triegen","internal/ucd","secure/bidirule","transform","unicode/bidi","unicode/cldr","unicode/norm","unicode/rangetable"]
-  revision = "6353ef0f924300eea566d3438817aa4d3374817e"
+  revision = "cfdf022e86b4ecfb646e1efbd7db175dd623a8fa"
 
 [[projects]]
   branch = "master"
@@ -266,6 +266,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "19ac52ed2680afaffd89eaae8f480f95378d17edcc54ad9c219277dd5e0d718a"
+  inputs-digest = "8ffcf38bc4e6aa1a483d9b43725bf717f27bc951936d18139dc8d759cee288c8"
   solver-name = "gps-cdcl"
   solver-version = 1
