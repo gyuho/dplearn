@@ -1,9 +1,13 @@
-# TODO: https://github.com/coreos/bbolt
-
 # https://github.com/coreos/etcd
 [[constraint]]
   name = "github.com/coreos/etcd"
-  revision = "894751ef44628cbf5c85f16ba07b0b683793ea35"
+  revision = "64840adf70e4af953060ec3bb0e77cb5d59318d4"
+
+# https://github.com/coreos/bbolt
+[[constraint]]
+  name = "github.com/coreos/bbolt"
+  revision = "ad39960eb40bb33c9bda31bed2eaf4fdda15efe6"
+  source = "github.com/coreos/bbolt"
 
 # https://github.com/dustin/go-humanize
 [[constraint]]
