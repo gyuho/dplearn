@@ -1,4 +1,4 @@
-# Last updated at 2017-07-02 20:43:50.256436115 -0700 PDT
+# Last updated at 2017-07-06 20:34:44.715952538 -0700 PDT
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile.gpu
 # https://gcr.io/tensorflow/tensorflow
@@ -48,6 +48,7 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
   fonts-dejavu \
   gfortran \
   nginx \
+  vim \
   && echo "root ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers \
   && apt-get -y clean \
   && rm -rf /var/lib/apt/lists/* \

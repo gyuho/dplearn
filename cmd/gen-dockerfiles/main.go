@@ -121,6 +121,7 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
   fonts-dejavu \
   gfortran \
   nginx \
+  vim \
   && echo "root ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers \
   && apt-get -y clean \
   && rm -rf /var/lib/apt/lists/* \
