@@ -143,6 +143,7 @@ ENV PATH ${PATH}:/root/miniconda/bin
 RUN apt-get -y install \
   vim \
   texlive \
+  texlive-xetex \
   && wget https://github.com/jgm/pandoc/releases/download/1.19.2.1/pandoc-1.19.2.1-1-amd64.deb \
   && dpkg -i pandoc-1.19.2.1-1-amd64.deb
 
@@ -357,6 +358,8 @@ RUN cat /etc/lsb-release >> /container-version.txt \
   && cat ${GOPATH}/src/github.com/gyuho/deephardway/git-tensorflow.json >> /container-version.txt \
   && printf "\n" >> /container-version.txt \
   && cat ${GOPATH}/src/github.com/gyuho/deephardway/git-fastai-courses.json >> /container-version.txt \
+  && printf "\n" >> /container-version.txt \
+  && echo xelatex: $(xelatex --version 2>&1) >> /container-version.txt \
   && printf "\n" >> /container-version.txt \
   && echo pandoc: $(pandoc --version 2>&1) >> /container-version.txt \
   && printf "\n" >> /container-version.txt \

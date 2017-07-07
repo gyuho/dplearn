@@ -1,4 +1,4 @@
-# Last updated at 2017-07-06 23:31:38.911360452 -0700 PDT
+# Last updated at 2017-07-07 00:30:38.016322105 -0700 PDT
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile.gpu
 # https://gcr.io/tensorflow/tensorflow
@@ -70,6 +70,7 @@ ENV PATH ${PATH}:/root/miniconda/bin
 RUN apt-get -y install \
   vim \
   texlive \
+  texlive-xetex \
   && wget https://github.com/jgm/pandoc/releases/download/1.19.2.1/pandoc-1.19.2.1-1-amd64.deb \
   && dpkg -i pandoc-1.19.2.1-1-amd64.deb
 
@@ -287,6 +288,8 @@ RUN cat /etc/lsb-release >> /container-version.txt \
   && cat ${GOPATH}/src/github.com/gyuho/deephardway/git-tensorflow.json >> /container-version.txt \
   && printf "\n" >> /container-version.txt \
   && cat ${GOPATH}/src/github.com/gyuho/deephardway/git-fastai-courses.json >> /container-version.txt \
+  && printf "\n" >> /container-version.txt \
+  && echo xelatex: $(xelatex --version 2>&1) >> /container-version.txt \
   && printf "\n" >> /container-version.txt \
   && echo pandoc: $(pandoc --version 2>&1) >> /container-version.txt \
   && printf "\n" >> /container-version.txt \
