@@ -22,7 +22,7 @@ if [ ! $(command -v dep) ]; then
   exit 1
 fi
 
-dep ensure -update -v
+dep ensure -v
 dep prune -v
 
 rm -rf ./vendor.orig
