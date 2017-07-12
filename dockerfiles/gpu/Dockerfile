@@ -1,4 +1,4 @@
-# Last updated at 2017-07-07 00:30:38.025424318 -0700 PDT
+# Last updated at 2017-07-12 11:25:18.853883948 -0700 PDT
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile.gpu
 # https://gcr.io/tensorflow/tensorflow
@@ -219,7 +219,7 @@ RUN pushd ${GOPATH}/src/github.com/gyuho/deephardway \
   && echo "Running nvm scripts..." \
   && source $NVM_DIR/nvm.sh \
   && nvm ls-remote \
-  && nvm install v8.1.3 \
+  && nvm install v8.1.4 \
   && curl https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
   && echo "deb http://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
   && apt-get -y update && apt-get -y install yarn \
@@ -228,11 +228,11 @@ RUN pushd ${GOPATH}/src/github.com/gyuho/deephardway \
   && yarn install \
   && npm rebuild node-sass --force \
   && npm install \
-  && nvm alias default 8.1.3 \
+  && nvm alias default 8.1.4 \
   && nvm alias default node \
   && which node \
   && node -v \
-  && cp /usr/local/nvm/versions/node/v8.1.3/bin/node /usr/bin/node \
+  && cp /usr/local/nvm/versions/node/v8.1.4/bin/node /usr/bin/node \
   && popd
 ##########################
 
@@ -277,7 +277,7 @@ RUN cat /etc/lsb-release >> /container-version.txt \
   && printf "\n" >> /container-version.txt \
   && echo node: $(node --version 2>&1) >> /container-version.txt \
   && printf "\n" >> /container-version.txt \
-  && echo NPM: $(/usr/local/nvm/versions/node/v8.1.3/bin/npm --version 2>&1) >> /container-version.txt \
+  && echo NPM: $(/usr/local/nvm/versions/node/v8.1.4/bin/npm --version 2>&1) >> /container-version.txt \
   && printf "\n" >> /container-version.txt \
   && echo Angular-CLI: $(${GOPATH}/src/github.com/gyuho/deephardway/node_modules/.bin/ng --version 2>&1) >> /container-version.txt \
   && printf "\n" >> /container-version.txt \
