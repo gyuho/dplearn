@@ -6,8 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/gyuho/deephardway/pkg/fileutil"
-	"github.com/gyuho/deephardway/pkg/urlutil"
+	"github.com/gyuho/dplearn/pkg/fileutil"
+	"github.com/gyuho/dplearn/pkg/urlutil"
 
 	"github.com/golang/glog"
 	"github.com/gyuho/archiver"

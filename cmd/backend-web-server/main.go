@@ -4,8 +4,8 @@ import (
 	"context"
 	"flag"
 
-	"github.com/gyuho/deephardway/backend/web"
-	etcdqueue "github.com/gyuho/deephardway/pkg/etcd-queue"
+	"github.com/gyuho/dplearn/backend/web"
+	etcdqueue "github.com/gyuho/dplearn/pkg/etcd-queue"
 
 	"github.com/golang/glog"
 )
