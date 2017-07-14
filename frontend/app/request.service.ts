@@ -22,7 +22,7 @@ import {
   MdSnackBar,
 } from "@angular/material";
 
-// Request represents TypeScript version of Request in https://github.com/gyuho/deephardway/blob/master/backend/web/web.go.
+// Request represents TypeScript version of Request in https://github.com/gyuho/dplearn/blob/master/backend/web/web.go.
 export class Request {
   public data_from_frontend: string;
   public create_request: boolean;
@@ -35,7 +35,7 @@ export class Request {
   }
 }
 
-// Item represents TypeScript version of Item in https://github.com/gyuho/deephardway/blob/master/pkg/etcd-queue/queue.go.
+// Item represents TypeScript version of Item in https://github.com/gyuho/dplearn/blob/master/pkg/etcd-queue/queue.go.
 export class Item {
   public bucket: string;
   public created_at: string;

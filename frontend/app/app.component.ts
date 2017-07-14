@@ -1,7 +1,7 @@
-import {Component} from "@angular/core";
+import { Component } from "@angular/core";
 
 @Component({
-  selector: "app-deephardway",
+  selector: "app-dplearn",
   styleUrls: ["app.component.css"],
   templateUrl: "app.component.html",
 })

@@ -11,16 +11,16 @@
 // hue.
 
 // See https://github.com/angular/material2/blob/master/src/lib/core/theming/_palette.scss
-$deephardway-app-primary: mat-palette($mat-light-blue);
-$deephardway-app-accent:  mat-palette($mat-pink, A200, A100, A400);
+$dplearn-app-primary: mat-palette($mat-light-blue);
+$dplearn-app-accent:  mat-palette($mat-pink, A200, A100, A400);
 
 // The warn palette is optional (defaults to red).
-$deephardway-app-warn:    mat-palette($mat-red);
+$dplearn-app-warn:    mat-palette($mat-red);
 
 // Create the theme object (a Sass map containing all of the palettes).
-$deephardway-app-theme: mat-light-theme($deephardway-app-primary, $deephardway-app-accent, $deephardway-app-warn);
+$dplearn-app-theme: mat-light-theme($dplearn-app-primary, $dplearn-app-accent, $dplearn-app-warn);
 
 // Include theme styles for core and each component used in your app.
 // Alternatively, you can import and @include the theme mixins for each component
 // that you are using.
-@include angular-material-theme($deephardway-app-theme);
+@include angular-material-theme($dplearn-app-theme);
