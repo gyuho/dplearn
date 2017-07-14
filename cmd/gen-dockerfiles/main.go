@@ -355,10 +355,6 @@ RUN cat /etc/lsb-release >> /container-version.txt \
   && printf "\n" >> /container-version.txt \
   && echo etcdctl: $(ETCDCTL_API=3 /etcdctl version 2>&1) >> /container-version.txt \
   && printf "\n" >> /container-version.txt \
-  && cat ${GOPATH}/src/github.com/gyuho/dplearn/git-tensorflow.json >> /container-version.txt \
-  && printf "\n" >> /container-version.txt \
-  && cat ${GOPATH}/src/github.com/gyuho/dplearn/git-fastai-courses.json >> /container-version.txt \
-  && printf "\n" >> /container-version.txt \
   && echo xelatex: $(xelatex --version 2>&1) >> /container-version.txt \
   && printf "\n" >> /container-version.txt \
   && echo pandoc: $(pandoc --version 2>&1) >> /container-version.txt \

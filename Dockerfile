@@ -1,4 +1,4 @@
-# Last updated at 2017-07-14 03:13:56.198098618 -0700 PDT
+# Last updated at 2017-07-14 13:23:34.227680528 -0700 PDT
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile.gpu
 # https://gcr.io/tensorflow/tensorflow
@@ -284,10 +284,6 @@ RUN cat /etc/lsb-release >> /container-version.txt \
   && echo etcd: $(/etcd --version 2>&1) >> /container-version.txt \
   && printf "\n" >> /container-version.txt \
   && echo etcdctl: $(ETCDCTL_API=3 /etcdctl version 2>&1) >> /container-version.txt \
-  && printf "\n" >> /container-version.txt \
-  && cat ${GOPATH}/src/github.com/gyuho/dplearn/git-tensorflow.json >> /container-version.txt \
-  && printf "\n" >> /container-version.txt \
-  && cat ${GOPATH}/src/github.com/gyuho/dplearn/git-fastai-courses.json >> /container-version.txt \
   && printf "\n" >> /container-version.txt \
   && echo xelatex: $(xelatex --version 2>&1) >> /container-version.txt \
   && printf "\n" >> /container-version.txt \
