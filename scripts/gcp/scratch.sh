@@ -3,30 +3,30 @@ set -e
 
 <<COMMENT
 edit "Networking"->"VPC networks"->"default"->"Firewall rules"->"Add firewall rules"
-Target tags: deephardway
+Target tags: dplearn
 Source IP ranges: 0.0.0.0/0
 Protocols and ports: tcp:80; tcp:4200; tcp:8888;
 COMMENT
 
-GCP_KEY_PATH=/etc/gcp-key-deephardway.json ./scripts/gcp/ubuntu-gpu.gcp.sh
+GCP_KEY_PATH=/etc/gcp-key-dplearn.json ./scripts/gcp/ubuntu-gpu.gcp.sh
 
-gcloud compute ssh --zone=us-west1-b deephardway
+gcloud compute ssh --zone=us-west1-b dplearn
 
 curl -L http://metadata.google.internal/computeMetadata/v1/instance/attributes/gcp-key -H 'Metadata-Flavor:Google'
 
 tail -f /etc/ansible-install.log
 
-cat /etc/gcp-key-deephardway.json
+cat /etc/gcp-key-dplearn.json
 
 
 sudo systemctl cat nvidia-docker.service
 sudo systemctl cat ipython-gpu.service
-sudo systemctl cat deephardway-gpu.service
+sudo systemctl cat dplearn-gpu.service
 
 
 sudo journalctl -u nvidia-docker.service -l --no-pager|less
 sudo journalctl -u ipython-gpu.service -l --no-pager|less
-sudo journalctl -u deephardway-gpu.service -l --no-pager|less
+sudo journalctl -u dplearn-gpu.service -l --no-pager|less
 
 
 sudo systemctl stop nvidia-docker.service
@@ -37,8 +37,8 @@ sudo systemctl stop ipython-gpu.service
 sudo systemctl disable ipython-gpu.service
 
 
-sudo systemctl stop deephardway-gpu.service
-sudo systemctl disable deephardway-gpu.service
+sudo systemctl stop dplearn-gpu.service
+sudo systemctl disable dplearn-gpu.service
 
 
 systemctl enable reverse-proxy.service
@@ -64,21 +64,21 @@ sudo systemctl disable ipython-gpu.service
 
 
 sudo systemctl daemon-reload
-sudo systemctl enable deephardway-gpu.service
-sudo systemctl start deephardway-gpu.service
-sudo systemctl cat deephardway-gpu.service
-sudo systemd-analyze verify /etc/systemd/system/deephardway-gpu.service
+sudo systemctl enable dplearn-gpu.service
+sudo systemctl start dplearn-gpu.service
+sudo systemctl cat dplearn-gpu.service
+sudo systemd-analyze verify /etc/systemd/system/dplearn-gpu.service
 
-sudo systemctl status deephardway-gpu.service -l --no-pager
-sudo journalctl -u deephardway-gpu.service -l --no-pager|less
-sudo journalctl -f -u deephardway-gpu.service
+sudo systemctl status dplearn-gpu.service -l --no-pager
+sudo journalctl -u dplearn-gpu.service -l --no-pager|less
+sudo journalctl -f -u dplearn-gpu.service
 
-sudo systemctl stop deephardway-gpu.service
-sudo systemctl disable deephardway-gpu.service
+sudo systemctl stop dplearn-gpu.service
+sudo systemctl disable dplearn-gpu.service
 
 
 
-sudo /usr/bin/docker login -u _json_key -p "$(cat /etc/gcp-key-deephardway.json)" https://gcr.io
+sudo /usr/bin/docker login -u _json_key -p "$(cat /etc/gcp-key-dplearn.json)" https://gcr.io
 sudo /usr/bin/docker login -u oauth2accesstoken -p "$(/usr/bin/gcloud auth application-default print-access-token)" https://gcr.io
 
 
@@ -88,7 +88,7 @@ gcloud version
 gcloud components update
 gcloud components install beta
 
-gcloud config set project deephardway
+gcloud config set project dplearn
 gcloud beta compute regions describe us-west1-b
 
 gcloud compute instances list

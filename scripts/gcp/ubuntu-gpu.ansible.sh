@@ -75,7 +75,7 @@ cat > /etc/ansible-install.yml <<EOF
   - name: Download GCP key
     get_url:
       url=http://metadata.google.internal/computeMetadata/v1/instance/attributes/gcp-key
-      dest=/etc/gcp-key-deephardway.json
+      dest=/etc/gcp-key-dplearn.json
       headers='Metadata-Flavor:Google'
 
   - name: Download Docker installer
@@ -138,7 +138,7 @@ systemctl start nvidia-docker.service
 cat > /tmp/ipython-gpu.service <<EOF
 [Unit]
 Description=deep GPU development service
-Documentation=https://github.com/gyuho/deephardway
+Documentation=https://github.com/gyuho/dplearn
 
 [Service]
 Restart=always
@@ -147,7 +147,7 @@ TimeoutStartSec=0
 LimitNOFILE=40000
 
 ExecStartPre=/usr/bin/docker login -u oauth2accesstoken -p "$(/usr/bin/gcloud auth application-default print-access-token)" https://gcr.io
-ExecStartPre=/usr/bin/docker pull gcr.io/deephardway/deephardway:latest-gpu
+ExecStartPre=/usr/bin/docker pull gcr.io/gcp-dplearn/dplearn:latest-gpu
 
 ExecStart=/usr/bin/nvidia-docker run \
   --rm \
@@ -156,8 +156,8 @@ ExecStart=/usr/bin/nvidia-docker run \
   --volume=/var/lib/keras/models:/root/.keras/models \
   -p 8888:8888 \
   --ulimit nofile=262144:262144 \
-  gcr.io/deephardway/deephardway:latest-gpu \
-  /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && PASSWORD='' ./run_jupyter.sh -y"
+  gcr.io/gcp-dplearn/dplearn:latest-gpu \
+  /bin/sh -c "pushd /gopath/src/github.com/gyuho/dplearn && PASSWORD='' ./run_jupyter.sh -y"
 
 ExecStop=/usr/bin/docker rm --force ipython-gpu
 
@@ -171,8 +171,8 @@ mv -f /tmp/ipython-gpu.service /etc/systemd/system/ipython-gpu.service
 ##########################################################
 cat > /tmp/download-data.service <<EOF
 [Unit]
-Description=deephardway download model data
-Documentation=https://github.com/gyuho/deephardway
+Description=dplearn download model data
+Documentation=https://github.com/gyuho/dplearn
 
 [Service]
 Restart=on-failure
@@ -181,7 +181,7 @@ TimeoutStartSec=0
 LimitNOFILE=40000
 
 ExecStartPre=/usr/bin/docker login -u oauth2accesstoken -p "$(/usr/bin/gcloud auth application-default print-access-token)" https://gcr.io
-ExecStartPre=/usr/bin/docker pull gcr.io/deephardway/deephardway
+ExecStartPre=/usr/bin/docker pull gcr.io/gcp-dplearn/dplearn
 
 ExecStart=/usr/bin/docker \
   run \
@@ -191,8 +191,8 @@ ExecStart=/usr/bin/docker \
   --volume=/var/lib/keras/models:/root/.keras/models \
   --net=host \
   --ulimit nofile=262144:262144 \
-  gcr.io/deephardway/deephardway:latest-gpu \
-  /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && ./scripts/dep/download-data.sh"
+  gcr.io/gcp-dplearn/dplearn:latest-gpu \
+  /bin/sh -c "pushd /gopath/src/github.com/gyuho/dplearn && ./scripts/dep/download-data.sh"
 
 ExecStop=/usr/bin/docker rm --force download-data
 
@@ -204,10 +204,10 @@ mv -f /tmp/download-data.service /etc/systemd/system/download-data.service
 ##########################################################
 
 ##########################################################
-cat > /tmp/deephardway-gpu.service <<EOF
+cat > /tmp/dplearn-gpu.service <<EOF
 [Unit]
 Description=deep GPU development service
-Documentation=https://github.com/gyuho/deephardway
+Documentation=https://github.com/gyuho/dplearn
 
 [Service]
 Restart=always
@@ -216,35 +216,35 @@ TimeoutStartSec=0
 LimitNOFILE=40000
 
 ExecStartPre=/usr/bin/docker login -u oauth2accesstoken -p "$(/usr/bin/gcloud auth application-default print-access-token)" https://gcr.io
-ExecStartPre=/usr/bin/docker pull gcr.io/deephardway/deephardway:latest-gpu
+ExecStartPre=/usr/bin/docker pull gcr.io/gcp-dplearn/dplearn:latest-gpu
 
 ExecStart=/usr/bin/nvidia-docker run \
   --rm \
-  --name deephardway-gpu \
+  --name dplearn-gpu \
   --volume=/var/lib/etcd:/var/lib/etcd \
   --volume=/var/lib/keras/datasets:/root/.keras/datasets \
   --volume=/var/lib/keras/models:/root/.keras/models \
   -p 4200:4200 \
   --ulimit nofile=262144:262144 \
-  gcr.io/deephardway/deephardway:latest-gpu \
-  /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && ./scripts/run/deephardway-gpu.sh"
+  gcr.io/gcp-dplearn/dplearn:latest-gpu \
+  /bin/sh -c "pushd /gopath/src/github.com/gyuho/dplearn && ./scripts/run/dplearn-gpu.sh"
 
-ExecStop=/usr/bin/docker rm --force deephardway-gpu
+ExecStop=/usr/bin/docker rm --force dplearn-gpu
 
 [Install]
 WantedBy=multi-user.target
 EOF
-cat /tmp/deephardway-gpu.service
-mv -f /tmp/deephardway-gpu.service /etc/systemd/system/deephardway-gpu.service
+cat /tmp/dplearn-gpu.service
+mv -f /tmp/dplearn-gpu.service /etc/systemd/system/dplearn-gpu.service
 ##########################################################
 
 ##########################################################
 cat > /tmp/reverse-proxy.service <<EOF
 [Unit]
-Description=deephardway reverse proxy
-Documentation=https://github.com/gyuho/deephardway
+Description=dplearn reverse proxy
+Documentation=https://github.com/gyuho/dplearn
 
-After=deephardway-gpu.service
+After=dplearn-gpu.service
 
 [Service]
 Restart=always
@@ -253,7 +253,7 @@ TimeoutStartSec=0
 LimitNOFILE=40000
 
 ExecStartPre=/usr/bin/docker login -u oauth2accesstoken -p "$(/usr/bin/gcloud auth application-default print-access-token)" https://gcr.io
-ExecStartPre=/usr/bin/docker pull gcr.io/deephardway/deephardway
+ExecStartPre=/usr/bin/docker pull gcr.io/gcp-dplearn/dplearn
 
 ExecStart=/usr/bin/docker \
   run \
@@ -261,8 +261,8 @@ ExecStart=/usr/bin/docker \
   --name reverse-proxy \
   --net=host \
   --ulimit nofile=262144:262144 \
-  gcr.io/deephardway/deephardway:latest-gpu \
-  /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && ./scripts/run/reverse-proxy.sh"
+  gcr.io/gcp-dplearn/dplearn:latest-gpu \
+  /bin/sh -c "pushd /gopath/src/github.com/gyuho/dplearn && ./scripts/run/reverse-proxy.sh"
 
 ExecStop=/usr/bin/docker rm --force reverse-proxy
 
@@ -284,8 +284,8 @@ COMMENT
 systemctl enable download-data.service
 systemctl start download-data.service
 
-systemctl enable deephardway-gpu.service
-systemctl start deephardway-gpu.service
+systemctl enable dplearn-gpu.service
+systemctl start dplearn-gpu.service
 
 systemctl enable reverse-proxy.service
 systemctl start reverse-proxy.service

@@ -13,9 +13,9 @@ else
   exit 255
 fi
 
-gcloud config set project deephardway
+gcloud config set project dplearn
 
-gcloud beta compute instances create deephardway \
+gcloud beta compute instances create dplearn \
   --custom-cpu=8 \
   --custom-memory=30 \
   --zone us-west1-b \
@@ -24,7 +24,7 @@ gcloud beta compute instances create deephardway \
   --boot-disk-size=150 \
   --boot-disk-type="pd-ssd" \
   --network default \
-  --tags=deephardway,http-server,https-server \
+  --tags=dplearn,http-server,https-server \
   --maintenance-policy=TERMINATE \
   --restart-on-failure \
   --accelerator type=nvidia-tesla-k80,count=1 \
