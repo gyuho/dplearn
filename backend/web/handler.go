@@ -16,10 +16,10 @@ import (
 	"sync"
 	"time"
 
-	queue "github.com/gyuho/deephardway/pkg/etcd-queue"
-	"github.com/gyuho/deephardway/pkg/fileutil"
-	"github.com/gyuho/deephardway/pkg/lru"
-	"github.com/gyuho/deephardway/pkg/urlutil"
+	queue "github.com/gyuho/dplearn/pkg/etcd-queue"
+	"github.com/gyuho/dplearn/pkg/fileutil"
+	"github.com/gyuho/dplearn/pkg/lru"
+	"github.com/gyuho/dplearn/pkg/urlutil"
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/golang/glog"

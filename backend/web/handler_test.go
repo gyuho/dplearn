@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	queue "github.com/gyuho/deephardway/pkg/etcd-queue"
+	queue "github.com/gyuho/dplearn/pkg/etcd-queue"
 
 	"github.com/golang/glog"
 )
