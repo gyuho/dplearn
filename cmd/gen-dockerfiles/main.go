@@ -9,7 +9,7 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/gyuho/deephardway/pkg/fileutil"
+	"github.com/gyuho/dplearn/pkg/fileutil"
 
 	"github.com/golang/glog"
 	yaml "gopkg.in/yaml.v2"
@@ -264,12 +264,12 @@ RUN mkdir -p ${GOPATH}/src/github.com/coreos \
 
 ##########################
 # Clone source code, dependencies
-RUN mkdir -p ${GOPATH}/src/github.com/gyuho/deephardway
-ADD . ${GOPATH}/src/github.com/gyuho/deephardway
+RUN mkdir -p ${GOPATH}/src/github.com/gyuho/dplearn
+ADD . ${GOPATH}/src/github.com/gyuho/dplearn
 
 # Symlinks to notebooks notebooks
-RUN ln -s /gopath/src/github.com/gyuho/deephardway /git-deep \
-  && pushd ${GOPATH}/src/github.com/gyuho/deephardway \
+RUN ln -s /gopath/src/github.com/gyuho/dplearn /git-deep \
+  && pushd ${GOPATH}/src/github.com/gyuho/dplearn \
   && echo "Updating Go dependencies..." \
   && ./scripts/dep/go.sh \
   && go install -v ./cmd/backend-web-server \
@@ -284,7 +284,7 @@ RUN ln -s /gopath/src/github.com/gyuho/deephardway /git-deep \
 # Install Angular, NodeJS for frontend
 # 'node' needs to be in $PATH for 'yarn start' command
 ENV NVM_DIR /usr/local/nvm
-RUN pushd ${GOPATH}/src/github.com/gyuho/deephardway \
+RUN pushd ${GOPATH}/src/github.com/gyuho/dplearn \
   && curl https://raw.githubusercontent.com/creationix/nvm/v{{.NVMVersion}}/install.sh | /bin/bash \
   && echo "Running nvm scripts..." \
   && source $NVM_DIR/nvm.sh \
@@ -349,15 +349,15 @@ RUN cat /etc/lsb-release >> /container-version.txt \
   && printf "\n" >> /container-version.txt \
   && echo NPM: $(/usr/local/nvm/versions/node/v{{.NodeVersion}}/bin/npm --version 2>&1) >> /container-version.txt \
   && printf "\n" >> /container-version.txt \
-  && echo Angular-CLI: $(${GOPATH}/src/github.com/gyuho/deephardway/node_modules/.bin/ng --version 2>&1) >> /container-version.txt \
+  && echo Angular-CLI: $(${GOPATH}/src/github.com/gyuho/dplearn/node_modules/.bin/ng --version 2>&1) >> /container-version.txt \
   && printf "\n" >> /container-version.txt \
   && echo etcd: $(/etcd --version 2>&1) >> /container-version.txt \
   && printf "\n" >> /container-version.txt \
   && echo etcdctl: $(ETCDCTL_API=3 /etcdctl version 2>&1) >> /container-version.txt \
   && printf "\n" >> /container-version.txt \
-  && cat ${GOPATH}/src/github.com/gyuho/deephardway/git-tensorflow.json >> /container-version.txt \
+  && cat ${GOPATH}/src/github.com/gyuho/dplearn/git-tensorflow.json >> /container-version.txt \
   && printf "\n" >> /container-version.txt \
-  && cat ${GOPATH}/src/github.com/gyuho/deephardway/git-fastai-courses.json >> /container-version.txt \
+  && cat ${GOPATH}/src/github.com/gyuho/dplearn/git-fastai-courses.json >> /container-version.txt \
   && printf "\n" >> /container-version.txt \
   && echo xelatex: $(xelatex --version 2>&1) >> /container-version.txt \
   && printf "\n" >> /container-version.txt \

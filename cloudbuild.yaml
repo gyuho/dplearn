@@ -3,7 +3,7 @@ steps:
   args:
   - build
   - --tag
-  - gcr.io/deephardway/deephardway:latest-gpu
+  - gcr.io/gcp-dplearn/dplearn:latest-gpu
   - --file
   - ./dockerfiles/gpu/Dockerfile
   - .
@@ -11,12 +11,12 @@ steps:
   args:
   - build
   - --tag
-  - gcr.io/deephardway/deephardway:latest-cpu
+  - gcr.io/gcp-dplearn/dplearn:latest-cpu
   - --file
   - ./dockerfiles/cpu/Dockerfile
   - .
 images:
-- gcr.io/deephardway/deephardway:latest-gpu
-- gcr.io/deephardway/deephardway:latest-cpu
+- gcr.io/gcp-dplearn/dplearn:latest-gpu
+- gcr.io/gcp-dplearn/dplearn:latest-cpu
 
 # TODO: configure timeouts
