@@ -14,10 +14,10 @@ import (
 )
 
 /*
-GCP_TEST_KEY_PATH=/etc/gcp-key-deephardway.json SKIP_DELETE=false \
+GCP_TEST_KEY_PATH=/etc/gcp-key-dplearn.json SKIP_DELETE=false \
   go test -v -run TestComputeUbuntu -logtostderr=true
 
-GCP_TEST_KEY_PATH=/etc/gcp-key-deephardway.json SKIP_DELETE=false \
+GCP_TEST_KEY_PATH=/etc/gcp-key-dplearn.json SKIP_DELETE=false \
   go test -v -run TestComputeContainerLinux -logtostderr=true
 
 curl -L http://metadata.google.internal/computeMetadata/v1/instance/attributes/gcp-key -H 'Metadata-Flavor:Google'

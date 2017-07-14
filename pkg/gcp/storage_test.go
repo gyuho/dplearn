@@ -16,7 +16,7 @@ import (
 )
 
 /*
-GCP_TEST_KEY_PATH=/etc/gcp-key-deephardway.json go test -v -run TestStorage -logtostderr=true
+GCP_TEST_KEY_PATH=/etc/gcp-key-dplearn.json go test -v -run TestStorage -logtostderr=true
 */
 func TestStorage(t *testing.T) {
 	testKeyPath := os.Getenv("GCP_TEST_KEY_PATH")
