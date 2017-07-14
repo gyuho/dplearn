@@ -186,9 +186,9 @@
   dependencies:
     "@types/angular" "*"
 
-"@types/angular-resource@1.5.9":
-  version "1.5.9"
-  resolved "https://registry.yarnpkg.com/@types/angular-resource/-/angular-resource-1.5.9.tgz#54af443836e495cd3ddd1827319bd9cd4d1f4625"
+"@types/angular-resource@1.5.10":
+  version "1.5.10"
+  resolved "https://registry.yarnpkg.com/@types/angular-resource/-/angular-resource-1.5.10.tgz#bfea2c2988b0017239507565b7fdd8a8c9dbc237"
   dependencies:
     "@types/angular" "*"
 
@@ -220,9 +220,9 @@
   version "2.5.53"
   resolved "https://registry.yarnpkg.com/@types/jasmine/-/jasmine-2.5.53.tgz#4e0cefad09df5ec48c8dd40433512f84b1568d61"
 
-"@types/node@8.0.12":
-  version "8.0.12"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-8.0.12.tgz#0560c3e8c9e3da0aa07d0b86e0b0a02b5fd29480"
+"@types/node@8.0.13":
+  version "8.0.13"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-8.0.13.tgz#530f0f9254209b0335bf5cc6387822594ef47093"
 
 "@types/node@^6.0.46":
   version "6.0.46"
