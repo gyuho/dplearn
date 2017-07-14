@@ -7,8 +7,8 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/gyuho/deephardway/pkg/fileutil"
-	"github.com/gyuho/deephardway/pkg/gcp"
+	"github.com/gyuho/dplearn/pkg/fileutil"
+	"github.com/gyuho/dplearn/pkg/gcp"
 
 	"github.com/golang/glog"
 )
@@ -67,7 +67,7 @@ type configuration struct {
 }
 
 const tmplPackageJSON = `{
-    "name": "app-deephardway",
+    "name": "app-dplearn",
     "version": "0.9.5",
     "license": "Apache-2.0",
     "angular-cli": {},
@@ -131,7 +131,7 @@ const tmplPackageJSON = `{
     "description": "website",
     "main": "index.js",
     "repository": {
-        "url": "git@github.com:gyuho/deephardway.git",
+        "url": "git@github.com:gyuho/dplearn.git",
         "type": "git"
     },
     "author": "Gyu-Ho Lee <gyuhox@gmail.com>"

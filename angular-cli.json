@@ -1,7 +1,7 @@
 {
     "project": {
         "version": "1.3.0-beta.1",
-        "name": "app-deephardway"
+        "name": "app-dplearn"
     },
     "apps": [{
         "root": "frontend",
@@ -18,7 +18,7 @@
         "mobile": false,
         "styles": [
             "styles.css",
-            "app-deephardway-theme.scss"
+            "app-dplearn-theme.scss"
         ],
         "scripts": [],
         "environmentSource": "environments/environment.ts",
