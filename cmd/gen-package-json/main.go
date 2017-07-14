@@ -30,8 +30,6 @@ func main() {
 		HostPort:     4200,
 		HostProd:     "0.0.0.0",
 		HostProdPort: 4200,
-
-		ProxyConfigJSONPath: "proxy.config.json",
 	}
 
 	bts, err := gcp.GetComputeMetadata("instance/network-interfaces/0/access-configs/0/external-ip", 3, 300*time.Millisecond)
@@ -66,7 +64,6 @@ type configuration struct {
 	HostPort                int
 	HostProd                string
 	HostProdPort            int
-	ProxyConfigJSONPath     string
 }
 
 const tmplPackageJSON = `{
@@ -78,8 +75,8 @@ const tmplPackageJSON = `{
         "tslint": "./bin/tslint"
     },
     "scripts": {
-        "start": "{{.NgCommandServeStart}} --port {{.HostPort}} --host {{.Host}} --proxy-config {{.ProxyConfigJSONPath}}",
-        "start-prod": "{{.NgCommandServeStartProd}} --port {{.HostProdPort}} --host {{.HostProd}} --disable-host-check --proxy-config proxy.config.json",
+        "start": "{{.NgCommandServeStart}} --port {{.HostPort}} --host {{.Host}}",
+        "start-prod": "{{.NgCommandServeStartProd}} --port {{.HostProdPort}} --host {{.HostProd}} --disable-host-check",
         "lint": "tslint \"frontend/**/*.ts\"",
         "test": "ng test",
         "pree2e": "webdriver-manager update",
