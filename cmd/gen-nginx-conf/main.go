@@ -8,8 +8,8 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/gyuho/deephardway/pkg/fileutil"
-	"github.com/gyuho/deephardway/pkg/gcp"
+	"github.com/gyuho/dplearn/pkg/fileutil"
+	"github.com/gyuho/dplearn/pkg/gcp"
 
 	"github.com/golang/glog"
 )
@@ -20,7 +20,7 @@ func main() {
 	flag.Parse()
 
 	cfg := configuration{
-		ServerName: "deephardway.com",
+		ServerName: "dplearn.com",
 		TargetPort: *targetPort,
 	}
 
