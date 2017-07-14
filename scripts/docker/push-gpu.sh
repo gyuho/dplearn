@@ -19,4 +19,4 @@ fi
 # gcloud docker -- login -u _json_key -p "$(cat ${GCP_KEY_PATH})" https://gcr.io
 gcloud docker -- login -u oauth2accesstoken -p "$(gcloud auth application-default print-access-token)" https://gcr.io
 
-gcloud docker -- push gcr.io/deephardway/deephardway:latest-gpu
+gcloud docker -- push gcr.io/gcp-dplearn/dplearn:latest-gpu

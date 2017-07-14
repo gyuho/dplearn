@@ -27,9 +27,9 @@ echo KERAS_DIR: ${KERAS_DIR}
 nvidia-docker run \
   --rm \
   -it \
-  --volume=`pwd`/notebooks:/gopath/src/github.com/gyuho/deephardway/notebooks \
+  --volume=`pwd`/notebooks:/gopath/src/github.com/gyuho/dplearn/notebooks \
   --volume=${KERAS_DIR}/datasets:/root/.keras/datasets \
   --volume=${KERAS_DIR}/models:/root/.keras/models \
   -p 8888:8888 \
-  gcr.io/deephardway/deephardway:latest-gpu \
-  /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && ${ACTIVATE_COMMAND} PASSWORD='' ./run_jupyter.sh -y  --allow-root --notebook-dir=./notebooks"
+  gcr.io/gcp-dplearn/dplearn:latest-gpu \
+  /bin/sh -c "pushd /gopath/src/github.com/gyuho/dplearn && ${ACTIVATE_COMMAND} PASSWORD='' ./run_jupyter.sh -y  --allow-root --notebook-dir=./notebooks"

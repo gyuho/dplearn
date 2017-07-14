@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-if ! [[ "$0" =~ "./scripts/docker/deephardway-cpu.sh" ]]; then
+if ! [[ "$0" =~ "./scripts/docker/dplearn-cpu.sh" ]]; then
   echo "must be run from repository root"
   exit 255
 fi
@@ -32,5 +32,5 @@ docker run \
   --volume=${KERAS_DIR}/models:/root/.keras/models \
   -p 4200:4200 \
   --ulimit nofile=262144:262144 \
-  gcr.io/deephardway/deephardway:latest-cpu \
-  /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && ./scripts/run/deephardway-cpu.sh"
+  gcr.io/gcp-dplearn/dplearn:latest-cpu \
+  /bin/sh -c "pushd /gopath/src/github.com/gyuho/dplearn && ./scripts/run/dplearn-cpu.sh"

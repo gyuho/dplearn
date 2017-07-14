@@ -15,20 +15,20 @@ echo KERAS_DIR: ${KERAS_DIR}
 
 nvidia-docker run \
   --rm \
-  --volume=`pwd`:/gopath/src/github.com/gyuho/deephardway \
-  gcr.io/deephardway/deephardway:latest-gpu \
-  /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && ./scripts/tests/frontend.sh"
+  --volume=`pwd`:/gopath/src/github.com/gyuho/dplearn \
+  gcr.io/gcp-dplearn/dplearn:latest-gpu \
+  /bin/sh -c "pushd /gopath/src/github.com/gyuho/dplearn && ./scripts/tests/frontend.sh"
 
 nvidia-docker run \
   --rm \
-  --volume=`pwd`:/gopath/src/github.com/gyuho/deephardway \
-  gcr.io/deephardway/deephardway:latest-gpu \
-  /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && ./scripts/tests/go.sh"
+  --volume=`pwd`:/gopath/src/github.com/gyuho/dplearn \
+  gcr.io/gcp-dplearn/dplearn:latest-gpu \
+  /bin/sh -c "pushd /gopath/src/github.com/gyuho/dplearn && ./scripts/tests/go.sh"
 
 nvidia-docker run \
   --rm \
-  --volume=`pwd`:/gopath/src/github.com/gyuho/deephardway \
+  --volume=`pwd`:/gopath/src/github.com/gyuho/dplearn \
   --volume=${KERAS_DIR}/datasets:/root/.keras/datasets \
   --volume=${KERAS_DIR}/models:/root/.keras/models \
-  gcr.io/deephardway/deephardway:latest-gpu \
-  /bin/sh -c "pushd /gopath/src/github.com/gyuho/deephardway && ETCD_EXEC=/etcd BACKEND_WEB_SERVER_EXEC=/gopath/bin/backend-web-server ./scripts/tests/python.sh"
+  gcr.io/gcp-dplearn/dplearn:latest-gpu \
+  /bin/sh -c "pushd /gopath/src/github.com/gyuho/dplearn && ETCD_EXEC=/etcd BACKEND_WEB_SERVER_EXEC=/gopath/bin/backend-web-server ./scripts/tests/python.sh"
