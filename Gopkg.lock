@@ -4,7 +4,7 @@
 [[projects]]
   name = "cloud.google.com/go"
   packages = ["compute/metadata","iam","internal","internal/optional","internal/version","storage"]
-  revision = "7c205da84d8d024a8200be93ab042357c9a70177"
+  revision = "3e1507a0d90d17e4fdd8ef75e8f037ebecc854ba"
 
 [[projects]]
   branch = "master"
@@ -26,7 +26,7 @@
 [[projects]]
   name = "github.com/coreos/etcd"
   packages = ["alarm","auth","auth/authpb","client","clientv3","clientv3/concurrency","compactor","discovery","embed","error","etcdserver","etcdserver/api","etcdserver/api/etcdhttp","etcdserver/api/v2http","etcdserver/api/v2http/httptypes","etcdserver/api/v3client","etcdserver/api/v3election","etcdserver/api/v3election/v3electionpb","etcdserver/api/v3election/v3electionpb/gw","etcdserver/api/v3lock","etcdserver/api/v3lock/v3lockpb","etcdserver/api/v3lock/v3lockpb/gw","etcdserver/api/v3rpc","etcdserver/api/v3rpc/rpctypes","etcdserver/auth","etcdserver/etcdserverpb","etcdserver/etcdserverpb/gw","etcdserver/membership","etcdserver/stats","lease","lease/leasehttp","lease/leasepb","mvcc","mvcc/backend","mvcc/mvccpb","pkg/adt","pkg/contention","pkg/cors","pkg/cpuutil","pkg/crc","pkg/debugutil","pkg/fileutil","pkg/httputil","pkg/idutil","pkg/ioutil","pkg/logutil","pkg/monotime","pkg/netutil","pkg/pathutil","pkg/pbutil","pkg/runtime","pkg/schedule","pkg/srv","pkg/tlsutil","pkg/transport","pkg/types","pkg/wait","proxy/grpcproxy/adapter","raft","raft/raftpb","rafthttp","snap","snap/snappb","store","version","wal","wal/walpb"]
-  revision = "511f4d5c991bd511b4f428d1767f56f86d99188b"
+  revision = "9ce7bb6a1c15bcffdd011a571dc686e71aabc314"
 
 [[projects]]
   name = "github.com/coreos/go-semver"
@@ -214,7 +214,7 @@
 [[projects]]
   name = "golang.org/x/oauth2"
   packages = [".","google","internal","jws","jwt"]
-  revision = "f047394b6d14284165300fd82dad67edb3a4d7f6"
+  revision = "cce311a261e6fcf29de72ca96827bdb0b7d9c9e6"
 
 [[projects]]
   branch = "master"
@@ -237,7 +237,7 @@
 [[projects]]
   name = "google.golang.org/api"
   packages = ["compute/v1","gensupport","googleapi","googleapi/internal/uritemplates","googleapi/transport","internal","iterator","option","storage/v1","transport"]
-  revision = "e6586c9293b9d514c7f5d5076731ec977cff1be6"
+  revision = "e665075b5ff79143ba49c58fab02df9dc122afd5"
 
 [[projects]]
   name = "google.golang.org/appengine"
@@ -265,6 +265,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "fb8f1e7a9e86c5f03898635297a5d9b1129741331772e584c328f7ddc96784a4"
+  inputs-digest = "b152d4526225d487c8257308d8403f68eaf64a2edaed2843d195d797eae6e9ed"
   solver-name = "gps-cdcl"
   solver-version = 1
