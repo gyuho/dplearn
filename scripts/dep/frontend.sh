@@ -11,7 +11,7 @@ SKIP_REBUILD=1 ./scripts/dep/frontend.sh
 COMMENT
 
 source ${NVM_DIR}/nvm.sh
-nvm install v8.1.4
+nvm install v8.2.1
 
 go install -v ./cmd/gen-package-json
 gen-package-json --output package.json --logtostderr
@@ -28,8 +28,8 @@ else
 fi
 npm install
 
-nvm install v8.1.4
-nvm alias default 8.1.4
+nvm install v8.2.1
+nvm alias default 8.2.1
 nvm alias default node
 which node
 node -v
