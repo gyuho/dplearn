@@ -23,13 +23,13 @@
   dependencies:
     tslib "^1.7.1"
 
-"@angular/cli@1.3.0-rc.1":
-  version "1.3.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@angular/cli/-/cli-1.3.0-rc.1.tgz#b4b94d99e154a6cc8fe90e85de537b81529c9fd7"
+"@angular/cli@1.3.0-rc.2":
+  version "1.3.0-rc.2"
+  resolved "https://registry.yarnpkg.com/@angular/cli/-/cli-1.3.0-rc.2.tgz#9caa80549f386f14cab65fc6ac18d50101ee1553"
   dependencies:
     "@angular-devkit/build-optimizer" "0.0.3"
     "@ngtools/json-schema" "1.1.0"
-    "@ngtools/webpack" "1.6.0-rc.1"
+    "@ngtools/webpack" "1.6.0-rc.2"
     autoprefixer "^6.5.3"
     chalk "^2.0.1"
     circular-dependency-plugin "^3.0.0"
@@ -54,7 +54,6 @@
     inquirer "^3.0.0"
     isbinaryfile "^3.0.0"
     istanbul-instrumenter-loader "^2.0.0"
-    json-loader "^0.5.4"
     karma-source-map-support "^1.2.0"
     less "^2.7.2"
     less-loader "^4.0.5"
@@ -84,7 +83,7 @@
     typescript ">=2.0.0 <2.5.0"
     url-loader "^0.5.7"
     walk-sync "^0.3.1"
-    webpack "~3.3.0"
+    webpack "3.3.0"
     webpack-dev-middleware "^1.11.0"
     webpack-dev-server "~2.5.1"
     webpack-merge "^4.1.0"
@@ -170,9 +169,9 @@
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@ngtools/json-schema/-/json-schema-1.1.0.tgz#c3a0c544d62392acc2813a42c8a0dc6f58f86922"
 
-"@ngtools/webpack@1.6.0-rc.1":
-  version "1.6.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@ngtools/webpack/-/webpack-1.6.0-rc.1.tgz#70cd8b08da5782322eb10f9e922cd3c59b18dfde"
+"@ngtools/webpack@1.6.0-rc.2":
+  version "1.6.0-rc.2"
+  resolved "https://registry.yarnpkg.com/@ngtools/webpack/-/webpack-1.6.0-rc.2.tgz#e74e2fc09e53337e1c2693ba0d22ad2023314d31"
   dependencies:
     enhanced-resolve "3.3.0"
     loader-utils "^1.0.2"
@@ -5652,7 +5651,7 @@ webpack-sources@^1.0.1:
     source-list-map "^2.0.0"
     source-map "~0.5.3"
 
-webpack@~3.3.0:
+webpack@3.3.0:
   version "3.3.0"
   resolved "https://registry.yarnpkg.com/webpack/-/webpack-3.3.0.tgz#ce2f9e076566aba91f74887133a883fd7da187bc"
   dependencies:
