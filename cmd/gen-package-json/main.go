@@ -114,7 +114,7 @@ const tmplPackageJSON = `{
         "typescript": "2.4.2",
         "ts-node": "3.3.0",
         "ts-helpers": "1.1.2",
-        "zone.js": "0.8.14"
+        "zone.js": "0.8.16"
     },
     "devDependencies": {
         "codelyzer": "3.1.2",
