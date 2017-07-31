@@ -4,7 +4,7 @@ device: cpu
 tensorflow-base-image: gcr.io/tensorflow/tensorflow:1.2.1
 
 # https://golang.org/dl/
-go-version: 1.9beta2
+go-version: 1.9rc1
 
 # https://github.com/creationix/nvm/releases
 nvm-version: 0.33.2
