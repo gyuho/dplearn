@@ -28,4 +28,4 @@ gcloud beta compute instances create dplearn \
   --maintenance-policy=TERMINATE \
   --restart-on-failure \
   --accelerator type=nvidia-tesla-k80,count=1 \
-  --metadata-from-file gcp-key=${GCP_KEY_PATH},startup-script=./scripts/gcp/ubuntu-gpu.ansible.sh
+  --metadata-from-file gcp-key-dplearn=${GCP_KEY_PATH},startup-script=./scripts/gcp/ubuntu-gpu.ansible.sh

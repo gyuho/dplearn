@@ -20,7 +20,7 @@ GCP_TEST_KEY_PATH=/etc/gcp-key-dplearn.json SKIP_DELETE=false \
 GCP_TEST_KEY_PATH=/etc/gcp-key-dplearn.json SKIP_DELETE=false \
   go test -v -run TestComputeContainerLinux -logtostderr=true
 
-curl -L http://metadata.google.internal/computeMetadata/v1/instance/attributes/gcp-key -H 'Metadata-Flavor:Google'
+curl -L http://metadata.google.internal/computeMetadata/v1/instance/attributes/gcp-key-dplearn -H 'Metadata-Flavor:Google'
 curl -L http://metadata.google.internal/computeMetadata/v1/instance/attributes/startup-script -H 'Metadata-Flavor:Google'
 curl -L http://metadata.google.internal/computeMetadata/v1/instance/attributes/test-key -H 'Metadata-Flavor:Google'
 */

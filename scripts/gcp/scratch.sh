@@ -12,7 +12,7 @@ GCP_KEY_PATH=/etc/gcp-key-dplearn.json ./scripts/gcp/ubuntu-gpu.gcp.sh
 
 gcloud compute ssh --zone=us-west1-b dplearn
 
-curl -L http://metadata.google.internal/computeMetadata/v1/instance/attributes/gcp-key -H 'Metadata-Flavor:Google'
+curl -L http://metadata.google.internal/computeMetadata/v1/instance/attributes/gcp-key-dplearn -H 'Metadata-Flavor:Google'
 
 tail -f /etc/ansible-install.log
 
@@ -102,5 +102,5 @@ gcloud compute instances stop --zone us-west1-b deep
 gcloud compute instances delete --zone us-west1-b deep
 gcloud compute ssh --zone=us-west1-b deep
 
-gcloud compute project-info add-metadata --metadata-from-file gcp-key=${GCP_KEY_PATH}
-curl -L http://metadata.google.internal/computeMetadata/v1/project/attributes/gcp-key -H 'Metadata-Flavor:Google'
+gcloud compute project-info add-metadata --metadata-from-file gcp-key-dplearn=${GCP_KEY_PATH}
+curl -L http://metadata.google.internal/computeMetadata/v1/project/attributes/gcp-key-dplearn -H 'Metadata-Flavor:Google'
