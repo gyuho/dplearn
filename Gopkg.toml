@@ -1,7 +1,7 @@
 # https://github.com/coreos/etcd
 [[constraint]]
   name = "github.com/coreos/etcd"
-  revision = "2eb9353019a3b3ad42a87200f3d926797320abeb"
+  revision = "04413454acebaa81fb3787b1d7763ea0f6ebc61e"
 
 # https://github.com/coreos/bbolt
 [[constraint]]

@@ -48,8 +48,9 @@ func (p *kvProxy) Range(ctx context.Context, r *pb.RangeRequest) (*pb.RangeRespo
 			cacheHits.Inc()
 			return nil, err
 		}
+
+		cachedMisses.Inc()
 	}
-	cachedMisses.Inc()
 
 	resp, err := p.kv.Do(ctx, RangeRequestToOp(r))
 	if err != nil {
@@ -194,6 +195,9 @@ func PutRequestToOp(r *pb.PutRequest) clientv3.Op {
 	}
 	if r.IgnoreLease {
 		opts = append(opts, clientv3.WithIgnoreLease())
+	}
+	if r.PrevKv {
+		opts = append(opts, clientv3.WithPrevKV())
 	}
 	return clientv3.OpPut(string(r.Key), string(r.Value), opts...)
 }
