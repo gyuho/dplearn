@@ -21,7 +21,9 @@
 [[projects]]
   name = "github.com/coreos/bbolt"
   packages = ["."]
-  revision = "ad39960eb40bb33c9bda31bed2eaf4fdda15efe6"
+  revision = "12923fe56c105bca6efbbcc258cd762b4258333d"
+  source = "https://github.com/coreos/bbolt.git"
+  version = "v1.3.1-coreos.0"
 
 [[projects]]
   name = "github.com/coreos/etcd"
@@ -265,6 +267,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "c0eaee764e3017b3dd162f6edc9bc065b3356feac776ae13b83de456357308c6"
+  inputs-digest = "b4a219d7149a9b360b97420fbc6dd88fc807a2ef4e0225c69db74b0f40e06bc0"
   solver-name = "gps-cdcl"
   solver-version = 1

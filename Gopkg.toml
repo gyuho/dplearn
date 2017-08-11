@@ -1,13 +1,13 @@
+# https://github.com/coreos/bbolt
+[[override]]
+  name = "github.com/coreos/bbolt"
+  version = "v1.3.1-coreos.0"
+  source = "https://github.com/coreos/bbolt.git"
+
 # https://github.com/coreos/etcd
 [[constraint]]
   name = "github.com/coreos/etcd"
   revision = "135b7f78c9e79c794c28bfc772205a716460e368"
-
-# https://github.com/coreos/bbolt
-[[constraint]]
-  name = "github.com/coreos/bbolt"
-  version = "v1.3.1-coreos.0"
-  source = "github.com/coreos/bbolt"
 
 # https://github.com/dustin/go-humanize
 [[constraint]]
