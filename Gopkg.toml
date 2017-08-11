@@ -1,12 +1,12 @@
 # https://github.com/coreos/etcd
 [[constraint]]
   name = "github.com/coreos/etcd"
-  revision = "04413454acebaa81fb3787b1d7763ea0f6ebc61e"
+  revision = "135b7f78c9e79c794c28bfc772205a716460e368"
 
 # https://github.com/coreos/bbolt
 [[constraint]]
   name = "github.com/coreos/bbolt"
-  revision = "ad39960eb40bb33c9bda31bed2eaf4fdda15efe6"
+  version = "v1.3.1-coreos.0"
   source = "github.com/coreos/bbolt"
 
 # https://github.com/dustin/go-humanize
