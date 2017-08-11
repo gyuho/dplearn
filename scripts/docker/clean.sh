@@ -6,7 +6,7 @@ if ! [[ "$0" =~ "./scripts/docker/clean.sh" ]]; then
   exit 255
 fi
 
-docker rmi -f $(docker images -q)
+docker rmi --force $(docker images --quiet)
 
 <<COMMENT
 pgrep "docker rm" && exit 0
