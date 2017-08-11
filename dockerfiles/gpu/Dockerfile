@@ -219,7 +219,7 @@ RUN pushd ${GOPATH}/src/github.com/gyuho/dplearn \
   && echo "Running nvm scripts..." \
   && source $NVM_DIR/nvm.sh \
   && nvm ls-remote \
-  && nvm install v8.2.1 \
+  && nvm install v8.3.0 \
   && curl https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
   && echo "deb http://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
   && apt-get -y update && apt-get -y install yarn \
@@ -228,11 +228,11 @@ RUN pushd ${GOPATH}/src/github.com/gyuho/dplearn \
   && yarn install \
   && npm rebuild node-sass --force \
   && npm install \
-  && nvm alias default 8.2.1 \
+  && nvm alias default 8.3.0 \
   && nvm alias default node \
   && which node \
   && node -v \
-  && cp /usr/local/nvm/versions/node/v8.2.1/bin/node /usr/bin/node \
+  && cp /usr/local/nvm/versions/node/v8.3.0/bin/node /usr/bin/node \
   && popd
 ##########################
 
@@ -277,7 +277,7 @@ RUN cat /etc/lsb-release >> /container-version.txt \
   && printf "\n" >> /container-version.txt \
   && echo node: $(node --version 2>&1) >> /container-version.txt \
   && printf "\n" >> /container-version.txt \
-  && echo NPM: $(/usr/local/nvm/versions/node/v8.2.1/bin/npm --version 2>&1) >> /container-version.txt \
+  && echo NPM: $(/usr/local/nvm/versions/node/v8.3.0/bin/npm --version 2>&1) >> /container-version.txt \
   && printf "\n" >> /container-version.txt \
   && echo Angular-CLI: $(${GOPATH}/src/github.com/gyuho/dplearn/node_modules/.bin/ng --version 2>&1) >> /container-version.txt \
   && printf "\n" >> /container-version.txt \
