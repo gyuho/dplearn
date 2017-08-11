@@ -110,7 +110,7 @@ const tmplPackageJSON = `{
         "@types/hammerjs": "2.0.34",
         "@types/jasmine": "2.5.53",
         "core-js": "2.5.0",
-        "rxjs": "5.4.2",
+        "rxjs": "5.4.3",
         "typescript": "2.4.2",
         "ts-node": "3.3.0",
         "ts-helpers": "1.1.2",
