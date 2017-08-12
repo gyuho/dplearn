@@ -1,5 +1,6 @@
 ## dplearn
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/gyuho/dplearn?style=flat-square)](https://goreportcard.com/report/github.com/gyuho/dplearn)
 [![Build Status](https://img.shields.io/travis/gyuho/dplearn.svg?style=flat-square)](https://travis-ci.org/gyuho/dplearn)
 [![Build Status](https://semaphoreci.com/api/v1/gyuho/dplearn/branches/master/shields_badge.svg)](https://semaphoreci.com/gyuho/dplearn)
 [![Godoc](http://img.shields.io/badge/go-documentation-blue.svg?style=flat-square)](https://godoc.org/github.com/gyuho/dplearnhardway)
