@@ -245,18 +245,6 @@ func TestQueueWatch(t *testing.T) {
 
 	// cancel the watcher to exit watch routine
 	cancel()
-
-	select {
-	case item, stillOpen := <-item1Watcher:
-		if stillOpen {
-			t.Fatalf("%q watcher must still be closed after cancel, got stillOpen %v", item1.Key, stillOpen)
-		}
-		if item != nil {
-			t.Fatalf("expected nil, got %+v (%v)", item, err)
-		}
-	case <-time.After(3 * time.Second):
-		t.Fatalf("expected watch response on %q watcher, but got none", item1.Key)
-	}
 }
 
 func TestQueueEnqueueLeaseExpire(t *testing.T) {

@@ -135,7 +135,15 @@ func (qu *queue) Enqueue(ctx context.Context, item *Item, opts ...OpOption) Item
 		return ch
 	}
 
-	wch := qu.cli.Watch(ctx, key, clientv3.WithPrevKV())
+	wch := qu.cli.Watch(ctx, key, clientv3.WithCreatedNotify(), clientv3.WithPrevKV())
+	select {
+	case <-wch:
+	case <-time.After(3 * time.Second):
+		cur.Error = fmt.Sprintf("took too long to create watch on %q", key)
+		ch <- &cur
+		close(ch)
+		return ch
+	}
 	go func() {
 		defer close(ch)
 
