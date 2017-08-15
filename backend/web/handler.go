@@ -36,8 +36,7 @@ type Server struct {
 
 	donec chan struct{}
 
-	requestCacheMu sync.Mutex
-	requestCache   map[string]*queue.Item
+	requestCache sync.Map
 }
 
 type key int
@@ -72,13 +71,12 @@ func StartServer(webPort int, qu queue.Queue) (*Server, error) {
 	mux := http.NewServeMux()
 	webURL := url.URL{Scheme: "http", Host: fmt.Sprintf("localhost:%d", webPort)}
 	srv := &Server{
-		rootCtx:      rootCtx,
-		rootCancel:   rootCancel,
-		webURL:       webURL,
-		httpServer:   &http.Server{Addr: webURL.Host, Handler: mux},
-		qu:           qu,
-		donec:        make(chan struct{}),
-		requestCache: make(map[string]*queue.Item),
+		rootCtx:    rootCtx,
+		rootCancel: rootCancel,
+		webURL:     webURL,
+		httpServer: &http.Server{Addr: webURL.Host, Handler: mux},
+		qu:         qu,
+		donec:      make(chan struct{}),
 	}
 
 	cache := lru.NewInMemory(imageCacheSize)
@@ -144,19 +142,21 @@ func (srv *Server) gcCache(period time.Duration) {
 		case <-ticker.C:
 		}
 
-		srv.requestCacheMu.Lock()
-		for id, item := range srv.requestCache {
+		srv.requestCache.Range(func(k, v interface{}) bool {
+			id := k.(string)
+			item := v.(*queue.Item)
+
 			glog.Warningf("%q should have been requested to delete when user leaves browser (missed DELETE request?)", id)
 			if time.Since(item.CreatedAt) > period {
-				delete(srv.requestCache, id)
+				srv.requestCache.Delete(k)
 				if item.Progress == queue.MaxProgress {
 					glog.Infof("deleted %q because its progress is %d (created at %s)", id, queue.MaxProgress, item.CreatedAt)
 				} else {
 					glog.Warningf("deleted %q and its progress is %d (created at %s)", id, item.Progress, item.CreatedAt)
 				}
 			}
-		}
-		srv.requestCacheMu.Unlock()
+			return true
+		})
 	}
 }
 
@@ -217,9 +217,7 @@ func queueHandler(ctx context.Context, w http.ResponseWriter, req *http.Request)
 			return json.NewEncoder(w).Encode(&queue.Item{Bucket: bucket, Progress: 0, Error: fmt.Sprintf("invalid item: %+v", item)})
 		}
 
-		srv.requestCacheMu.Lock()
-		_, ok := srv.requestCache[item.RequestID]
-		srv.requestCacheMu.Unlock()
+		_, ok := srv.requestCache.Load(item.RequestID)
 		if !ok {
 			return json.NewEncoder(w).Encode(&queue.Item{Bucket: bucket, Progress: 0, Error: fmt.Sprintf("unknown request ID %q", item.RequestID)})
 		}
@@ -264,14 +262,13 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 		}
 
 		glog.Infof("fetching %q for status", requestID)
-		srv.requestCacheMu.Lock()
-		v, ok := srv.requestCache[requestID]
-		srv.requestCacheMu.Unlock()
+		vi, ok := srv.requestCache.Load(requestID)
 		if !ok {
 			err := fmt.Errorf("cannot find request ID %q (something seriously wrong!)", requestID)
 			glog.Warning(err)
 			return json.NewEncoder(w).Encode(&queue.Item{Bucket: reqPath, Progress: 0, Error: err.Error()})
 		}
+		v := vi.(*queue.Item)
 		if v.Progress == queue.MaxProgress {
 			glog.Infof("fetched %q with completed status", requestID)
 			return json.NewEncoder(w).Encode(v)
@@ -348,11 +345,9 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 		switch creq.CreateRequest {
 		case true:
 			glog.Infof("fetching %q before creating item", requestID)
-			srv.requestCacheMu.Lock()
-			v, ok := srv.requestCache[requestID]
+			v, ok := srv.requestCache.Load(requestID)
 			if ok {
 				glog.Infof("fetched %q before creating item, no need to create", requestID)
-				srv.requestCacheMu.Unlock()
 				return json.NewEncoder(w).Encode(v)
 			}
 
@@ -363,7 +358,6 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 			ch := qu.Enqueue(ctx, item, queue.WithTTL(enqueueTTL))
 			select {
 			case ev := <-ch:
-				srv.requestCacheMu.Unlock()
 				err := fmt.Sprintf("unexpected event from Enqueue with %+v", ev)
 				glog.Warning(err)
 				return json.NewEncoder(w).Encode(&queue.Item{Bucket: reqPath, Progress: 0, Error: err})
@@ -374,8 +368,7 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 			// - waits until the worker processor computes the job
 			// - waits until the worker processor writes back to queue
 			// - queue watcher gets notified and writes back to 'path.Join(pfxScheduled, bucket)'
-			srv.requestCache[requestID] = item
-			srv.requestCacheMu.Unlock()
+			srv.requestCache.Store(requestID, item)
 			go srv.watch(ctx, requestID, ch)
 
 			glog.Infof("created an item with request ID %s", requestID)
@@ -385,21 +378,18 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 
 		case false:
 			glog.Infof("deleting %q", requestID)
-			srv.requestCacheMu.Lock()
-			item, ok := srv.requestCache[requestID]
+			v, ok := srv.requestCache.Load(requestID)
 			if !ok {
-				srv.requestCacheMu.Unlock()
 				glog.Infof("already deleted %q", requestID)
 				return nil
 			}
-			delete(srv.requestCache, requestID)
+			srv.requestCache.Delete(requestID)
+			item := v.(*queue.Item)
 			if err = qu.Dequeue(ctx, item); err != nil {
 				err = fmt.Errorf("qu.Dequeue error %q", err.Error())
 				glog.Warning(err)
-				srv.requestCacheMu.Unlock()
 				return json.NewEncoder(w).Encode(&queue.Item{Bucket: reqPath, Progress: 0, Error: err.Error()})
 			}
-			srv.requestCacheMu.Unlock()
 			glog.Infof("deleted %q", requestID)
 		}
 
@@ -414,14 +404,11 @@ func (srv *Server) watch(ctx context.Context, requestID string, ch <-chan *queue
 	item := &queue.Item{Progress: 0}
 	var stillOpen bool
 	for item.Progress < queue.MaxProgress && !item.Canceled {
-		srv.requestCacheMu.Lock()
-		_, ok := srv.requestCache[requestID]
+		_, ok := srv.requestCache.Load(requestID)
 		if !ok {
 			glog.Infof("watcher: %q is already deleted(canceled)", requestID)
-			srv.requestCacheMu.Unlock()
 			return
 		}
-		srv.requestCacheMu.Unlock()
 
 		select {
 		case <-srv.donec:
@@ -437,9 +424,7 @@ func (srv *Server) watch(ctx context.Context, requestID string, ch <-chan *queue
 				glog.Infof("watcher: %q is canceld", requestID)
 			} else {
 				glog.Infof("watcher: received an update on %q", requestID)
-				srv.requestCacheMu.Lock()
-				srv.requestCache[requestID] = item
-				srv.requestCacheMu.Unlock()
+				srv.requestCache.Store(requestID, item)
 			}
 		}
 	}
