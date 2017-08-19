@@ -1,16 +1,11 @@
 # https://gcr.io/tensorflow/tensorflow
 # https://github.com/tensorflow/tensorflow/tree/master/tensorflow/tools/docker
-device: gpu
-tensorflow-base-image: gcr.io/tensorflow/tensorflow:1.2.1-gpu
-
 # https://golang.org/dl/
-go-version: 1.9rc2
-
 # https://github.com/creationix/nvm/releases
-nvm-version: 0.33.2
-
 # https://github.com/nodejs/LTS#lts-schedule1
-node-version: 8.4.0
 
-dockerfile-paths:
-- ./Dockerfile
+go-version: 1.9rc2
+nvm-version: 0.33.2
+node-version: 8.4.0
+tensorflow-base-image: gcr.io/tensorflow/tensorflow:1.2.1
+dockerfiles-base-dir: ./dockerfiles

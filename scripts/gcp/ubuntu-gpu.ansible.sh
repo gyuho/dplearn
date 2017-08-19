@@ -135,9 +135,9 @@ systemctl start nvidia-docker.service
 ##########################################################
 
 ##########################################################
-cat > /tmp/ipython-gpu.service <<EOF
+cat > /tmp/app.service <<EOF
 [Unit]
-Description=deep GPU development service
+Description=dplearn GPU development service
 Documentation=https://github.com/gyuho/dplearn
 
 [Service]
@@ -147,95 +147,63 @@ TimeoutStartSec=0
 LimitNOFILE=40000
 
 ExecStartPre=/usr/bin/docker login -u oauth2accesstoken -p "$(/usr/bin/gcloud auth application-default print-access-token)" https://gcr.io
-ExecStartPre=/usr/bin/docker pull gcr.io/gcp-dplearn/dplearn:latest-gpu
+ExecStartPre=/usr/bin/docker pull gcr.io/gcp-dplearn/dplearn:latest-app
 
 ExecStart=/usr/bin/nvidia-docker run \
   --rm \
-  --name ipython-gpu \
-  --volume=/var/lib/keras/datasets:/root/.keras/datasets \
-  --volume=/var/lib/keras/models:/root/.keras/models \
-  -p 8888:8888 \
-  --ulimit nofile=262144:262144 \
-  gcr.io/gcp-dplearn/dplearn:latest-gpu \
-  /bin/sh -c "pushd /gopath/src/github.com/gyuho/dplearn && PASSWORD='' ./run_jupyter.sh -y"
-
-ExecStop=/usr/bin/docker rm --force ipython-gpu
-
-[Install]
-WantedBy=multi-user.target
-EOF
-cat /tmp/ipython-gpu.service
-mv -f /tmp/ipython-gpu.service /etc/systemd/system/ipython-gpu.service
-##########################################################
-
-##########################################################
-cat > /tmp/download-data.service <<EOF
-[Unit]
-Description=dplearn download model data
-Documentation=https://github.com/gyuho/dplearn
-
-[Service]
-Restart=on-failure
-RestartSec=5s
-TimeoutStartSec=0
-LimitNOFILE=40000
-
-ExecStartPre=/usr/bin/docker login -u oauth2accesstoken -p "$(/usr/bin/gcloud auth application-default print-access-token)" https://gcr.io
-ExecStartPre=/usr/bin/docker pull gcr.io/gcp-dplearn/dplearn
-
-ExecStart=/usr/bin/docker \
-  run \
-  --rm \
-  --name download-data \
-  --volume=/var/lib/keras/datasets:/root/.keras/datasets \
-  --volume=/var/lib/keras/models:/root/.keras/models \
-  --net=host \
-  --ulimit nofile=262144:262144 \
-  gcr.io/gcp-dplearn/dplearn:latest-gpu \
-  /bin/sh -c "pushd /gopath/src/github.com/gyuho/dplearn && ./scripts/dep/download-data.sh"
-
-ExecStop=/usr/bin/docker rm --force download-data
-
-[Install]
-WantedBy=multi-user.target
-EOF
-cat /tmp/download-data.service
-mv -f /tmp/download-data.service /etc/systemd/system/download-data.service
-##########################################################
-
-##########################################################
-cat > /tmp/dplearn-gpu.service <<EOF
-[Unit]
-Description=deep GPU development service
-Documentation=https://github.com/gyuho/dplearn
-
-[Service]
-Restart=always
-RestartSec=5s
-TimeoutStartSec=0
-LimitNOFILE=40000
-
-ExecStartPre=/usr/bin/docker login -u oauth2accesstoken -p "$(/usr/bin/gcloud auth application-default print-access-token)" https://gcr.io
-ExecStartPre=/usr/bin/docker pull gcr.io/gcp-dplearn/dplearn:latest-gpu
-
-ExecStart=/usr/bin/nvidia-docker run \
-  --rm \
-  --name dplearn-gpu \
+  --name app \
   --volume=/var/lib/etcd:/var/lib/etcd \
   --volume=/var/lib/keras/datasets:/root/.keras/datasets \
   --volume=/var/lib/keras/models:/root/.keras/models \
   -p 4200:4200 \
   --ulimit nofile=262144:262144 \
-  gcr.io/gcp-dplearn/dplearn:latest-gpu \
-  /bin/sh -c "pushd /gopath/src/github.com/gyuho/dplearn && ./scripts/run/dplearn-gpu.sh"
+  gcr.io/gcp-dplearn/dplearn:latest-app \
+  /bin/sh -c "./scripts/run/app.sh"
 
-ExecStop=/usr/bin/docker rm --force dplearn-gpu
+ExecStop=/usr/bin/docker rm --force app
 
 [Install]
 WantedBy=multi-user.target
 EOF
-cat /tmp/dplearn-gpu.service
-mv -f /tmp/dplearn-gpu.service /etc/systemd/system/dplearn-gpu.service
+cat /tmp/app.service
+mv -f /tmp/app.service /etc/systemd/system/app.service
+##########################################################
+
+##########################################################
+cat > /tmp/worker.service <<EOF
+[Unit]
+Description=dplearn GPU development service
+Documentation=https://github.com/gyuho/dplearn
+
+After=app.service
+
+[Service]
+Restart=always
+RestartSec=5s
+TimeoutStartSec=0
+LimitNOFILE=40000
+
+ExecStartPre=/usr/bin/docker login -u oauth2accesstoken -p "$(/usr/bin/gcloud auth application-default print-access-token)" https://gcr.io
+ExecStartPre=/usr/bin/docker pull gcr.io/gcp-dplearn/dplearn:latest-app
+
+ExecStart=/usr/bin/nvidia-docker run \
+  --rm \
+  --name worker \
+  --volume=/var/lib/etcd:/var/lib/etcd \
+  --volume=/var/lib/keras/datasets:/root/.keras/datasets \
+  --volume=/var/lib/keras/models:/root/.keras/models \
+  -p 4200:4200 \
+  --ulimit nofile=262144:262144 \
+  gcr.io/gcp-dplearn/dplearn:latest-app \
+  /bin/sh -c "./scripts/run/worker.sh"
+
+ExecStop=/usr/bin/docker rm --force worker
+
+[Install]
+WantedBy=multi-user.target
+EOF
+cat /tmp/worker.service
+mv -f /tmp/worker.service /etc/systemd/system/worker.service
 ##########################################################
 
 ##########################################################
@@ -244,7 +212,7 @@ cat > /tmp/reverse-proxy.service <<EOF
 Description=dplearn reverse proxy
 Documentation=https://github.com/gyuho/dplearn
 
-After=dplearn-gpu.service
+After=app.service
 
 [Service]
 Restart=always
@@ -253,7 +221,7 @@ TimeoutStartSec=0
 LimitNOFILE=40000
 
 ExecStartPre=/usr/bin/docker login -u oauth2accesstoken -p "$(/usr/bin/gcloud auth application-default print-access-token)" https://gcr.io
-ExecStartPre=/usr/bin/docker pull gcr.io/gcp-dplearn/dplearn
+ExecStartPre=/usr/bin/docker pull gcr.io/gcp-dplearn/dplearn:latest-reverse-proxy
 
 ExecStart=/usr/bin/docker \
   run \
@@ -261,8 +229,8 @@ ExecStart=/usr/bin/docker \
   --name reverse-proxy \
   --net=host \
   --ulimit nofile=262144:262144 \
-  gcr.io/gcp-dplearn/dplearn:latest-gpu \
-  /bin/sh -c "pushd /gopath/src/github.com/gyuho/dplearn && ./scripts/run/reverse-proxy.sh"
+  gcr.io/gcp-dplearn/dplearn:latest-reverse-proxy \
+  /bin/sh -c "./scripts/run/reverse-proxy.sh"
 
 ExecStop=/usr/bin/docker rm --force reverse-proxy
 
@@ -274,18 +242,53 @@ mv -f /tmp/reverse-proxy.service /etc/systemd/system/reverse-proxy.service
 ##########################################################
 
 ##########################################################
+cat > /tmp/python2-gpu-ipython.service <<EOF
+[Unit]
+Description=dplearn GPU development service
+Documentation=https://github.com/gyuho/dplearn
+
+[Service]
+Restart=always
+RestartSec=5s
+TimeoutStartSec=0
+LimitNOFILE=40000
+
+ExecStartPre=/usr/bin/docker login -u oauth2accesstoken -p "$(/usr/bin/gcloud auth application-default print-access-token)" https://gcr.io
+ExecStartPre=/usr/bin/docker pull gcr.io/gcp-dplearn/dplearn:latest-python2-gpu
+
+ExecStart=/usr/bin/nvidia-docker run \
+  --rm \
+  --name python2-gpu-ipython \
+  --publish 8888:8888 \
+  --volume=`pwd`/notebooks:/notebooks \
+  --volume=/var/lib/keras/datasets:/root/.keras/datasets \
+  --volume=/var/lib/keras/models:/root/.keras/models \
+  --ulimit nofile=262144:262144 \
+  gcr.io/gcp-dplearn/dplearn:latest-python2-gpu \
+  /bin/sh -c "PASSWORD='' ./run_jupyter.sh -y --allow-root --notebook-dir=./notebooks"
+
+ExecStop=/usr/bin/docker rm --force python2-gpu-ipython
+
+[Install]
+WantedBy=multi-user.target
+EOF
+cat /tmp/python2-gpu-ipython.service
+mv -f /tmp/python2-gpu-ipython.service /etc/systemd/system/python2-gpu-ipython.service
+##########################################################
+
+##########################################################
 systemctl daemon-reload
 
 <<COMMENT
-systemctl enable ipython-gpu.service
-systemctl start ipython-gpu.service
+systemctl enable python2-gpu-ipython.service
+systemctl start python2-gpu-ipython.service
 COMMENT
 
-systemctl enable download-data.service
-systemctl start download-data.service
+systemctl enable app.service
+systemctl start app.service
 
-systemctl enable dplearn-gpu.service
-systemctl start dplearn-gpu.service
+systemctl enable worker.service
+systemctl start worker.service
 
 systemctl enable reverse-proxy.service
 systemctl start reverse-proxy.service

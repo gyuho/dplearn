@@ -6,10 +6,7 @@ if ! [[ "$0" =~ "./scripts/run/reverse-proxy.sh" ]]; then
   exit 255
 fi
 
-gen-package-json -output package.json -logtostderr=true
-cat package.json
-
-gen-nginx-conf -output nginx.conf -target-port 4200 -logtostderr=true
-cat nginx.conf
-
-/usr/sbin/nginx -g 'daemon off;'
+gen-nginx-conf -output nginx.conf -target-port 4200 -logtostderr=true \
+  && cat nginx.conf \
+  && cp nginx.conf /etc/nginx/sites-available/default \
+  && /usr/sbin/nginx -g 'daemon off;'

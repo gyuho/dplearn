@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 set -e
 
-if ! [[ "$0" =~ "./scripts/docker/build-gpu.sh" ]]; then
+if ! [[ "$0" =~ "./scripts/docker/python2-gpu-build.sh" ]]; then
   echo "must be run from repository root"
   exit 255
 fi
 
 docker build \
-  --tag gcr.io/gcp-dplearn/dplearn:latest-gpu \
-  --file ./dockerfiles/gpu/Dockerfile \
+  --tag gcr.io/gcp-dplearn/dplearn:latest-python2-gpu \
+  --file ./dockerfiles/Dockerfile-python2-gpu \
   .
 
 <<COMMENT

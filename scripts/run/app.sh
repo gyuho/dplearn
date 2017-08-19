@@ -1,20 +1,23 @@
 #!/usr/bin/env bash
 set -e
 
-if ! [[ "$0" =~ "./scripts/run/dplearn-cpu.sh" ]]; then
+if ! [[ "$0" =~ "./scripts/run/app.sh" ]]; then
   echo "must be run from repository root"
   exit 255
 fi
 
-gen-package-json -output package.json -logtostderr=true
-cat package.json
+backend-web-server \
+  -web-host 0.0.0.0:2200 \
+  -queue-port-client 22000 \
+  -queue-port-peer 22001 \
+  -data-dir /var/lib/etcd \
+  -logtostderr=true  &
 
-gen-nginx-conf -output nginx.conf -target-port 4200 -logtostderr=true
-cat nginx.conf
+gen-package-json -output package.json -logtostderr=true \
+  && cat package.json \
+  && yarn start-prod &
 
-backend-web-server -web-port 2200 -queue-port-client 22000 -queue-port-peer 22001 -data-dir /var/lib/etcd -logtostderr=true &
-
-yarn start-prod &
+wait
 
 sleep 5s
 

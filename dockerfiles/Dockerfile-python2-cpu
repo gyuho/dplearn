@@ -1,0 +1,106 @@
+##########################
+# https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile
+# https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile.gpu
+# https://gcr.io/tensorflow/tensorflow
+FROM gcr.io/tensorflow/tensorflow:1.2.1
+##########################
+
+##########################
+# Set working directory
+ENV ROOT_DIR /
+WORKDIR ${ROOT_DIR}
+ENV HOME /root
+##########################
+
+##########################
+# Update OS
+# Configure 'bash' for 'source' commands
+RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections \
+  && rm /bin/sh \
+  && ln -s /bin/bash /bin/sh \
+  && ls -l $(which bash) \
+  && apt-get -y update \
+  && apt-get -y install \
+  build-essential \
+  gcc \
+  apt-utils \
+  pkg-config \
+  software-properties-common \
+  apt-transport-https \
+  libssl-dev \
+  sudo \
+  bash \
+  bash-completion \
+  tar \
+  unzip \
+  curl \
+  wget \
+  git \
+  libcupti-dev \
+  rsync \
+  python \
+  python-pip \
+  python-dev \
+  python3-pip \
+  && echo "root ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers \
+  && apt-get -y clean \
+  && rm -rf /var/lib/apt/lists/* \
+  && apt-get -y update \
+  && apt-get -y upgrade \
+  && apt-get -y dist-upgrade \
+  && apt-get -y update \
+  && apt-get -y upgrade \
+  && apt-get -y autoremove \
+  && apt-get -y autoclean
+##########################
+
+##########################
+# built for CPU, no need to install cuda
+##########################
+
+##########################
+# install basic packages
+RUN pip --no-cache-dir install \
+  requests \
+  glog \
+  humanize \
+  bcolz
+##########################
+
+##########################
+# install Keras
+RUN pip --no-cache-dir install \
+  theano \
+  keras==1.2.2 \
+  && echo $'[global]\n\
+device = cpu\n\
+floatX = float32\n\
+[cuda]\n\
+root = /usr/local/cuda\n'\
+> ${HOME}/.theanorc \
+  && cat ${HOME}/.theanorc \
+  && mkdir -p ${HOME}/.keras/datasets \
+  && mkdir -p ${HOME}/.keras/models \
+  && echo $'{\n\
+  "backend": "theano",\n\
+  "image_dim_ordering": "th"\n\
+}\n'\
+> ${HOME}/.keras/keras.json \
+  && cat ${HOME}/.keras/keras.json
+##########################
+
+##########################
+# Clone source code, static assets
+ADD ./backend ${ROOT_DIR}/backend
+ADD ./scripts/run ${ROOT_DIR}/scripts/run
+##########################
+
+##########################
+# Configure Jupyter
+ADD ./jupyter_notebook_config.py /root/.jupyter/
+
+# Jupyter has issues with being run directly: https://github.com/ipython/ipython/issues/7062
+# We just add a little wrapper script.
+ADD ./run_jupyter.sh /
+##########################
+
