@@ -12,8 +12,8 @@ const appRoutes: Routes = [
     { path: "", redirectTo: "/home", pathMatch: "full" },
     { path: "home", component: HomeComponent },
 
-    { path: "word-predict", component: WordPredictComponent },
     { path: "cats", component: CatsComponent },
+    { path: "word-predict", component: WordPredictComponent },
 
     { path: "**", component: NotFoundComponent },
 ];
