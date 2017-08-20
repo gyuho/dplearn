@@ -35,19 +35,14 @@ Notes:
 To update dependencies:
 
 ```bash
-# update 'Gopkg.toml' and then (for local development)
 ./scripts/dep/go.sh
-
-# update 'cmd/gen-package-json' and then (for local development)
 ./scripts/dep/frontend.sh
-
-# Docker builds pull down all dependencies from scratch
 ```
 
 To update [`Dockerfile`](Dockerfile):
 
 ```bash
-# update '*/Dockerfile.yaml', 'cmd/gen-dockerfiles' and then
+# update 'container.yaml' and then
 ./scripts/docker/gen.sh
 ```
 
@@ -61,14 +56,6 @@ To build Docker container images:
 ./scripts/docker/python3-gpu-build.sh
 ./scripts/docker/r-build.sh
 ./scripts/docker/reverse-proxy-build.sh
-```
-
-To run tests:
-
-```bash
-./scripts/tests/frontend.sh
-./scripts/tests/go.sh
-ETCD_EXEC=/etcd ./scripts/tests/python.sh
 ```
 
 To run [IPython Notebook](https://ipython.org/notebook.html) locally:
@@ -96,4 +83,12 @@ GCP_KEY_PATH=/etc/gcp-key-dplearn.json ./scripts/gcp/ubuntu-gpu.gcp.sh
 # create a Google Cloud Platform Compute Engine VM with a start-up script
 # to provision GPU, init system, reverse proxy, and others
 # (see ./scripts/gcp/ubuntu-gpu.ansible.sh for more detail)
+```
+
+To run tests:
+
+```bash
+./scripts/tests/frontend.sh
+./scripts/tests/go.sh
+ETCD_EXEC=/etcd ./scripts/tests/python.sh
 ```
