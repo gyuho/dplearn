@@ -12,8 +12,13 @@
 /backend/worker/__pycache__/
 
 /notebooks/.ipynb_checkpoints
-/notebooks/sample-notebooks
+/notebooks/*.pyc
+/notebooks/__pycache__/
+
 /notebooks/deeplearning.ai/.ipynb_checkpoints
+/notebooks/deeplearning.ai/*.pyc
+/notebooks/deeplearning.ai/__pycache__/
+
 /notebooks/stats216v/.ipynb_checkpoints
 
 # Ignore everything in vendor/, except for *.go files,
