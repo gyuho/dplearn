@@ -39,7 +39,7 @@ To update dependencies:
 ./scripts/dep/frontend.sh
 ```
 
-To update [`Dockerfile`](Dockerfile):
+To update [`Dockerfile`](./dockerfiles):
 
 ```bash
 # update 'container.yaml' and then
