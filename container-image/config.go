@@ -528,6 +528,7 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
   python-pip \
   python-dev \
   python3-pip \
+  libhdf5-dev \
   && echo "root ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers \
   && apt-get -y clean \
   && rm -rf /var/lib/apt/lists/* \
@@ -550,7 +551,8 @@ RUN {{.PipCommand}} --no-cache-dir install \
   requests \
   glog \
   humanize \
-  bcolz
+  bcolz \
+  h5py
 ##########################
 
 ##########################
