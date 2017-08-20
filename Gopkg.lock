@@ -121,7 +121,7 @@
 [[projects]]
   name = "github.com/gyuho/archiver"
   packages = ["."]
-  revision = "9498f426722d1e0f1c4d5801b282ba7a8720f717"
+  revision = "6348b67ad5721f102e9645f5051121af225aba8c"
 
 [[projects]]
   name = "github.com/jonboulle/clockwork"
@@ -267,6 +267,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "8867bc5e5f1916460bcd7f1f6645dc767aca2fc677078810db8e26922b7a6e7a"
+  inputs-digest = "2a7faaf05ca17a5396c77e9812cce4d9716ab152c036d864a944deaec82ae8d7"
   solver-name = "gps-cdcl"
   solver-version = 1

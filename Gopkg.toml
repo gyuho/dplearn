@@ -32,7 +32,7 @@
 # https://github.com/gyuho/archiver
 [[constraint]]
   name = "github.com/gyuho/archiver"
-  revision = "9498f426722d1e0f1c4d5801b282ba7a8720f717"
+  revision = "6348b67ad5721f102e9645f5051121af225aba8c"
 
 # https://github.com/golang/sys
 [[constraint]]

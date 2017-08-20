@@ -58,16 +58,11 @@ func (rarFormat) Open(source, destination string, opts ...OpOption) error {
 	ret := Op{verbose: false}
 	ret.applyOpts(opts)
 
-	f, err := os.Open(source)
-	if err != nil {
-		return fmt.Errorf("%s: failed to open archive: %v", source, err)
-	}
-	defer f.Close()
-
-	rr, err := rardecode.NewReader(f, "")
+	rr, err := rardecode.OpenReader(source, "")
 	if err != nil {
 		return fmt.Errorf("%s: failed to create reader: %v", source, err)
 	}
+	defer rr.Close()
 
 	for {
 		header, err := rr.Next()
