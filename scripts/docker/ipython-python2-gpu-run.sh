@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-if ! [[ "$0" =~ "./scripts/docker/python2-gpu-ipython-run.sh" ]]; then
+if ! [[ "$0" =~ "./scripts/docker/ipython-python2-gpu-run.sh" ]]; then
   echo "must be run from repository root"
   exit 255
 fi

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-if ! [[ "$0" =~ "./scripts/docker/python3-gpu-ipython-run.sh" ]]; then
+if ! [[ "$0" =~ "./scripts/docker/ipython-python2-cpu-run.sh" ]]; then
   echo "must be run from repository root"
   exit 255
 fi
@@ -13,12 +13,16 @@ if [[ $(uname) = "Darwin" ]]; then
 fi
 echo KERAS_DIR: ${KERAS_DIR}
 
-nvidia-docker run \
+docker run \
   --rm \
   -it \
   --publish 8888:8888 \
   --volume=`pwd`/notebooks:/notebooks \
   --volume=${KERAS_DIR}/datasets:/root/.keras/datasets \
   --volume=${KERAS_DIR}/models:/root/.keras/models \
-  gcr.io/gcp-dplearn/dplearn:latest-python3-gpu \
-  /bin/sh -c "PASSWORD='' ./run_jupyter.sh -y --allow-root --notebook-dir=./notebooks"
+  gcr.io/gcp-dplearn/dplearn:latest-python2-cpu \
+  /bin/sh -c "PASSWORD='' ./run_jupyter.sh -y --allow-root --notebook-dir=/notebooks"
+
+<<COMMENT
+http://localhost:8888
+COMMENT

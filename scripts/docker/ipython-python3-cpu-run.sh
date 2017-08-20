@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-if ! [[ "$0" =~ "./scripts/docker/python3-cpu-ipython-run.sh" ]]; then
+if ! [[ "$0" =~ "./scripts/docker/ipython-python3-cpu-run.sh" ]]; then
   echo "must be run from repository root"
   exit 255
 fi

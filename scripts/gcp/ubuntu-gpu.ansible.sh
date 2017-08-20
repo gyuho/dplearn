@@ -242,7 +242,7 @@ mv -f /tmp/reverse-proxy.service /etc/systemd/system/reverse-proxy.service
 ##########################################################
 
 ##########################################################
-cat > /tmp/python2-gpu-ipython.service <<EOF
+cat > /tmp/python2-ipython-gpu.service <<EOF
 [Unit]
 Description=dplearn GPU development service
 Documentation=https://github.com/gyuho/dplearn
@@ -258,7 +258,7 @@ ExecStartPre=/usr/bin/docker pull gcr.io/gcp-dplearn/dplearn:latest-python2-gpu
 
 ExecStart=/usr/bin/nvidia-docker run \
   --rm \
-  --name python2-gpu-ipython \
+  --name python2-ipython-gpu \
   --publish 8888:8888 \
   --volume=`pwd`/notebooks:/notebooks \
   --volume=/var/lib/keras/datasets:/root/.keras/datasets \
@@ -267,21 +267,21 @@ ExecStart=/usr/bin/nvidia-docker run \
   gcr.io/gcp-dplearn/dplearn:latest-python2-gpu \
   /bin/sh -c "PASSWORD='' ./run_jupyter.sh -y --allow-root --notebook-dir=./notebooks"
 
-ExecStop=/usr/bin/docker rm --force python2-gpu-ipython
+ExecStop=/usr/bin/docker rm --force python2-ipython-gpu
 
 [Install]
 WantedBy=multi-user.target
 EOF
-cat /tmp/python2-gpu-ipython.service
-mv -f /tmp/python2-gpu-ipython.service /etc/systemd/system/python2-gpu-ipython.service
+cat /tmp/python2-ipython-gpu.service
+mv -f /tmp/python2-ipython-gpu.service /etc/systemd/system/python2-ipython-gpu.service
 ##########################################################
 
 ##########################################################
 systemctl daemon-reload
 
 <<COMMENT
-systemctl enable python2-gpu-ipython.service
-systemctl start python2-gpu-ipython.service
+systemctl enable python2-ipython-gpu.service
+systemctl start python2-ipython-gpu.service
 COMMENT
 
 systemctl enable app.service
