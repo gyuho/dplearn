@@ -86,11 +86,11 @@ func StartServer(scheme, hostPort string, qu queue.Queue) (*Server, error) {
 		ctx:     rootCtx,
 		handler: ContextHandlerFunc(healthHandler),
 	})
-	mux.Handle("/cats-vs-dogs-request", &ContextAdapter{
+	mux.Handle("/cats-request", &ContextAdapter{
 		ctx:     rootCtx,
 		handler: with(ContextHandlerFunc(clientRequestHandler), srv, qu, cache),
 	})
-	mux.Handle("/cats-vs-dogs-request/queue", &ContextAdapter{
+	mux.Handle("/cats-request/queue", &ContextAdapter{
 		ctx:     rootCtx,
 		handler: with(ContextHandlerFunc(queueHandler), srv, qu, cache),
 	})
@@ -331,7 +331,7 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 		}
 
 		switch reqPath {
-		case "/cats-vs-dogs-request":
+		case "/cats-request":
 			var imgFilePath string
 			imgFilePath, err = cacheImage(cache, creq.DataFromFrontend)
 			if err != nil {
