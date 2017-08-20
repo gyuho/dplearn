@@ -1,5 +1,5 @@
 ##########################
-# Last updated at 2017-08-20 00:51:18.6301248 -0700 PDT
+# Last updated at 2017-08-20 10:42:41.623275555 -0700 PDT
 # https://hub.docker.com/_/nginx/
 FROM nginx:alpine
 ##########################
@@ -23,8 +23,7 @@ RUN set -ex \
   curl \
   wget \
   tar \
-  git \
-  && mkdir /lib64 && ln -s /lib/libc.musl-x86_64.so.1 /lib64/ld-linux-x86-64.so.2
+  git
 ##########################
 
 ##########################
@@ -35,6 +34,7 @@ ENV PATH ${GOPATH}/bin:${GOROOT}/bin:${PATH}
 ENV GO_VERSION 1.9rc2
 ENV GO_DOWNLOAD_URL https://storage.googleapis.com/golang
 RUN rm -rf ${GOROOT} \
+  && mkdir /lib64 && ln -s /lib/libc.musl-x86_64.so.1 /lib64/ld-linux-x86-64.so.2 \
   && curl -s ${GO_DOWNLOAD_URL}/go${GO_VERSION}.linux-amd64.tar.gz | tar -v -C /usr/local/ -xz \
   && mkdir -p ${GOPATH}/src ${GOPATH}/bin \
   && go version

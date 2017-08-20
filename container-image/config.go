@@ -188,6 +188,9 @@ func nowPST() time.Time {
 	return time.Now().In(tzone)
 }
 
+// TODO(gyuho): separate backend, frontend images
+// currently docker doesn't work with --net=host on Mac
+// which is my development machine
 const dockerfileApp = `##########################
 # Last updated at {{.Updated}}
 FROM ubuntu:17.10
@@ -318,8 +321,7 @@ RUN set -ex \
   curl \
   wget \
   tar \
-  git \
-  && mkdir /lib64 && ln -s /lib/libc.musl-x86_64.so.1 /lib64/ld-linux-x86-64.so.2
+  git
 ##########################
 
 ##########################
@@ -330,6 +332,7 @@ ENV PATH ${GOPATH}/bin:${GOROOT}/bin:${PATH}
 ENV GO_VERSION {{.GoVersion}}
 ENV GO_DOWNLOAD_URL https://storage.googleapis.com/golang
 RUN rm -rf ${GOROOT} \
+  && mkdir /lib64 && ln -s /lib/libc.musl-x86_64.so.1 /lib64/ld-linux-x86-64.so.2 \
   && curl -s ${GO_DOWNLOAD_URL}/go${GO_VERSION}.linux-amd64.tar.gz | tar -v -C /usr/local/ -xz \
   && mkdir -p ${GOPATH}/src ${GOPATH}/bin \
   && go version
