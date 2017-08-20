@@ -38,7 +38,7 @@ func TestServer(t *testing.T) {
 	}
 	defer qu.Stop()
 
-	srv, err := StartServer(42200, qu)
+	srv, err := StartServer("http", "localhost:42200", qu)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -11,7 +11,8 @@ import (
 )
 
 func main() {
-	webPort := flag.Int("web-port", 2200, "Specify the port for web server backend.")
+	webScheme := flag.String("web-scheme", "http", "Specify scheme for backend.")
+	hostPort := flag.String("web-host", "localhost:2200", "Specify host and port for backend.")
 	queuePortClient := flag.Int("queue-port-client", 22000, "Specify the client port for queue service.")
 	queuePortPeer := flag.Int("queue-port-peer", 22001, "Specify the peer port for queue service.")
 	dataDir := flag.String("data-dir", "/var/lib/etcd", "Specify the etcd data directory.")
@@ -26,8 +27,8 @@ func main() {
 	}
 	defer qu.Stop()
 
-	glog.Infof("starting web server with :%d (queue :%d/:%d, data-dir %q)", *webPort, *queuePortClient, *queuePortPeer, *dataDir)
-	srv, err := web.StartServer(*webPort, qu)
+	glog.Infof("starting web server with %q (queue :%d/:%d, data-dir %q)", *hostPort, *queuePortClient, *queuePortPeer, *dataDir)
+	srv, err := web.StartServer(*webScheme, *hostPort, qu)
 	if err != nil {
 		glog.Fatal(err)
 	}

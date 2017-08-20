@@ -66,10 +66,10 @@ const (
 )
 
 // StartServer starts a backend webserver with stoppable listener.
-func StartServer(webPort int, qu queue.Queue) (*Server, error) {
+func StartServer(scheme, hostPort string, qu queue.Queue) (*Server, error) {
 	rootCtx, rootCancel := context.WithCancel(context.Background())
 	mux := http.NewServeMux()
-	webURL := url.URL{Scheme: "http", Host: fmt.Sprintf("localhost:%d", webPort)}
+	webURL := url.URL{Scheme: scheme, Host: hostPort}
 	srv := &Server{
 		rootCtx:    rootCtx,
 		rootCancel: rootCancel,
@@ -82,6 +82,10 @@ func StartServer(webPort int, qu queue.Queue) (*Server, error) {
 	cache := lru.NewInMemory(imageCacheSize)
 	cache.CreateNamespace(imageCacheBucket)
 
+	mux.Handle("/health", &ContextAdapter{
+		ctx:     rootCtx,
+		handler: ContextHandlerFunc(healthHandler),
+	})
 	mux.Handle("/cats-vs-dogs-request", &ContextAdapter{
 		ctx:     rootCtx,
 		handler: with(ContextHandlerFunc(clientRequestHandler), srv, qu, cache),
@@ -187,6 +191,11 @@ func (srv *Server) Stop() error {
 // StopNotify returns receive-only stop channel to notify the server has stopped.
 func (srv *Server) StopNotify() <-chan struct{} {
 	return srv.donec
+}
+
+func healthHandler(ctx context.Context, w http.ResponseWriter, req *http.Request) error {
+	w.Write([]byte("1"))
+	return nil
 }
 
 func queueHandler(ctx context.Context, w http.ResponseWriter, req *http.Request) error {
