@@ -3,7 +3,7 @@ import { RouterModule, Routes } from "@angular/router";
 import { AppComponent } from "./app.component";
 import { HomeComponent } from "./home/home.component";
 
-import { CatsVsDogsComponent } from "./cats-vs-dogs/cats-vs-dogs.component";
+import { CatsComponent } from "./cats/cats.component";
 import { WordPredictComponent } from "./word-predict/word-predict.component";
 
 import { NotFoundComponent } from "./not-found.component";
@@ -13,7 +13,7 @@ const appRoutes: Routes = [
     { path: "home", component: HomeComponent },
 
     { path: "word-predict", component: WordPredictComponent },
-    { path: "cats-vs-dogs", component: CatsVsDogsComponent },
+    { path: "cats", component: CatsComponent },
 
     { path: "**", component: NotFoundComponent },
 ];
@@ -23,6 +23,6 @@ export const routing = RouterModule.forRoot(appRoutes);
 export const routedComponents = [
     HomeComponent,
     WordPredictComponent,
-    CatsVsDogsComponent,
+    CatsComponent,
     NotFoundComponent,
 ];

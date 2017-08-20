@@ -2,18 +2,18 @@ html {
     box-sizing: border-box
 }
 
-.cats-vs-dogs-group {
+.cats-group {
     padding: 5px;
 }
 
-.cats-vs-dogs-button {
+.cats-button {
     font-family: 'Roboto', sans-serif;
     font-size: 15px;
     padding-right: 7px;
     padding-left: 7px;
 }
 
-.cats-vs-dogs-link-main {
+.cats-link-main {
     color: dodgerblue;
     text-decoration: none !important;
     font-family: 'Open Sans', sans-serif;

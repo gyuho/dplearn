@@ -106,7 +106,7 @@ if __name__ == "__main__":
         # for future comparison
         PREV_ITEM = copy.deepcopy(ITEM)
 
-        if ITEM['bucket'] == '/cats-vs-dogs-request':
+        if ITEM['bucket'] == '/cats-request':
             IMAGE_PATH = ITEM['value']
             if not os.path.exists(IMAGE_PATH):
                 log.warning('cannot find image {0}'.format(IMAGE_PATH))
@@ -117,7 +117,7 @@ if __name__ == "__main__":
                 """
                 with open(IMAGE_PATH, "r") as f:
                     log.info('opened image {0}'.format(f.read(5)))
-                    # process_cats_vs_dogs(ITEM['value'])
+                    # process_cats(ITEM['value'])
                     ITEM['progress'] = 100
                     NOW = datetime.datetime.now().isoformat()
                     ITEM['value'] = "[WORKER - ACK] it's a cat! " + NOW
