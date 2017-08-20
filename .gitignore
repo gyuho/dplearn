@@ -13,6 +13,7 @@
 
 /notebooks/.ipynb_checkpoints
 /notebooks/sample-notebooks
+/notebooks/deeplearning.ai/.ipynb_checkpoints
 /notebooks/stats216v/.ipynb_checkpoints
 
 # Ignore everything in vendor/, except for *.go files,
