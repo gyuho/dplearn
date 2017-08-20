@@ -51,11 +51,16 @@ To update [`Dockerfile`](Dockerfile):
 ./scripts/docker/gen.sh
 ```
 
-To build Docker container image:
+To build Docker container images:
 
 ```bash
-./scripts/docker/build-cpu.sh
-./scripts/docker/build-gpu.sh
+./scripts/docker/app-build.sh
+./scripts/docker/python2-cpu-build.sh
+./scripts/docker/python2-gpu-build.sh
+./scripts/docker/python3-cpu-build.sh
+./scripts/docker/python3-gpu-build.sh
+./scripts/docker/r-build.sh
+./scripts/docker/reverse-proxy-build.sh
 ```
 
 To run tests:
@@ -64,29 +69,23 @@ To run tests:
 ./scripts/tests/frontend.sh
 ./scripts/tests/go.sh
 ETCD_EXEC=/etcd ./scripts/tests/python.sh
-
-# run tests inside container
-./scripts/docker/tests-cpu.sh
-./scripts/docker/tests-gpu.sh
 ```
 
 To run [IPython Notebook](https://ipython.org/notebook.html) locally:
 
 ```bash
-./scripts/docker/ipython-cpu.sh
-./scripts/docker/ipython-gpu.sh
-
-# Add 'source activate r' to run with R kernel.
-# It uses Tensorflow base image, so need to
-# manually configure the R Anaconda workspace.
-ACTIVATE_COMMAND="source activate r &&" ./scripts/docker/ipython-cpu.sh
+./scripts/docker/ipython-python2-cpu-run.sh
+./scripts/docker/ipython-python2-gpu-run.sh
+./scripts/docker/ipython-python3-cpu-run.sh
+./scripts/docker/ipython-python3-gpu-run.sh
+./scripts/docker/r-run.sh
 ```
 
-To run `dplearn` application (backend, web UI, worker) locally:
+To run `dplearn` application (backend, web UI) locally:
 
 ```bash
-./scripts/docker/dplearn-cpu.sh
-./scripts/docker/dplearn-gpu.sh
+./scripts/docker/app-run.sh
+./scripts/docker/worker-python2-cpu-run.sh
 ```
 
 To deploy IPython Notebook and `dplearn` application on Google Cloud Platform:
