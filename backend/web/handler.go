@@ -236,7 +236,6 @@ func queueHandler(ctx context.Context, w http.ResponseWriter, req *http.Request)
 	default:
 		http.Error(w, "Method Not Allowed", 405)
 	}
-
 	return nil
 }
 
@@ -395,7 +394,6 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 	default:
 		http.Error(w, "Method Not Allowed", 405)
 	}
-
 	return nil
 }
 
@@ -476,14 +474,9 @@ func cacheImage(cache lru.Cache, ep string) (string, error) {
 		}
 		glog.Infof("downloaded %q (%s)", originURL, humanize.Bytes(uint64(len(data))))
 
-		// TODO
-		glog.Infof("resizing %q (original size %s)", originURL, humanize.Bytes(uint64(len(data))))
-		resizedData := data
-		glog.Infof("resized %q (current size %s)", originURL, humanize.Bytes(uint64(len(resizedData))))
-
 		imgFilePath = filepath.Join("/tmp", base64.StdEncoding.EncodeToString([]byte(originURL))+filepath.Ext(originURL))
 		glog.Infof("saving %q to %q", originURL, imgFilePath)
-		if err = fileutil.WriteToFile(imgFilePath, resizedData); err != nil {
+		if err = fileutil.WriteToFile(imgFilePath, data); err != nil {
 			return imgFilePath, err
 		}
 		glog.Infof("saved %q to %q", originURL, imgFilePath)
