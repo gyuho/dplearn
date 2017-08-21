@@ -2,9 +2,5 @@
     "/cats-request": {
         "target": "http://0.0.0.0:2200",
         "secure": "false"
-    },
-    "/word-predict-request": {
-        "target": "http://0.0.0.0:2200",
-        "secure": "false"
     }
 }

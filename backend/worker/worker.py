@@ -126,19 +126,6 @@ if __name__ == "__main__":
             if POST_RESPONSE['error'] not in ['', u'']:
                 log.warning(POST_RESPONSE['error'])
 
-        elif ITEM['bucket'] == '/word-predict-request':
-            TXT = ITEM['value']
-            if len(TXT) < 5:
-                log.warning('text is too short {0}'.format(TXT))
-                ITEM['progress'] = 100
-                ITEM['error'] = 'text is too short {0}'.format(TXT)
-            else:
-                """TODO: implement actual worker with Tensorflow
-                """
-                ITEM['progress'] = 100
-                NOW = datetime.datetime.now().isoformat()
-                ITEM['value'] = "[WORKER - ACK] it's ... " + NOW
-
-            POST_RESPONSE = post_item(EP, ITEM)
-            if POST_RESPONSE['error'] not in ['', u'']:
-                log.warning(POST_RESPONSE['error'])
+        else
+            log.warning('{0} is unknown'.format(ITEM['bucket']))
+            raise

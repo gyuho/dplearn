@@ -22,7 +22,6 @@ wait
 sleep 5s
 
 python ./backend/worker/worker.py http://localhost:2200/cats-request/queue &
-python ./backend/worker/worker.py http://localhost:2200/word-predict-request/queue &
 
 wait
 
@@ -51,6 +50,5 @@ sleep 5s
 
 ETCDCTL_API=3 /etcdctl --endpoints=localhost:22000 get "" --from-key
 
-python ./backend/worker/worker.py http://localhost:2200/word-predict-request/queue
 python ./backend/worker/worker.py http://localhost:2200/cats-request/queue
 COMMENT

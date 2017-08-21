@@ -48,9 +48,9 @@ func TestServer(t *testing.T) {
 	glog.Info("test post on client request endpoint")
 	var resp *http.Response
 	resp, err = http.Post(
-		srv.webURL.String()+"/word-predict-request",
+		srv.webURL.String()+"/cats-request",
 		"application/json",
-		strings.NewReader(`{"data_from_frontend": "hello world!", "create_request": true}`))
+		strings.NewReader(`{"data_from_frontend": "https://images.pexels.com/photos/127028/pexels-photo-127028.jpeg?w=1260&h=750&auto=compress&cs=tinysrgb", "create_request": true}`))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -73,7 +73,7 @@ func TestServer(t *testing.T) {
 	if item.Key == "" {
 		t.Fatalf("got empty key: %+v", item)
 	}
-	if item.Value == "" || !strings.Contains(item.Value, "hello world!") || !strings.HasPrefix(item.Value, "[BACKEND - ACK]") {
+	if item.Value == "" || !strings.HasPrefix(item.Value, "[BACKEND - ACK]") {
 		t.Fatalf("got non-expected value: %+v", item)
 	}
 	if item.Progress != 0 {
@@ -83,7 +83,7 @@ func TestServer(t *testing.T) {
 	time.Sleep(3 * time.Second)
 
 	glog.Info("test fetch on queue endpoint; blocks until there is at least one item")
-	resp, err = http.Get(srv.webURL.String() + "/word-predict-request/queue")
+	resp, err = http.Get(srv.webURL.String() + "/cats-request/queue")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -106,7 +106,7 @@ func TestServer(t *testing.T) {
 	if itemFromQueueFetch.RequestID != item.RequestID {
 		t.Fatalf("unexpected RequestID (%+v), expected %+v", itemFromQueueFetch, item)
 	}
-	if itemFromQueueFetch.Value != "hello world!" {
+	if !strings.HasSuffix(itemFromQueueFetch.Value, ".jpeg") {
 		t.Fatalf("unexpected Value (%+v), expected %+v", itemFromQueueFetch, item)
 	}
 
@@ -121,7 +121,7 @@ func TestServer(t *testing.T) {
 		t.Fatal(err)
 	}
 	resp, err = http.Post(
-		srv.webURL.String()+"/word-predict-request/queue",
+		srv.webURL.String()+"/cats-request/queue",
 		"application/json",
 		bytes.NewReader(rb))
 	if err != nil {
@@ -140,7 +140,7 @@ func TestServer(t *testing.T) {
 	time.Sleep(3 * time.Second)
 
 	glog.Info("test fetch on client endpoint; blocks until the job is done")
-	u, uerr := url.Parse(srv.webURL.String() + "/word-predict-request")
+	u, uerr := url.Parse(srv.webURL.String() + "/cats-request")
 	if uerr != nil {
 		t.Fatal(err)
 	}

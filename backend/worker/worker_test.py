@@ -85,13 +85,13 @@ class TestBackend(unittest.TestCase):
         log.info('Sleeping...')
         time.sleep(5)
 
-        endpoint = 'http://localhost:2200/word-predict-request/queue'
+        endpoint = 'http://localhost:2200/cats-request/queue'
 
         log.info('Posting client requests...')
         # invalid item
         item = {
-            'bucket': '/word-predict-request',
-            'key': '/word-predict-request',
+            'bucket': '/cats-request',
+            'key': '/cats-request',
             'value': '',
             'request_id': '',
         }

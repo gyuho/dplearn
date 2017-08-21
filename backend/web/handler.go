@@ -94,14 +94,6 @@ func StartServer(scheme, hostPort string, qu queue.Queue) (*Server, error) {
 		ctx:     rootCtx,
 		handler: with(ContextHandlerFunc(queueHandler), srv, qu, cache),
 	})
-	mux.Handle("/word-predict-request", &ContextAdapter{
-		ctx:     rootCtx,
-		handler: with(ContextHandlerFunc(clientRequestHandler), srv, qu, cache),
-	})
-	mux.Handle("/word-predict-request/queue", &ContextAdapter{
-		ctx:     rootCtx,
-		handler: with(ContextHandlerFunc(queueHandler), srv, qu, cache),
-	})
 
 	gcPeriod := 5 * time.Minute
 	go srv.gcCache(gcPeriod)
@@ -340,8 +332,6 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 				return json.NewEncoder(w).Encode(&queue.Item{Bucket: reqPath, Progress: 0, Error: err.Error()})
 			}
 			creq.DataFromFrontend = imgFilePath
-
-		case "/word-predict-request":
 
 		default:
 			err = fmt.Errorf("unknown request %q", reqPath)

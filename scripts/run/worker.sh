@@ -7,6 +7,5 @@ if ! [[ "$0" =~ "./scripts/run/worker.sh" ]]; then
 fi
 
 python ./backend/worker/worker.py http://localhost:2200/cats-request/queue &
-python ./backend/worker/worker.py http://localhost:2200/word-predict-request/queue &
 
 wait
