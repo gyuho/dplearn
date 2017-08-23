@@ -13,22 +13,16 @@
   revision = "4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9"
 
 [[projects]]
-  branch = "master"
-  name = "github.com/cockroachdb/cmux"
-  packages = ["."]
-  revision = "30d10be492927e2dcae0089c374c455d42414fcb"
-
-[[projects]]
   name = "github.com/coreos/bbolt"
   packages = ["."]
-  revision = "12923fe56c105bca6efbbcc258cd762b4258333d"
+  revision = "e1c92081e510bb6b2bbfc93e7e6bd0b6dabd3e12"
   source = "https://github.com/coreos/bbolt.git"
-  version = "v1.3.1-coreos.0"
+  version = "v1.3.1-coreos.1"
 
 [[projects]]
   name = "github.com/coreos/etcd"
   packages = ["alarm","auth","auth/authpb","client","clientv3","clientv3/concurrency","compactor","discovery","embed","error","etcdserver","etcdserver/api","etcdserver/api/etcdhttp","etcdserver/api/v2http","etcdserver/api/v2http/httptypes","etcdserver/api/v3client","etcdserver/api/v3election","etcdserver/api/v3election/v3electionpb","etcdserver/api/v3election/v3electionpb/gw","etcdserver/api/v3lock","etcdserver/api/v3lock/v3lockpb","etcdserver/api/v3lock/v3lockpb/gw","etcdserver/api/v3rpc","etcdserver/api/v3rpc/rpctypes","etcdserver/auth","etcdserver/etcdserverpb","etcdserver/etcdserverpb/gw","etcdserver/membership","etcdserver/stats","lease","lease/leasehttp","lease/leasepb","mvcc","mvcc/backend","mvcc/mvccpb","pkg/adt","pkg/contention","pkg/cors","pkg/cpuutil","pkg/crc","pkg/debugutil","pkg/fileutil","pkg/httputil","pkg/idutil","pkg/ioutil","pkg/logutil","pkg/monotime","pkg/netutil","pkg/pathutil","pkg/pbutil","pkg/runtime","pkg/schedule","pkg/srv","pkg/tlsutil","pkg/transport","pkg/types","pkg/wait","proxy/grpcproxy/adapter","raft","raft/raftpb","rafthttp","snap","snap/snappb","store","version","wal","wal/walpb"]
-  revision = "a9e56e103cbfe94027aca831e551d29077259c6c"
+  revision = "5c975fdb10334d0826eff92c5cef774ee999874d"
 
 [[projects]]
   name = "github.com/coreos/go-semver"
@@ -184,6 +178,12 @@
   revision = "e645f4e5aaa8506fc71d6edbc5c4ff02c04c46f2"
 
 [[projects]]
+  name = "github.com/soheilhy/cmux"
+  packages = ["."]
+  revision = "bb79a83465015a27a175925ebd155e660f55e9f1"
+  version = "v0.1.3"
+
+[[projects]]
   branch = "master"
   name = "github.com/ugorji/go"
   packages = ["codec"]
@@ -267,6 +267,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "2a7faaf05ca17a5396c77e9812cce4d9716ab152c036d864a944deaec82ae8d7"
+  inputs-digest = "3ea71d714bbf44a5e0b2546b95975e877b5206352393a65c9d4b3a49805d9c3c"
   solver-name = "gps-cdcl"
   solver-version = 1
