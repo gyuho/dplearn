@@ -1,5 +1,5 @@
 ##########################
-# Last updated at 2017-08-20 16:31:42.81306285 -0700 PDT
+# Last updated at 2017-08-24 15:49:19.711081869 -0700 PDT
 FROM ubuntu:17.10
 ##########################
 
@@ -43,7 +43,7 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
 ENV GOROOT /usr/local/go
 ENV GOPATH /gopath
 ENV PATH ${GOPATH}/bin:${GOROOT}/bin:${PATH}
-ENV GO_VERSION 1.9rc2
+ENV GO_VERSION 1.9
 ENV GO_DOWNLOAD_URL https://storage.googleapis.com/golang
 RUN rm -rf ${GOROOT} \
   && curl -s ${GO_DOWNLOAD_URL}/go${GO_VERSION}.linux-amd64.tar.gz | tar -v -C /usr/local/ -xz \

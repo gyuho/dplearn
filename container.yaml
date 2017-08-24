@@ -4,7 +4,7 @@
 # https://github.com/creationix/nvm/releases
 # https://github.com/nodejs/LTS#lts-schedule1
 
-go-version: 1.9rc2
+go-version: 1.9
 nvm-version: 0.33.2
 node-version: 8.4.0
 tensorflow-base-image: gcr.io/tensorflow/tensorflow:1.2.1
