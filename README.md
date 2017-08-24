@@ -58,7 +58,17 @@ To build Docker container images:
 ./scripts/docker/build-reverse-proxy.sh
 ```
 
-To run [IPython Notebook](https://ipython.org/notebook.html) locally:
+To run `dplearn` application (backend, web UI) on http://localhost:4200:
+
+```bash
+./scripts/docker/run-app.sh
+./scripts/docker/run-worker-python2-cpu.sh
+
+# to serve on port :80
+./scripts/docker/run-reverse-proxy.sh
+```
+
+To run [IPython Notebook](https://ipython.org) locally:
 
 ```bash
 ./scripts/docker/run-ipython-python2-cpu.sh
@@ -66,13 +76,6 @@ To run [IPython Notebook](https://ipython.org/notebook.html) locally:
 ./scripts/docker/run-ipython-python3-cpu.sh
 ./scripts/docker/run-ipython-python3-gpu.sh
 ./scripts/docker/run-r.sh
-```
-
-To run `dplearn` application (backend, web UI) locally:
-
-```bash
-./scripts/docker/run-app.sh
-./scripts/docker/run-worker-python2-cpu.sh
 ```
 
 To deploy IPython Notebook and `dplearn` application on Google Cloud Platform:
