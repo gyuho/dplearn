@@ -1,13 +1,7 @@
-# https://github.com/coreos/bbolt
-[[override]]
-  name = "github.com/coreos/bbolt"
-  version = "v1.3.1-coreos.1"
-  source = "https://github.com/coreos/bbolt.git"
-
 # https://github.com/coreos/etcd
 [[constraint]]
   name = "github.com/coreos/etcd"
-  revision = "897cadc88c5f4b01a8df6b760ec4b68ff1ece842"
+  revision = "4ec31f4f7f95b8ffbacc7a3d0f7173a44b1f11e8"
 
 # https://github.com/dustin/go-humanize
 [[constraint]]
@@ -63,3 +57,7 @@
 [[constraint]]
   name = "cloud.google.com/go"
   revision = "3e1507a0d90d17e4fdd8ef75e8f037ebecc854ba"
+
+[[constraint]]
+  name = "google.golang.org/grpc"
+  version = "1.5.1"

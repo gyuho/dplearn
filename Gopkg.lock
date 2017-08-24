@@ -16,13 +16,12 @@
   name = "github.com/coreos/bbolt"
   packages = ["."]
   revision = "e1c92081e510bb6b2bbfc93e7e6bd0b6dabd3e12"
-  source = "https://github.com/coreos/bbolt.git"
   version = "v1.3.1-coreos.1"
 
 [[projects]]
   name = "github.com/coreos/etcd"
   packages = ["alarm","auth","auth/authpb","client","clientv3","clientv3/concurrency","compactor","discovery","embed","error","etcdserver","etcdserver/api","etcdserver/api/etcdhttp","etcdserver/api/v2http","etcdserver/api/v2http/httptypes","etcdserver/api/v3client","etcdserver/api/v3election","etcdserver/api/v3election/v3electionpb","etcdserver/api/v3election/v3electionpb/gw","etcdserver/api/v3lock","etcdserver/api/v3lock/v3lockpb","etcdserver/api/v3lock/v3lockpb/gw","etcdserver/api/v3rpc","etcdserver/api/v3rpc/rpctypes","etcdserver/auth","etcdserver/etcdserverpb","etcdserver/etcdserverpb/gw","etcdserver/membership","etcdserver/stats","lease","lease/leasehttp","lease/leasepb","mvcc","mvcc/backend","mvcc/mvccpb","pkg/adt","pkg/contention","pkg/cors","pkg/cpuutil","pkg/crc","pkg/debugutil","pkg/fileutil","pkg/httputil","pkg/idutil","pkg/ioutil","pkg/logutil","pkg/monotime","pkg/netutil","pkg/pathutil","pkg/pbutil","pkg/runtime","pkg/schedule","pkg/srv","pkg/tlsutil","pkg/transport","pkg/types","pkg/wait","proxy/grpcproxy/adapter","raft","raft/raftpb","rafthttp","snap","snap/snappb","store","version","wal","wal/walpb"]
-  revision = "897cadc88c5f4b01a8df6b760ec4b68ff1ece842"
+  revision = "4ec31f4f7f95b8ffbacc7a3d0f7173a44b1f11e8"
 
 [[projects]]
   name = "github.com/coreos/go-semver"
@@ -255,9 +254,9 @@
 
 [[projects]]
   name = "google.golang.org/grpc"
-  packages = [".","codes","credentials","credentials/oauth","grpclb/grpc_lb_v1","grpclog","health","health/grpc_health_v1","internal","keepalive","metadata","naming","peer","stats","status","tap","transport"]
-  revision = "b15215fb911b24a5d61d57feec4233d610530464"
-  version = "v1.4.2"
+  packages = [".","codes","connectivity","credentials","credentials/oauth","grpclb/grpc_lb_v1","grpclog","health","health/grpc_health_v1","internal","keepalive","metadata","naming","peer","stats","status","tap","transport"]
+  revision = "b3ddf786825de56a4178401b7e174ee332173b66"
+  version = "v1.5.2"
 
 [[projects]]
   name = "gopkg.in/yaml.v2"
@@ -267,6 +266,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "8a21abb753dfa8ef0040e88a008df4f0c7f3b29a370d637ce97fc4cdde20230c"
+  inputs-digest = "792c20a9f5d6ee69f3fe4f15fba04041337fe617734a92f0771d4f6138e5cde9"
   solver-name = "gps-cdcl"
   solver-version = 1
