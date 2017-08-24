@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-if ! [[ "$0" =~ "./scripts/docker/ipython-python2-cpu-run.sh" ]]; then
+if ! [[ "$0" =~ "./scripts/docker/run-ipython-python3-cpu.sh" ]]; then
   echo "must be run from repository root"
   exit 255
 fi
@@ -20,9 +20,5 @@ docker run \
   --volume=`pwd`/notebooks:/notebooks \
   --volume=${KERAS_DIR}/datasets:/root/.keras/datasets \
   --volume=${KERAS_DIR}/models:/root/.keras/models \
-  gcr.io/gcp-dplearn/dplearn:latest-python2-cpu \
-  /bin/sh -c "PASSWORD='' ./run_jupyter.sh -y --allow-root --notebook-dir=/notebooks"
-
-<<COMMENT
-http://localhost:8888
-COMMENT
+  gcr.io/gcp-dplearn/dplearn:latest-python3-cpu \
+  /bin/sh -c "PASSWORD='' ./run_jupyter.sh -y --allow-root --notebook-dir=./notebooks"

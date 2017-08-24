@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-if ! [[ "$0" =~ "./scripts/docker/clean-untagged.sh" ]]; then
+if ! [[ "$0" =~ "./scripts/docker/untagged.sh" ]]; then
   echo "must be run from repository root"
   exit 255
 fi

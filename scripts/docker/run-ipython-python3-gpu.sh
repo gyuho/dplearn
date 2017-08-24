@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-if ! [[ "$0" =~ "./scripts/docker/ipython-python2-gpu-run.sh" ]]; then
+if ! [[ "$0" =~ "./scripts/docker/run-ipython-python3-gpu.sh" ]]; then
   echo "must be run from repository root"
   exit 255
 fi
@@ -20,5 +20,5 @@ nvidia-docker run \
   --volume=`pwd`/notebooks:/notebooks \
   --volume=${KERAS_DIR}/datasets:/root/.keras/datasets \
   --volume=${KERAS_DIR}/models:/root/.keras/models \
-  gcr.io/gcp-dplearn/dplearn:latest-python2-gpu \
+  gcr.io/gcp-dplearn/dplearn:latest-python3-gpu \
   /bin/sh -c "PASSWORD='' ./run_jupyter.sh -y --allow-root --notebook-dir=./notebooks"

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-if ! [[ "$0" =~ "./scripts/docker/worker-python2-cpu-run.sh" ]]; then
+if ! [[ "$0" =~ "./scripts/docker/run-worker-python2-cpu.sh" ]]; then
   echo "must be run from repository root"
   exit 255
 fi

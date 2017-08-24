@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-if ! [[ "$0" =~ "./scripts/docker/python2-gpu-build.sh" ]]; then
+if ! [[ "$0" =~ "./scripts/docker/build-python2-gpu.sh" ]]; then
   echo "must be run from repository root"
   exit 255
 fi

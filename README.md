@@ -49,30 +49,30 @@ To update [`Dockerfile`](./dockerfiles):
 To build Docker container images:
 
 ```bash
-./scripts/docker/app-build.sh
-./scripts/docker/python2-cpu-build.sh
-./scripts/docker/python2-gpu-build.sh
-./scripts/docker/python3-cpu-build.sh
-./scripts/docker/python3-gpu-build.sh
-./scripts/docker/r-build.sh
-./scripts/docker/reverse-proxy-build.sh
+./scripts/docker/build-app.sh
+./scripts/docker/build-python2-cpu.sh
+./scripts/docker/build-python2-gpu.sh
+./scripts/docker/build-python3-cpu.sh
+./scripts/docker/build-python3-gpu.sh
+./scripts/docker/build-r.sh
+./scripts/docker/build-reverse-proxy.sh
 ```
 
 To run [IPython Notebook](https://ipython.org/notebook.html) locally:
 
 ```bash
-./scripts/docker/ipython-python2-cpu-run.sh
-./scripts/docker/ipython-python2-gpu-run.sh
-./scripts/docker/ipython-python3-cpu-run.sh
-./scripts/docker/ipython-python3-gpu-run.sh
-./scripts/docker/r-run.sh
+./scripts/docker/run-ipython-python2-cpu.sh
+./scripts/docker/run-ipython-python2-gpu.sh
+./scripts/docker/run-ipython-python3-cpu.sh
+./scripts/docker/run-ipython-python3-gpu.sh
+./scripts/docker/run-r.sh
 ```
 
 To run `dplearn` application (backend, web UI) locally:
 
 ```bash
-./scripts/docker/app-run.sh
-./scripts/docker/worker-python2-cpu-run.sh
+./scripts/docker/run-app.sh
+./scripts/docker/run-worker-python2-cpu.sh
 ```
 
 To deploy IPython Notebook and `dplearn` application on Google Cloud Platform:
