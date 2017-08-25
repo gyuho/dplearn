@@ -96,7 +96,7 @@ const tmplPackageJSON = `{
         "@angular/router": "5.0.0-beta.4",
         "@angular/tsc-wrapped": "5.0.0-beta.4",
         "@angular/upgrade": "5.0.0-beta.4",
-        "@angular/cli": "1.4.0-rc.0",
+        "@angular/cli": "1.4.0-rc.1",
         "@angular/cdk": "2.0.0-beta.8",
         "@angular/material": "2.0.0-beta.8",
         "@types/angular": "1.6.30",
