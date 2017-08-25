@@ -18,6 +18,7 @@ docker run \
   -it \
   --publish 8888:8888 \
   --volume=`pwd`/notebooks:/notebooks \
+  --volume=`pwd`/datasets:/root/datasets \
   --volume=${KERAS_DIR}/datasets:/root/.keras/datasets \
   --volume=${KERAS_DIR}/models:/root/.keras/models \
   gcr.io/gcp-dplearn/dplearn:latest-python3-cpu \
