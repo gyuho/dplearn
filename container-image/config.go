@@ -21,6 +21,8 @@ type Config struct {
 	NVIDIAcuDNN         string
 	DockerfilesBaseDir  string `yaml:"dockerfiles-base-dir"`
 
+	KerasVersion string `yaml:"keras-version"`
+
 	DockerfileApp          string
 	DockerfileReverseProxy string
 
@@ -99,12 +101,14 @@ func Read(p string) (Config, error) {
 			TensorflowBaseImage string
 			NVIDIAcuDNN         string
 			PipCommand          string
+			KerasVersion        string
 		}{
 			cfg.Updated,
 			"cpu",
 			cfg.TensorflowBaseImage,
 			"# built for CPU, no need to install cuda",
 			"pip",
+			cfg.KerasVersion,
 		}); err != nil {
 		return Config{}, err
 	}
@@ -119,6 +123,7 @@ func Read(p string) (Config, error) {
 			TensorflowBaseImage string
 			NVIDIAcuDNN         string
 			PipCommand          string
+			KerasVersion        string
 		}{
 			cfg.Updated,
 			"gpu",
@@ -128,6 +133,7 @@ func Read(p string) (Config, error) {
 # RUN ls /usr/local/cuda/lib64/
 # RUN ls /usr/local/cuda/include/`,
 			"pip",
+			cfg.KerasVersion,
 		}); err != nil {
 		return Config{}, err
 	}
@@ -142,12 +148,14 @@ func Read(p string) (Config, error) {
 			TensorflowBaseImage string
 			NVIDIAcuDNN         string
 			PipCommand          string
+			KerasVersion        string
 		}{
 			cfg.Updated,
 			"cpu",
 			cfg.TensorflowBaseImage + "-py3",
 			"# built for CPU, no need to install cuda",
 			"pip3",
+			cfg.KerasVersion,
 		}); err != nil {
 		return Config{}, err
 	}
@@ -162,6 +170,7 @@ func Read(p string) (Config, error) {
 			TensorflowBaseImage string
 			NVIDIAcuDNN         string
 			PipCommand          string
+			KerasVersion        string
 		}{
 			cfg.Updated,
 			"gpu",
@@ -171,6 +180,7 @@ func Read(p string) (Config, error) {
 # RUN ls /usr/local/cuda/lib64/
 # RUN ls /usr/local/cuda/include/`,
 			"pip3",
+			cfg.KerasVersion,
 		}); err != nil {
 		return Config{}, err
 	}
@@ -478,11 +488,11 @@ ADD ./run_jupyter.sh /
 `
 
 /*
-# https://github.com/fchollet/keras
-# ${HOME}/.keras/keras.json
+https://github.com/fchollet/keras/releases
+
+Keras 2.0.5> "image_data_format": "channels_last"
 Keras 1.2.2 "backend": "theano", "image_dim_ordering": "th",
 Keras 1.2.2 "backend": "tensorflow", "image_dim_ordering": "tf",
-Keras 2.0.5 "image_data_format": "channels_last"
 */
 const dockerfilePython = `##########################
 # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile
@@ -559,7 +569,7 @@ RUN {{.PipCommand}} --no-cache-dir install \
 # install Keras
 RUN {{.PipCommand}} --no-cache-dir install \
   theano \
-  keras==1.2.2 \
+  keras=={{.KerasVersion}} \
   && echo $'[global]\n\
 device = {{.Device}}\n\
 floatX = float32\n\
@@ -570,8 +580,10 @@ root = /usr/local/cuda\n'\
   && mkdir -p ${HOME}/.keras/datasets \
   && mkdir -p ${HOME}/.keras/models \
   && echo $'{\n\
-  "backend": "theano",\n\
-  "image_dim_ordering": "th"\n\
+  "image_data_format": "channels_last",\n\
+  "epsilon": 1e-07,\n\
+  "floatx": "float32",\n\
+  "backend": "tensorflow"\n\
 }\n'\
 > ${HOME}/.keras/keras.json \
   && cat ${HOME}/.keras/keras.json

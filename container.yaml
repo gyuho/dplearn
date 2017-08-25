@@ -3,9 +3,11 @@
 # https://golang.org/dl/
 # https://github.com/creationix/nvm/releases
 # https://github.com/nodejs/LTS#lts-schedule1
+# https://github.com/fchollet/keras/releases
 
 go-version: 1.9
 nvm-version: 0.33.2
 node-version: 8.4.0
 tensorflow-base-image: gcr.io/tensorflow/tensorflow:1.3.0
 dockerfiles-base-dir: ./dockerfiles
+keras-version: 2.0.8

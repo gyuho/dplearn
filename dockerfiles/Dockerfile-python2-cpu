@@ -73,7 +73,7 @@ RUN pip --no-cache-dir install \
 # install Keras
 RUN pip --no-cache-dir install \
   theano \
-  keras==1.2.2 \
+  keras==2.0.8 \
   && echo $'[global]\n\
 device = cpu\n\
 floatX = float32\n\
@@ -84,8 +84,10 @@ root = /usr/local/cuda\n'\
   && mkdir -p ${HOME}/.keras/datasets \
   && mkdir -p ${HOME}/.keras/models \
   && echo $'{\n\
-  "backend": "theano",\n\
-  "image_dim_ordering": "th"\n\
+  "image_data_format": "channels_last",\n\
+  "epsilon": 1e-07,\n\
+  "floatx": "float32",\n\
+  "backend": "tensorflow"\n\
 }\n'\
 > ${HOME}/.keras/keras.json \
   && cat ${HOME}/.keras/keras.json
