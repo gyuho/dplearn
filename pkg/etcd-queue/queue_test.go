@@ -186,7 +186,7 @@ func TestQueueCancel(t *testing.T) {
 		if item.Error != "" {
 			t.Fatalf("unexpected error: %+v", item)
 		}
-		if item.Canceled != true {
+		if !item.Canceled {
 			t.Fatalf("%q expected cancel, got %+v", item.Key, item)
 		}
 	case <-time.After(5 * time.Second):
@@ -282,7 +282,7 @@ func TestQueueEnqueueLeaseExpire(t *testing.T) {
 		if item.Error != "" {
 			t.Fatalf("unexpected error: %+v", item)
 		}
-		if item.Canceled != true {
+		if !item.Canceled {
 			t.Fatalf("%q expected cancel, got %+v", item.Key, item)
 		}
 	case <-time.After(5 * time.Second):
