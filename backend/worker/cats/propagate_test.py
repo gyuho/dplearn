@@ -7,12 +7,12 @@ import unittest
 import numpy as np
 import glog as log
 
-from .utils import *
+from .propagate import *
 
 
-class TestUtils(unittest.TestCase):
-    def test_activation_backward_propogation(self):
-        log.info('running test_activation_backward_propogation...')
+class TestPropagate(unittest.TestCase):
+    def test_activationn(self):
+        log.info('running test_activationn...')
         Z = np.array([-1, 2, 3])
         log.info('Z: {0}'.format(Z))
 
@@ -31,12 +31,12 @@ class TestUtils(unittest.TestCase):
         self.assertTrue(np.array_equal(cache2, Z))
         self.assertTrue(np.array_equal(cache1, cache2))
 
-        dZ1 = backward_propagation(A1, cache1, "sigmoid")
+        dZ1 = backward_single(A1, cache1, "sigmoid")
         dZ1_expected = np.array([0.05287709, 0.09247804, 0.04303412])
         log.info('sigmoid dZ: {0}'.format(dZ1))
         self.assertTrue(np.allclose(dZ1, dZ1_expected))
 
-        dZ2 = backward_propagation(A2, cache2, "relu")
+        dZ2 = backward_single(A2, cache2, "relu")
         dZ2_expected = np.array([0, 2, 3])
         log.info('relu dZ: {0}'.format(dZ2))
         self.assertTrue(np.allclose(dZ2, dZ2_expected))

@@ -30,7 +30,7 @@ go install -v ./cmd/backend-web-server
 echo "Running backend.worker.cats tests..."
 DATASETS_DIR=${DATASETS_DIR} python3 -m unittest backend.worker.cats.data_test
 python3 -m unittest backend.worker.cats.initialize_parameters_test
-python3 -m unittest backend.worker.cats.utils_test
+python3 -m unittest backend.worker.cats.propagate_test
 
 ETCD_EXEC=${ETCD_EXEC} python3 -m unittest backend.etcd-python.etcd_test
 SERVER_EXEC=${SERVER_EXEC} python3 -m unittest backend.worker.worker_test
