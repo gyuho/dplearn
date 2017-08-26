@@ -29,7 +29,7 @@ pushd ./backend/worker >/dev/null
 popd >/dev/null
 
 <<COMMENT
-ETCD_EXEC=/etcd \
+ETCD_EXEC=/opt/bin/etcd \
   BACKEND_WEB_SERVER_EXEC=${HOME}/go/bin/backend-web-server \
   ./scripts/tests/python3.sh
 COMMENT

@@ -24,7 +24,7 @@ class BACKEND(threading.Thread):
 
     Examples:
         pushd ..
-        BACKEND_WEB_SERVER_EXEC=${GOPATH}/bin/backend-web-server python -m unittest worker.worker_test
+        BACKEND_WEB_SERVER_EXEC=${GOPATH}/bin/backend-web-server python3 -m unittest worker.worker_test
         popd
     """
     def __init__(self, BACKEND_WEB_SERVER_EXEC):
@@ -42,7 +42,7 @@ class BACKEND(threading.Thread):
     def run(self):
         self.process = subprocess.Popen([
             self.exec_path,
-            '-web-port', '2200',
+            '-web-host', 'localhost:2200',
             '-queue-port-client', '27000',
             '-queue-port-peer', '27001',
             '-data-dir', self.data_dir,

@@ -10,16 +10,26 @@ import glog as log
 import numpy as np
 
 
-def rgb_to_bgr(img):
-    """Subtracts the mean RGB value, and transposes RGB to BGR.
-    The mean RGB was computed on the image set used to train the VGG model.
+def activation(Z, opt):
+    """
+    Implements activation functions.
 
     Args
-        img: Image array (height x width x channels)
+        Z: numpy array of any shape
+        opt: 'sigmoid' or 'relu'
 
     Returns
-        Image array (height x width x transposed_channels)
+        A: Post-activation parameter, of same shape as Z
+        cache: returns Z as well, useful during backpropagation
     """
-    img = img - VGG_MEAN
-    # reverse axis rgb->bgr
-    return img[:, ::-1]
+
+    cache = Z
+
+    if opt == "sigmoid":
+        A = 1/(1+np.exp(-Z))
+    elif opt == "relu":
+        A = np.maximum(0,Z)
+
+    assert(A.shape == Z.shape)
+
+    return A, cache

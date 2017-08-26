@@ -126,6 +126,6 @@ if __name__ == "__main__":
             if POST_RESPONSE['error'] not in ['', u'']:
                 log.warning(POST_RESPONSE['error'])
 
-        else
+        else:
             log.warning('{0} is unknown'.format(ITEM['bucket']))
             raise

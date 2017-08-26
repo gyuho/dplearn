@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"flag"
+	"os"
+	"path/filepath"
 
 	"github.com/gyuho/dplearn/backend/web"
 	etcdqueue "github.com/gyuho/dplearn/pkg/etcd-queue"
@@ -15,7 +17,7 @@ func main() {
 	hostPort := flag.String("web-host", "localhost:2200", "Specify host and port for backend.")
 	queuePortClient := flag.Int("queue-port-client", 22000, "Specify the client port for queue service.")
 	queuePortPeer := flag.Int("queue-port-peer", 22001, "Specify the peer port for queue service.")
-	dataDir := flag.String("data-dir", "/var/lib/etcd", "Specify the etcd data directory.")
+	dataDir := flag.String("data-dir", filepath.Join(os.TempDir(), "etcd-data"), "Specify the etcd data directory.")
 	flag.Parse()
 
 	rootCtx, rootCancel := context.WithCancel(context.Background())
