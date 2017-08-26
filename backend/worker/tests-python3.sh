@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-if ! [[ "$0" =~ "./tests.sh" ]]; then
+if ! [[ "$0" =~ "./tests-python3.sh" ]]; then
   echo "must be run from repository root"
   exit 255
 fi
@@ -14,6 +14,6 @@ else
 fi
 
 pushd ..
-BACKEND_WEB_SERVER_EXEC=${BACKEND_WEB_SERVER_EXEC} python -m unittest worker.worker_test
-python -m unittest worker.vgg_test
+BACKEND_WEB_SERVER_EXEC=${BACKEND_WEB_SERVER_EXEC} python3 -m unittest worker.worker_test
+python3 -m unittest worker.utils_test
 popd
