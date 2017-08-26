@@ -89,5 +89,9 @@ To run tests:
 ```bash
 ./scripts/tests/frontend.sh
 ./scripts/tests/go.sh
-ETCD_EXEC=/etcd ./scripts/tests/python3.sh
+
+DATASETS_DIR=./datasets \
+  ETCD_EXEC=/opt/bin/etcd \
+  SERVER_EXEC=${GOPATH}/bin/backend-web-server \
+  ./scripts/tests/python3.sh
 ```

@@ -40,5 +40,4 @@ DATASETS_DIR=./datasets \
   ETCD_EXEC=/opt/bin/etcd \
   SERVER_EXEC=${GOPATH}/bin/backend-web-server \
   ./scripts/tests/python3.sh
-
 COMMENT
