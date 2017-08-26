@@ -11,6 +11,10 @@
 /backend/worker/*.pyc
 /backend/worker/__pycache__/
 
+/backend/worker/cats/*.pyc
+/backend/worker/cats/__pycache__/
+
+
 /notebooks/.ipynb_checkpoints
 /notebooks/*.pyc
 /notebooks/__pycache__/

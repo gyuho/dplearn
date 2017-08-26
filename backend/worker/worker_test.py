@@ -20,18 +20,11 @@ from .worker import fetch_item, post_item
 
 
 class BACKEND(threading.Thread):
-    """Worker test function.
-
-    Examples:
-        pushd ..
-        BACKEND_WEB_SERVER_EXEC=${GOPATH}/bin/backend-web-server python3 -m unittest worker.worker_test
-        popd
-    """
-    def __init__(self, BACKEND_WEB_SERVER_EXEC):
+    def __init__(self, SERVER_EXEC):
         self.stdout = None
         self.stderr = None
         self.process = None
-        self.exec_path = BACKEND_WEB_SERVER_EXEC
+        self.exec_path = SERVER_EXEC
         self.data_dir = os.path.join(tempfile.gettempdir(), 'etcd')
         if os.path.exists(self.data_dir):
             log.info('deleting {0}'.format(self.data_dir))
@@ -52,8 +45,6 @@ class BACKEND(threading.Thread):
         self.stdout, self.stderr = self.process.communicate()
 
     def kill(self):
-        """Kills the running backend-web-server process
-        """
         log.info('killing process')
         self.process.kill()
         log.info('killed process')
@@ -64,12 +55,8 @@ class BACKEND(threading.Thread):
 
 
 class TestBackend(unittest.TestCase):
-    """backend-web-server testing methods
-    """
     def test_backend(self):
-        """backend-web-server test function
-        """
-        exec_path = os.environ['BACKEND_WEB_SERVER_EXEC']
+        exec_path = os.environ['SERVER_EXEC']
         if exec_path == '':
             log.fatal('Got empty backend-web-server path')
             sys.exit(0)
@@ -105,8 +92,6 @@ class TestBackend(unittest.TestCase):
         self.assertEqual(itemresp2['error'], u'unknown request ID \"id\"')
 
         def cleanup():
-            """Clean up.
-            """
             log.info('Killing backend-web-server...')
             backend_proc.kill()
 

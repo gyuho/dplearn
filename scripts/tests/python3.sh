@@ -11,25 +11,34 @@ if [[ -z "${ETCD_EXEC}" ]]; then
   exit 255
 fi
 
-pushd ./backend/etcd-python >/dev/null
-./tests-python3.sh
-popd >/dev/null
-
-sleep 3s
-
-if [[ "${BACKEND_WEB_SERVER_EXEC}" ]]; then
-  echo BACKEND_WEB_SERVER_EXEC is defined: \""${BACKEND_WEB_SERVER_EXEC}"\"
+if [[ "${DATASETS_DIR}" ]]; then
+  echo DATASETS_DIR is defined: \""${DATASETS_DIR}"\"
 else
-  echo BACKEND_WEB_SERVER_EXEC is not defined!
+  echo DATASETS_DIR is not defined!
   exit 255
 fi
 
-pushd ./backend/worker >/dev/null
-./tests-python3.sh
-popd >/dev/null
+if [[ "${SERVER_EXEC}" ]]; then
+  echo SERVER_EXEC is defined: \""${SERVER_EXEC}"\"
+else
+  echo SERVER_EXEC is not defined!
+  exit 255
+fi
+
+go install -v ./cmd/backend-web-server
+
+echo "Running backend.worker.cats tests..."
+DATASETS_DIR=${DATASETS_DIR} python3 -m unittest backend.worker.cats.data_test
+python3 -m unittest backend.worker.cats.initialize_parameters_test
+python3 -m unittest backend.worker.cats.utils_test
+
+ETCD_EXEC=${ETCD_EXEC} python3 -m unittest backend.etcd-python.etcd_test
+SERVER_EXEC=${SERVER_EXEC} python3 -m unittest backend.worker.worker_test
 
 <<COMMENT
-ETCD_EXEC=/opt/bin/etcd \
-  BACKEND_WEB_SERVER_EXEC=${HOME}/go/bin/backend-web-server \
+DATASETS_DIR=./datasets \
+  ETCD_EXEC=/opt/bin/etcd \
+  SERVER_EXEC=${GOPATH}/bin/backend-web-server \
   ./scripts/tests/python3.sh
+
 COMMENT
