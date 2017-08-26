@@ -153,8 +153,6 @@ ExecStart=/usr/bin/nvidia-docker run \
   --rm \
   --name app \
   --volume=/var/lib/etcd:/var/lib/etcd \
-  --volume=/var/lib/keras/datasets:/root/.keras/datasets \
-  --volume=/var/lib/keras/models:/root/.keras/models \
   -p 4200:4200 \
   --ulimit nofile=262144:262144 \
   gcr.io/gcp-dplearn/dplearn:latest-app \
@@ -184,7 +182,7 @@ TimeoutStartSec=0
 LimitNOFILE=40000
 
 ExecStartPre=/usr/bin/docker login -u oauth2accesstoken -p "$(/usr/bin/gcloud auth application-default print-access-token)" https://gcr.io
-ExecStartPre=/usr/bin/docker pull gcr.io/gcp-dplearn/dplearn:latest-app
+ExecStartPre=/usr/bin/docker pull gcr.io/gcp-dplearn/dplearn:latest-python3-gpu
 
 ExecStart=/usr/bin/nvidia-docker run \
   --rm \
@@ -194,8 +192,8 @@ ExecStart=/usr/bin/nvidia-docker run \
   --volume=/var/lib/keras/models:/root/.keras/models \
   -p 4200:4200 \
   --ulimit nofile=262144:262144 \
-  gcr.io/gcp-dplearn/dplearn:latest-app \
-  /bin/sh -c "./scripts/run/worker.sh"
+  gcr.io/gcp-dplearn/dplearn:latest-python3-gpu \
+  /bin/sh -c "./scripts/run/worker-python3.sh"
 
 ExecStop=/usr/bin/docker rm --force worker
 
@@ -242,7 +240,7 @@ mv -f /tmp/reverse-proxy.service /etc/systemd/system/reverse-proxy.service
 ##########################################################
 
 ##########################################################
-cat > /tmp/python2-ipython-gpu.service <<EOF
+cat > /tmp/python3-ipython-gpu.service <<EOF
 [Unit]
 Description=dplearn GPU development service
 Documentation=https://github.com/gyuho/dplearn
@@ -254,34 +252,34 @@ TimeoutStartSec=0
 LimitNOFILE=40000
 
 ExecStartPre=/usr/bin/docker login -u oauth2accesstoken -p "$(/usr/bin/gcloud auth application-default print-access-token)" https://gcr.io
-ExecStartPre=/usr/bin/docker pull gcr.io/gcp-dplearn/dplearn:latest-python2-gpu
+ExecStartPre=/usr/bin/docker pull gcr.io/gcp-dplearn/dplearn:latest-python3-gpu
 
 ExecStart=/usr/bin/nvidia-docker run \
   --rm \
-  --name python2-ipython-gpu \
+  --name python3-ipython-gpu \
   --publish 8888:8888 \
   --volume=`pwd`/notebooks:/notebooks \
   --volume=/var/lib/keras/datasets:/root/.keras/datasets \
   --volume=/var/lib/keras/models:/root/.keras/models \
   --ulimit nofile=262144:262144 \
-  gcr.io/gcp-dplearn/dplearn:latest-python2-gpu \
+  gcr.io/gcp-dplearn/dplearn:latest-python3-gpu \
   /bin/sh -c "PASSWORD='' ./run_jupyter.sh -y --allow-root --notebook-dir=./notebooks"
 
-ExecStop=/usr/bin/docker rm --force python2-ipython-gpu
+ExecStop=/usr/bin/docker rm --force python3-ipython-gpu
 
 [Install]
 WantedBy=multi-user.target
 EOF
-cat /tmp/python2-ipython-gpu.service
-mv -f /tmp/python2-ipython-gpu.service /etc/systemd/system/python2-ipython-gpu.service
+cat /tmp/python3-ipython-gpu.service
+mv -f /tmp/python3-ipython-gpu.service /etc/systemd/system/python3-ipython-gpu.service
 ##########################################################
 
 ##########################################################
 systemctl daemon-reload
 
 <<COMMENT
-systemctl enable python2-ipython-gpu.service
-systemctl start python2-ipython-gpu.service
+systemctl enable python3-ipython-gpu.service
+systemctl start python3-ipython-gpu.service
 COMMENT
 
 systemctl enable app.service

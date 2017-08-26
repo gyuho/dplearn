@@ -45,18 +45,6 @@ func main() {
 	}
 	glog.Infof("wrote %q", r)
 
-	python2CPU := filepath.Join(dir, "Dockerfile-python2-cpu")
-	if err = fileutil.WriteToFile(python2CPU, []byte(cfg.DockerfilePython2CPU)); err != nil {
-		glog.Fatal(err)
-	}
-	glog.Infof("wrote %q", python2CPU)
-
-	python2GPU := filepath.Join(dir, "Dockerfile-python2-gpu")
-	if err = fileutil.WriteToFile(python2GPU, []byte(cfg.DockerfilePython2GPU)); err != nil {
-		glog.Fatal(err)
-	}
-	glog.Infof("wrote %q", python2GPU)
-
 	python3CPU := filepath.Join(dir, "Dockerfile-python3-cpu")
 	if err = fileutil.WriteToFile(python3CPU, []byte(cfg.DockerfilePython3CPU)); err != nil {
 		glog.Fatal(err)

@@ -28,8 +28,6 @@ type Config struct {
 
 	DockerfileR string
 
-	DockerfilePython2CPU string
-	DockerfilePython2GPU string
 	DockerfilePython3CPU string
 	DockerfilePython3GPU string
 }
@@ -91,53 +89,6 @@ func Read(p string) (Config, error) {
 		return Config{}, err
 	}
 	cfg.DockerfileR = buf.String()
-	buf.Reset()
-
-	if err = template.Must(template.New("tmpl").
-		Parse(dockerfilePython)).
-		Execute(buf, struct {
-			Updated             string
-			Device              string
-			TensorflowBaseImage string
-			NVIDIAcuDNN         string
-			PipCommand          string
-			KerasVersion        string
-		}{
-			cfg.Updated,
-			"cpu",
-			cfg.TensorflowBaseImage,
-			"# built for CPU, no need to install cuda",
-			"pip",
-			cfg.KerasVersion,
-		}); err != nil {
-		return Config{}, err
-	}
-	cfg.DockerfilePython2CPU = buf.String()
-	buf.Reset()
-
-	if err = template.Must(template.New("tmpl").
-		Parse(dockerfilePython)).
-		Execute(buf, struct {
-			Updated             string
-			Device              string
-			TensorflowBaseImage string
-			NVIDIAcuDNN         string
-			PipCommand          string
-			KerasVersion        string
-		}{
-			cfg.Updated,
-			"gpu",
-			cfg.TensorflowBaseImage + "-gpu",
-			`# Tensorflow GPU image already includes https://developer.nvidia.com/cudnn
-# https://github.com/fastai/courses/blob/master/setup/install-gpu.sh
-# RUN ls /usr/local/cuda/lib64/
-# RUN ls /usr/local/cuda/include/`,
-			"pip",
-			cfg.KerasVersion,
-		}); err != nil {
-		return Config{}, err
-	}
-	cfg.DockerfilePython2GPU = buf.String()
 	buf.Reset()
 
 	if err = template.Must(template.New("tmpl").

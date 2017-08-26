@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-if ! [[ "$0" =~ "./scripts/tests/python.sh" ]]; then
+if ! [[ "$0" =~ "./scripts/tests/python3.sh" ]]; then
   echo "must be run from repository root"
   exit 255
 fi
@@ -12,7 +12,7 @@ if [[ -z "${ETCD_EXEC}" ]]; then
 fi
 
 pushd ./backend/etcd-python >/dev/null
-./tests.sh
+./tests-python3.sh
 popd >/dev/null
 
 sleep 3s
@@ -25,11 +25,11 @@ else
 fi
 
 pushd ./backend/worker >/dev/null
-./tests.sh
+./tests-python3.sh
 popd >/dev/null
 
 <<COMMENT
 ETCD_EXEC=/etcd \
   BACKEND_WEB_SERVER_EXEC=${HOME}/go/bin/backend-web-server \
-  ./scripts/tests/python.sh
+  ./scripts/tests/python3.sh
 COMMENT

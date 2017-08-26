@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-if ! [[ "$0" =~ "./scripts/docker/run-worker-python2-cpu.sh" ]]; then
+if ! [[ "$0" =~ "./scripts/docker/run-worker-python3-cpu.sh" ]]; then
   echo "must be run from repository root"
   exit 255
 fi
@@ -20,15 +20,15 @@ docker run \
   --volume=`pwd`/datasets:/root/datasets \
   --volume=${KERAS_DIR}/datasets:/root/.keras/datasets \
   --volume=${KERAS_DIR}/models:/root/.keras/models \
-  gcr.io/gcp-dplearn/dplearn:latest-python2-cpu \
-  /bin/sh -c "./scripts/run/worker.sh"
+  gcr.io/gcp-dplearn/dplearn:latest-python3-cpu \
+  /bin/sh -c "./scripts/run/worker-python3.sh"
 
 <<COMMENT
 docker run \
   --rm \
   -it \
   --net=host \
-  gcr.io/gcp-dplearn/dplearn:latest-python2-cpu \
+  gcr.io/gcp-dplearn/dplearn:latest-python3-cpu \
   /bin/sh -c "
 curl -L http://localhost:2200/health
 "

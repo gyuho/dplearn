@@ -50,8 +50,6 @@ To build Docker container images:
 
 ```bash
 ./scripts/docker/build-app.sh
-./scripts/docker/build-python2-cpu.sh
-./scripts/docker/build-python2-gpu.sh
 ./scripts/docker/build-python3-cpu.sh
 ./scripts/docker/build-python3-gpu.sh
 ./scripts/docker/build-r.sh
@@ -62,7 +60,7 @@ To run `dplearn` application (backend, web UI) on http://localhost:4200:
 
 ```bash
 ./scripts/docker/run-app.sh
-./scripts/docker/run-worker-python2-cpu.sh
+./scripts/docker/run-worker-python3-cpu.sh
 
 # to serve on port :80
 ./scripts/docker/run-reverse-proxy.sh
@@ -71,8 +69,6 @@ To run `dplearn` application (backend, web UI) on http://localhost:4200:
 To run [IPython Notebook](https://ipython.org) locally:
 
 ```bash
-./scripts/docker/run-ipython-python2-cpu.sh
-./scripts/docker/run-ipython-python2-gpu.sh
 ./scripts/docker/run-ipython-python3-cpu.sh
 ./scripts/docker/run-ipython-python3-gpu.sh
 ./scripts/docker/run-r.sh
@@ -81,11 +77,11 @@ To run [IPython Notebook](https://ipython.org) locally:
 To deploy IPython Notebook and `dplearn` application on Google Cloud Platform:
 
 ```bash
-GCP_KEY_PATH=/etc/gcp-key-dplearn.json ./scripts/gcp/ubuntu-gpu.gcp.sh
+GCP_KEY_PATH=/etc/gcp-key-dplearn.json ./scripts/gcp/ubuntu-python3-gpu.gcp.sh
 
 # create a Google Cloud Platform Compute Engine VM with a start-up script
 # to provision GPU, init system, reverse proxy, and others
-# (see ./scripts/gcp/ubuntu-gpu.ansible.sh for more detail)
+# (see ./scripts/gcp/ubuntu-python3-gpu.ansible.sh for more detail)
 ```
 
 To run tests:
@@ -93,5 +89,5 @@ To run tests:
 ```bash
 ./scripts/tests/frontend.sh
 ./scripts/tests/go.sh
-ETCD_EXEC=/etcd ./scripts/tests/python.sh
+ETCD_EXEC=/etcd ./scripts/tests/python3.sh
 ```
