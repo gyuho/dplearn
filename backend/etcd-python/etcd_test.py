@@ -69,9 +69,10 @@ class TestETCDMethods(unittest.TestCase):
     def watch_routine(self):
         """test watch API
         """
-        self.assertEqual(watch('http://localhost:2379', 'foo'), 'bar')
+        # Python 2
+        # self.assertEqual(watch('http://localhost:2379', 'foo'), 'bar')
         # Python 3
-        # self.assertEqual(watch('http://localhost:2379', 'foo'), b'bar')
+        self.assertEqual(watch('http://localhost:2379', 'foo'), b'bar')
 
     def test_etcd(self):
         """etcd test function
@@ -102,9 +103,10 @@ class TestETCDMethods(unittest.TestCase):
         log.info('Launching client requests...')
         log.info(put('http://localhost:2379', 'foo', 'bar'))
 
-        self.assertEqual(get('http://localhost:2379', 'foo'), 'bar')
+        # Python 2
+        # self.assertEqual(get('http://localhost:2379', 'foo'), 'bar')
         # Python 3
-        # self.assertEqual(get('http://localhost:2379', 'foo'), b'bar')
+        self.assertEqual(get('http://localhost:2379', 'foo'), b'bar')
 
         log.info('Waing for watch...')
         watch_thread.join()

@@ -26,12 +26,16 @@ def put(endpoint, key, val):
         curl -L http://localhost:2379/v3alpha/kv/put \
         -X POST -d '{"key": "Zm9v", "value": "YmFy"}'
     """
-    key_str = base64.b64encode(key)
-    val_str = base64.b64encode(val)
+
+    # Python 2
+    # key_str = base64.b64encode(key)
+    # val_str = base64.b64encode(val)
+
     # Python 3 base64 requires utf-08 encoded bytes
     # Python 3 JSON encoder requires string
-    # key_str = base64.b64encode(bytes(key, "utf-8")).decode()
-    # val_str = base64.b64encode(bytes(val, "utf-8")).decode()
+    key_str = base64.b64encode(bytes(key, "utf-8")).decode()
+    val_str = base64.b64encode(bytes(val, "utf-8")).decode()
+
     req = {"key": key_str, "value": val_str}
     while True:
         try:
@@ -53,10 +57,14 @@ def get(endpoint, key):
         curl -L http://localhost:2379/v3alpha/kv/range \
         -X POST -d '{"key": "Zm9v"}'
     """
-    key_str = base64.b64encode(key)
+
+    # Python 2
+    # key_str = base64.b64encode(key)
+
     # Python 3 base64 requires utf-08 encoded bytes
     # Python 3 JSON encoder requires string
-    # key_str = base64.b64encode(bytes(key, "utf-8")).decode()
+    key_str = base64.b64encode(bytes(key, "utf-8")).decode()
+
     req = {"key": key_str}
     while True:
         try:
@@ -86,10 +94,14 @@ def watch(endpoint, key):
         curl -L http://localhost:2379/v3alpha/watch \
         -X POST -d ''{"create_request": {"key":"Zm9v"} }'
     """
-    key_str = base64.b64encode(key)
+
+    # Python 2
+    # key_str = base64.b64encode(key)
+
     # Python 3 base64 requires utf-08 encoded bytes
     # Python 3 JSON encoder requires string
-    # key_str = base64.b64encode(bytes(key, "utf-8")).decode()
+    key_str = base64.b64encode(bytes(key, "utf-8")).decode()
+
     req = {'create_request': {"key": key_str}}
     while True:
         try:
