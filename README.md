@@ -55,12 +55,6 @@ This persists trained model parameters on disk that can be loaded by workers lat
 
 <img src="./dplearn-cats.gif" alt="dplearn-cats" width="550">
 
-Try other cat photos:
-
-- https://static.pexels.com/photos/127028/pexels-photo-127028.jpeg
-- https://static.pexels.com/photos/126407/pexels-photo-126407.jpeg
-- https://static.pexels.com/photos/54632/cat-animal-eyes-grey-54632.jpeg
-
 [↑ top](#dplearn)
 <br><br>
 
@@ -78,6 +72,12 @@ To run application (backend, web UI) locally, on http://localhost:4200:
 ./scripts/docker/run-reverse-proxy.sh
 COMMENT
 ```
+
+Open http://localhost:4200/cats and try other cat photos:
+
+- https://static.pexels.com/photos/127028/pexels-photo-127028.jpeg
+- https://static.pexels.com/photos/126407/pexels-photo-126407.jpeg
+- https://static.pexels.com/photos/54632/cat-animal-eyes-grey-54632.jpeg
 
 To run tests:
 
