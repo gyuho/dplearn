@@ -16,6 +16,6 @@ export class CatsComponent {
   public endpoint = "cats-request";
   constructor(public backendService: BackendService) {
     backendService.endpoint = this.endpoint;
-    backendService.inputValue = "https://images.pexels.com/photos/127028/pexels-photo-127028.jpeg?w=1260&h=750&auto=compress&cs=tinysrgb";
+    backendService.inputValue = "https://static.pexels.com/photos/54632/cat-animal-eyes-grey-54632.jpeg";
   }
 }
