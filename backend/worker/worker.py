@@ -15,7 +15,7 @@ import numpy as np
 import glog as log
 import requests
 
-from .cats.model import classify
+from cats.model import classify
 
 
 ITEM_KEYS = ['bucket', 'key', 'value', 'progress', 'canceled', 'error',
