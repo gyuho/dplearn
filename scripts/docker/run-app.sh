@@ -13,6 +13,12 @@ if [[ $(uname) = "Darwin" ]]; then
   rm -rf /tmp/etcd
 fi
 
+IMAGE_DIR=/tmp
+if [[ -z "${IMAGE_DIR}" ]]; then
+  IMAGE_DIR=${IMAGE_DIR}
+fi
+echo IMAGE_DIR: ${IMAGE_DIR}
+
 # TODO: shared volume with worker for downloaded cat images
 docker run \
   --rm \
@@ -20,6 +26,7 @@ docker run \
   --publish 2200:2200 \
   --publish 4200:4200 \
   --ulimit nofile=262144:262144 \
+  --volume=${IMAGE_DIR}:/tmp \
   --volume=${LOCAL_DIR}:/var/lib/etcd \
   gcr.io/gcp-dplearn/dplearn:latest-app \
   /bin/sh -c "./scripts/docker/run/app.sh"

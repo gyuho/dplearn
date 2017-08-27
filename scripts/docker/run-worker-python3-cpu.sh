@@ -13,11 +13,19 @@ if [[ $(uname) = "Darwin" ]]; then
 fi
 echo KERAS_DIR: ${KERAS_DIR}
 
+IMAGE_DIR=/tmp
+if [[ -z "${IMAGE_DIR}" ]]; then
+  IMAGE_DIR=${IMAGE_DIR}
+fi
+echo IMAGE_DIR: ${IMAGE_DIR}
+
 docker run \
   --rm \
   -it \
   --env CATS_PARAM_PATH=/root/datasets/parameters-cats.npy \
   --net=host \
+  --volume=${IMAGE_DIR}:/tmp \
+  --volume=`pwd`/datasets:/root/datasets \
   --volume=`pwd`/datasets:/root/datasets \
   --volume=${KERAS_DIR}/datasets:/root/.keras/datasets \
   --volume=${KERAS_DIR}/models:/root/.keras/models \
