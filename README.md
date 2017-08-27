@@ -53,7 +53,7 @@ DATASETS_DIR=./datasets \
 
 This persists trained model parameters on disk that can be loaded by workers later.
 
-<img src="./dplearn-cats.gif" alt="dplearn-cats" width="620">
+<img src="./dplearn-cats.gif" alt="dplearn-cats" width="550">
 
 Try other cat photos:
 
