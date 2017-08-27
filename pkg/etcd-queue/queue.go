@@ -216,6 +216,7 @@ func (qu *queue) Front(ctx context.Context, bucket string) ItemWatcher {
 		close(ch)
 		return ch
 	}
+	glog.Infof("front: %q returned %d kvs", len(resp.Kvs))
 
 	if len(resp.Kvs) == 0 {
 		wch := qu.cli.Watch(ctx, scheduledKey, clientv3.WithPrefix())
