@@ -74,7 +74,13 @@ To run [IPython Notebook](https://ipython.org) locally:
 ./scripts/docker/run-r.sh
 ```
 
-To deploy IPython Notebook and `dplearn` application on Google Cloud Platform:
+To deploy `dplearn` on Google Cloud Platform CPU:
+
+```bash
+GCP_KEY_PATH=/etc/gcp-key-dplearn.json ./scripts/gcp/container-linux-python3-cpu.gcp.sh
+```
+
+To deploy `dplearn` and IPython Notebook on Google Cloud Platform GPU:
 
 ```bash
 GCP_KEY_PATH=/etc/gcp-key-dplearn.json ./scripts/gcp/ubuntu-python3-gpu.gcp.sh
@@ -91,7 +97,16 @@ To run tests:
 ./scripts/tests/go.sh
 
 DATASETS_DIR=./datasets \
+  CATS_PARAM_PATH=./datasets/parameters-cats.npy \
   ETCD_EXEC=/opt/bin/etcd \
   SERVER_EXEC=${GOPATH}/bin/backend-web-server \
   ./scripts/tests/python3.sh
+```
+
+To train `cats` model:
+
+```bash
+DATASETS_DIR=./datasets \
+  CATS_PARAM_PATH=./datasets/parameters-cats.npy \
+  python3 -m unittest backend.worker.cats.model_test
 ```

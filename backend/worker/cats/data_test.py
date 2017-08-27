@@ -3,8 +3,10 @@
 from __future__ import print_function
 
 import sys
+import time
 import unittest
 
+import matplotlib.pyplot as plt
 import glog as log
 
 from .data import *
@@ -32,6 +34,14 @@ class TestData(unittest.TestCase):
         self.assertEqual(test_x_orig.shape, (50, 64, 64, 3))
         self.assertEqual(test_y.shape, (1, 50))
         self.assertEqual(classes.shape, (2,))
+
+        index = 25
+        # plt.imshow(train_x_orig[index])
+        result = classes[train_y[0,index]].decode("utf-8")
+        log.info('cat or non-cat?: {0}'.format(result))
+        self.assertEqual(result, 'cat')
+        # time.sleep(10)
+
 
 
 if __name__ == '__main__':

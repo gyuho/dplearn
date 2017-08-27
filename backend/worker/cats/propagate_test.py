@@ -11,15 +11,15 @@ from .propagate import *
 
 
 class TestPropagate(unittest.TestCase):
-    def test_activationn(self):
-        log.info('running test_activationn...')
+    def test_activate(self):
+        log.info('running test_activate...')
         Z = np.array([-1, 2, 3])
         log.info('Z: {0}'.format(Z))
 
-        A1, cache1 = activation(Z, "sigmoid")
+        A1, cache1 = activate(Z, "sigmoid")
         log.info('sigmoid: {0}'.format(A1))
 
-        A2, cache2 = activation(Z, "relu")
+        A2, cache2 = activate(Z, "relu")
         log.info('relu: {0}'.format(A2))
 
         Z_sig = np.array([0.26894142, 0.88079708, 0.95257413])

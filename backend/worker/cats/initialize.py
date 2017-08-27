@@ -6,7 +6,7 @@ import glog as log
 import numpy as np
 
 
-def parameters_2layer(n_x, n_h, n_y):
+def two(n_x, n_h, n_y):
     """
     Argument:
     n_x -- size of the input layer
@@ -41,7 +41,7 @@ def parameters_2layer(n_x, n_h, n_y):
     return parameters
 
 
-def deep(layer_dims):
+def deep_parameters(layer_dims):
     """
     Arguments:
     layer_dims -- list of dimensions in each layer
@@ -59,11 +59,11 @@ def deep(layer_dims):
 
     parameters = {}
 
-    for i in range(1, L):
-        w = 'W' + str(i)
-        b = 'b' + str(i)
-        prevd = layer_dims[i-1]
-        curd = layer_dims[i]
+    for l in range(1, L):
+        w = 'W' + str(l)
+        b = 'b' + str(l)
+        prevd = layer_dims[l-1]
+        curd = layer_dims[l]
 
         parameters[w] = np.random.randn(curd, prevd) / np.sqrt(prevd)
         parameters[b] = np.zeros((curd, 1))
@@ -72,4 +72,3 @@ def deep(layer_dims):
         assert(parameters[b].shape == (curd, 1))
 
     return parameters
-
