@@ -198,7 +198,7 @@ func queueHandler(ctx context.Context, w http.ResponseWriter, req *http.Request)
 
 	switch req.Method {
 	case http.MethodGet:
-		return json.NewEncoder(w).Encode(<-qu.Front(ctx, bucket))
+		return json.NewEncoder(w).Encode(<-qu.Pop(ctx, bucket))
 
 	case http.MethodPost:
 		rb, err := ioutil.ReadAll(req.Body)
@@ -222,15 +222,7 @@ func queueHandler(ctx context.Context, w http.ResponseWriter, req *http.Request)
 		if !ok {
 			return json.NewEncoder(w).Encode(&queue.Item{Bucket: bucket, Progress: 0, Error: fmt.Sprintf("unknown request ID %q", item.RequestID)})
 		}
-
-		itemWatcher := qu.Enqueue(ctx, &item, queue.WithTTL(enqueueTTL))
-		select {
-		case ev := <-itemWatcher:
-			if item.Progress != queue.MaxProgress {
-				item.Error = fmt.Sprintf("unexpected event from Enqueue with %+v", ev)
-			}
-		default:
-		}
+		srv.requestCache.Store(item.RequestID, item)
 		return json.NewEncoder(w).Encode(&item)
 
 	default:
@@ -260,46 +252,13 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 			glog.Warning(err)
 			return json.NewEncoder(w).Encode(&queue.Item{Bucket: reqPath, Progress: 0, Error: err.Error()})
 		}
-
-		glog.Infof("fetching %q for status", requestID)
 		vi, ok := srv.requestCache.Load(requestID)
 		if !ok {
-			err := fmt.Errorf("cannot find request ID %q (something seriously wrong!)", requestID)
+			err := fmt.Errorf("cannot find request ID %q", requestID)
 			glog.Warning(err)
 			return json.NewEncoder(w).Encode(&queue.Item{Bucket: reqPath, Progress: 0, Error: err.Error()})
 		}
-		v := vi.(*queue.Item)
-		if v.Progress == queue.MaxProgress {
-			glog.Infof("fetched %q with completed status", requestID)
-			return json.NewEncoder(w).Encode(v)
-		}
-		key := v.Key
-
-		glog.Infof("start watching %q for status update (request ID: %q)", key, requestID)
-		cctx, ccancel := context.WithCancel(ctx)
-		defer ccancel()
-		watcher := qu.Watch(cctx, key)
-		for {
-			select {
-			case item := <-watcher:
-				if item.Progress == queue.MaxProgress {
-					glog.Infof("sent status update for key %q (request ID: %q)", key, requestID)
-					return json.NewEncoder(w).Encode(item)
-				}
-				glog.Infof("key %q (request ID: %q) is not done yet... keep watching (item: %+v)", key, requestID, item)
-				continue
-
-			case <-ctx.Done():
-				glog.Warningf("watch canceld on key %q (request ID: %q)", key, requestID)
-				glog.Warning(ctx.Err())
-				return json.NewEncoder(w).Encode(&queue.Item{Bucket: reqPath, Progress: 0, Error: ctx.Err().Error()})
-
-			case <-cctx.Done():
-				glog.Warningf("watch canceld on key %q (request ID: %q)", key, requestID)
-				glog.Warning(cctx.Err())
-				return json.NewEncoder(w).Encode(&queue.Item{Bucket: reqPath, Progress: 0, Error: cctx.Err().Error()})
-			}
-		}
+		return json.NewEncoder(w).Encode(vi)
 
 	case http.MethodPost: // item creation/cancel
 		rb, err := ioutil.ReadAll(req.Body)
@@ -349,25 +308,14 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 				return json.NewEncoder(w).Encode(v)
 			}
 
-			glog.Infof("creating an item with request ID %q", requestID)
 			item := queue.CreateItem(reqPath, 100, creq.DataFromFrontend)
 			item.RequestID = requestID
 
-			ch := qu.Enqueue(ctx, item, queue.WithTTL(enqueueTTL))
-			select {
-			case ev := <-ch:
-				err := fmt.Sprintf("unexpected event from Enqueue with %+v", ev)
+			if err = qu.Add(ctx, item, queue.WithTTL(enqueueTTL)); err != nil {
 				glog.Warning(err)
-				return json.NewEncoder(w).Encode(&queue.Item{Bucket: reqPath, Progress: 0, Error: err})
-			default:
+				return json.NewEncoder(w).Encode(&queue.Item{Bucket: reqPath, Progress: 0, Error: err.Error()})
 			}
-
-			// watch for changes from worker, keep the cache up-to-date
-			// - waits until the worker processor computes the job
-			// - waits until the worker processor writes back to queue
-			// - queue watcher gets notified and writes back to 'path.Join(pfxScheduled, bucket)'
 			srv.requestCache.Store(requestID, item)
-			go srv.watch(ctx, requestID, ch)
 
 			glog.Infof("created an item with request ID %s", requestID)
 			copied := *item
@@ -376,55 +324,13 @@ func clientRequestHandler(ctx context.Context, w http.ResponseWriter, req *http.
 
 		case false:
 			glog.Infof("deleting %q", requestID)
-			v, ok := srv.requestCache.Load(requestID)
-			if !ok {
-				glog.Infof("already deleted %q", requestID)
-				return nil
-			}
 			srv.requestCache.Delete(requestID)
-			item := v.(*queue.Item)
-			if err = qu.Dequeue(ctx, item); err != nil {
-				err = fmt.Errorf("qu.Dequeue error %q", err.Error())
-				glog.Warning(err)
-				return json.NewEncoder(w).Encode(&queue.Item{Bucket: reqPath, Progress: 0, Error: err.Error()})
-			}
-			glog.Infof("deleted %q", requestID)
 		}
 
 	default:
 		http.Error(w, "Method Not Allowed", 405)
 	}
 	return nil
-}
-
-func (srv *Server) watch(ctx context.Context, requestID string, ch <-chan *queue.Item) {
-	item := &queue.Item{Progress: 0}
-	var stillOpen bool
-	for item.Progress < queue.MaxProgress && !item.Canceled {
-		_, ok := srv.requestCache.Load(requestID)
-		if !ok {
-			glog.Infof("watcher: %q is already deleted(canceled)", requestID)
-			return
-		}
-
-		select {
-		case <-srv.donec:
-			return
-		case <-ctx.Done():
-			return
-		case item, stillOpen = <-ch:
-			if item == nil && !stillOpen {
-				glog.Warningf("watch channel on %q is closed", requestID)
-				return
-			}
-			if item.Canceled {
-				glog.Infof("watcher: %q is canceld", requestID)
-			} else {
-				glog.Infof("watcher: received an update on %q", requestID)
-				srv.requestCache.Store(requestID, item)
-			}
-		}
-	}
 }
 
 const (
