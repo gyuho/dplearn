@@ -57,9 +57,9 @@ This persists trained model parameters on disk that can be loaded by workers lat
 
 Try other cat photos:
 
-- https://static.pexels.com/photos/54632/cat-animal-eyes-grey-54632.jpeg
 - https://static.pexels.com/photos/127028/pexels-photo-127028.jpeg
 - https://static.pexels.com/photos/126407/pexels-photo-126407.jpeg
+- https://static.pexels.com/photos/54632/cat-animal-eyes-grey-54632.jpeg
 
 [↑ top](#dplearn)
 <br><br>
