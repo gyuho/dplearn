@@ -60,9 +60,7 @@ To run `dplearn` application (backend, web UI) on http://localhost:4200:
 
 ```bash
 ./scripts/docker/run-app.sh
-
-CATS_PARAM_PATH=/root/datasets/parameters-cats.npy \
-  ./scripts/docker/run-worker-python3-cpu.sh
+./scripts/docker/run-worker-python3-cpu.sh
 ```
 
 ```bash
@@ -81,7 +79,7 @@ To run [IPython Notebook](https://ipython.org) locally:
 To deploy `dplearn` on Google Cloud Platform CPU:
 
 ```bash
-GCP_KEY_PATH=/etc/gcp-key-dplearn.json ./scripts/gcp/container-linux-python3-cpu.gcp.sh
+GCP_KEY_PATH=/etc/gcp-key-dplearn.json ./scripts/gcp/ubuntu-python3-cpu.gcp.sh
 ```
 
 To deploy `dplearn` and IPython Notebook on Google Cloud Platform GPU:

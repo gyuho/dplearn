@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-if ! [[ "$0" =~ "./scripts/gcp/ubuntu-python3-gpu.gcp.sh" ]]; then
+if ! [[ "$0" =~ "./scripts/gcp/ubuntu-python3-cpu.gcp.sh" ]]; then
   echo "must be from repository root"
   exit 255
 fi
@@ -15,9 +15,9 @@ fi
 
 gcloud config set project dplearn
 
-gcloud beta compute instances create dplearn-gpu \
+gcloud compute instances create dplearn-cpu \
   --custom-cpu=4 \
-  --custom-memory=16 \
+  --custom-memory=8 \
   --zone us-west1-b \
   --image-family=ubuntu-1604-lts \
   --image-project=ubuntu-os-cloud \
@@ -27,5 +27,4 @@ gcloud beta compute instances create dplearn-gpu \
   --tags=dplearn,http-server,https-server \
   --maintenance-policy=MIGRATE \
   --restart-on-failure \
-  --accelerator type=nvidia-tesla-k80,count=1 \
-  --metadata-from-file gcp-key-dplearn=${GCP_KEY_PATH},startup-script=./scripts/gcp/ubuntu-python3-gpu.ansible.sh
+  --metadata-from-file gcp-key-dplearn=${GCP_KEY_PATH},startup-script=./scripts/gcp/ubuntu-python3-cpu.ansible.sh
