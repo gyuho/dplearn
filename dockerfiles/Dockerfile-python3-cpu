@@ -95,8 +95,9 @@ root = /usr/local/cuda\n'\
 
 ##########################
 # Clone source code, static assets
+ADD ./datasets/parameters-cats.npy /root/datasets/parameters-cats.npy
 ADD ./backend ${ROOT_DIR}/backend
-ADD ./scripts/run ${ROOT_DIR}/scripts/run
+ADD ./scripts/docker/run ${ROOT_DIR}/scripts/docker/run
 ##########################
 
 ##########################

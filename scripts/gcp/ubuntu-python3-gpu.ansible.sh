@@ -156,7 +156,7 @@ ExecStart=/usr/bin/nvidia-docker run \
   -p 4200:4200 \
   --ulimit nofile=262144:262144 \
   gcr.io/gcp-dplearn/dplearn:latest-app \
-  /bin/sh -c "./scripts/run/app.sh"
+  /bin/sh -c "./scripts/docker/run/app.sh"
 
 ExecStop=/usr/bin/docker rm --force app
 
@@ -187,13 +187,14 @@ ExecStartPre=/usr/bin/docker pull gcr.io/gcp-dplearn/dplearn:latest-python3-gpu
 ExecStart=/usr/bin/nvidia-docker run \
   --rm \
   --name worker \
+  --env CATS_PARAM_PATH=/root/datasets/parameters-cats.npy \
   --volume=/var/lib/etcd:/var/lib/etcd \
   --volume=/var/lib/keras/datasets:/root/.keras/datasets \
   --volume=/var/lib/keras/models:/root/.keras/models \
   -p 4200:4200 \
   --ulimit nofile=262144:262144 \
   gcr.io/gcp-dplearn/dplearn:latest-python3-gpu \
-  /bin/sh -c "./scripts/run/worker-python3.sh"
+  /bin/sh -c "./scripts/docker/run/worker-python3.sh"
 
 ExecStop=/usr/bin/docker rm --force worker
 
@@ -228,7 +229,7 @@ ExecStart=/usr/bin/docker \
   --net=host \
   --ulimit nofile=262144:262144 \
   gcr.io/gcp-dplearn/dplearn:latest-reverse-proxy \
-  /bin/sh -c "./scripts/run/reverse-proxy.sh"
+  /bin/sh -c "./scripts/docker/run/reverse-proxy.sh"
 
 ExecStop=/usr/bin/docker rm --force reverse-proxy
 

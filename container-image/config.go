@@ -222,7 +222,7 @@ ADD ./package.json ${GOPATH}/src/github.com/gyuho/dplearn/package.json
 ADD ./proxy.config.json ${GOPATH}/src/github.com/gyuho/dplearn/proxy.config.json
 ADD ./yarn.lock ${GOPATH}/src/github.com/gyuho/dplearn/yarn.lock
 
-ADD ./scripts/run ${GOPATH}/src/github.com/gyuho/dplearn/scripts/run
+ADD ./scripts/docker/run ${GOPATH}/src/github.com/gyuho/dplearn/scripts/docker/run
 
 WORKDIR ${GOPATH}/src/github.com/gyuho/dplearn
 RUN go install -v ./cmd/backend-web-server \
@@ -307,7 +307,7 @@ ADD ./cmd ${GOPATH}/src/github.com/gyuho/dplearn/cmd
 ADD ./backend ${GOPATH}/src/github.com/gyuho/dplearn/backend
 ADD ./pkg ${GOPATH}/src/github.com/gyuho/dplearn/pkg
 ADD ./vendor ${GOPATH}/src/github.com/gyuho/dplearn/vendor
-ADD ./scripts/run ${GOPATH}/src/github.com/gyuho/dplearn/scripts/run
+ADD ./scripts/docker/run ${GOPATH}/src/github.com/gyuho/dplearn/scripts/docker/run
 
 WORKDIR ${GOPATH}/src/github.com/gyuho/dplearn
 
@@ -542,8 +542,9 @@ root = /usr/local/cuda\n'\
 
 ##########################
 # Clone source code, static assets
+ADD ./datasets/parameters-cats.npy /root/datasets/parameters-cats.npy
 ADD ./backend ${ROOT_DIR}/backend
-ADD ./scripts/run ${ROOT_DIR}/scripts/run
+ADD ./scripts/docker/run ${ROOT_DIR}/scripts/docker/run
 ##########################
 
 ##########################

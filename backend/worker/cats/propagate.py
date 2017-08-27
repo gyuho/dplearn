@@ -234,4 +234,3 @@ def backward(AL, Y, caches):
         grads["db" + str(l+1)] = db_temp
 
     return grads
-

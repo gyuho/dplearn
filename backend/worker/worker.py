@@ -5,14 +5,17 @@
 from __future__ import print_function
 
 import copy
-import datetime
 import json
+import os
 import os.path
 import sys
 import time
 
+import numpy as np
 import glog as log
 import requests
+
+from .cats.model import classify
 
 
 ITEM_KEYS = ['bucket', 'key', 'value', 'progress', 'canceled', 'error',
@@ -87,6 +90,22 @@ if __name__ == "__main__":
         log.fatal('Got empty endpoint: {0}'.format(sys.argv))
         sys.exit(1)
 
+    param_path = os.environ['CATS_PARAM_PATH']
+    if param_path == '':
+        log.fatal('Got empty CATS_PARAM_PATH')
+        sys.exit(1)
+
+    # 1. Initialize parameters / Define hyperparameters
+    # 2. Loop for num_iterations:
+    #     a. Forward propagation
+    #     b. Compute cost function
+    #     c. Backward propagation
+    #     d. Update parameters (using parameters, and grads from backprop)
+    # 4. Use trained parameters to predict labels
+    log.info("loading 'cats' parameters on {0}".format(param_path))
+    parameters = np.load(param_path).item()
+    log.info("loaded 'cats' parameters on {0}".format(param_path))
+
     log.info("starting worker on {0}".format(EP))
 
     PREV_ITEM = None
@@ -114,14 +133,9 @@ if __name__ == "__main__":
                 ITEM['progress'] = 100
                 ITEM['error'] = 'cannot find image {0}'.format(IMAGE_PATH)
             else:
-                """TODO: implement actual worker with Tensorflow
-                """
-                with open(IMAGE_PATH, "r") as f:
-                    log.info('opened image {0}'.format(f.read(5)))
-                    # process_cats(ITEM['value'])
-                    ITEM['progress'] = 100
-                    NOW = datetime.datetime.now().isoformat()
-                    ITEM['value'] = "[WORKER - ACK] it's a cat! " + NOW
+                img_class = classify(IMAGE_PATH, parameters)
+                ITEM['progress'] = 100
+                ITEM['value'] = "[WORKER - ACK] it's a '{0}'!".format(img_class)
 
             POST_RESPONSE = post_item(EP, ITEM)
             if POST_RESPONSE['error'] not in ['', u'']:

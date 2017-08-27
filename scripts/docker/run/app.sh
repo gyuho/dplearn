@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-if ! [[ "$0" =~ "./scripts/run/app.sh" ]]; then
+if ! [[ "$0" =~ "./scripts/docker/run/app.sh" ]]; then
   echo "must be run from repository root"
   exit 255
 fi
@@ -16,12 +16,6 @@ backend-web-server \
 gen-package-json -output package.json -logtostderr=true \
   && cat package.json \
   && yarn start-prod &
-
-wait
-
-sleep 5s
-
-python ./backend/worker/worker.py http://localhost:2200/cats-request/queue &
 
 wait
 

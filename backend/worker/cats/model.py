@@ -4,6 +4,8 @@ from __future__ import division, print_function
 
 import glog as log
 import numpy as np
+import scipy
+from scipy import ndimage
 
 from .initialize import *
 from .propagate import *
@@ -107,13 +109,14 @@ def L_layer(X, Y, layers_dims, learning_rate=0.0075, num_iterations=3000, print_
     return parameters
 
 
-def predict(X, y, parameters):
+def predict(X, parameters, label_y=[1]):
     """
     Predict the results of a  L-layer neural network.
 
     Arguments:
     X -- data set of examples you would like to label
     parameters -- parameters of the trained model
+    label_y -- true labels, [1] for 1 image
 
     Returns:
     p -- predictions for the given dataset X
@@ -132,9 +135,31 @@ def predict(X, y, parameters):
         else:
             p[0,i] = 0
 
-    log.info('predictions: {0}'.format(p))
-    log.info('true labels: {0}'.format(y))
-    log.info('accuracy: {0}'.format(np.sum((p == y)/m)))
-
+    # log.info('accuracy: {0}'.format(np.sum((p == label_y)/m)))
     return p
 
+
+def classify(img_path, parameters):
+    """
+    Classify cat / non-cat.
+
+    Arguments:
+    img_path -- image path to classify
+    parameters -- parameters of the trained model
+
+    Returns:
+    img_result -- 'cat' or 'non-cat'
+    """
+
+    classes = np.array([b'non-cat', b'cat'])
+    num_px = 64
+
+    img = np.array(ndimage.imread(img_path, flatten=False))
+    img_resized = scipy.misc.imresize(img, size=(num_px,num_px)).reshape((num_px*num_px*3,1))
+
+    img_pred = predict(img_resized, parameters)
+
+    img_class = np.squeeze(img_pred)
+    img_result = classes[int(img_class),].decode("utf-8")
+
+    return img_result

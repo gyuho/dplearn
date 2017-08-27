@@ -16,12 +16,13 @@ echo KERAS_DIR: ${KERAS_DIR}
 docker run \
   --rm \
   -it \
+  --env CATS_PARAM_PATH=/root/datasets/parameters-cats.npy \
   --net=host \
   --volume=`pwd`/datasets:/root/datasets \
   --volume=${KERAS_DIR}/datasets:/root/.keras/datasets \
   --volume=${KERAS_DIR}/models:/root/.keras/models \
   gcr.io/gcp-dplearn/dplearn:latest-python3-cpu \
-  /bin/sh -c "./scripts/run/worker-python3.sh"
+  /bin/sh -c "./scripts/docker/run/worker-python3.sh"
 
 <<COMMENT
 docker run \

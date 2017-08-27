@@ -32,15 +32,18 @@ else
   exit 255
 fi
 
-go install -v ./cmd/backend-web-server
+echo "Running backend.etcd-python.etcd_test"
+ETCD_EXEC=${ETCD_EXEC} python3 -m unittest backend.etcd-python.etcd_test
 
-echo "Running backend.worker.cats tests..."
+echo "Running backend.worker.cats"
 DATASETS_DIR=${DATASETS_DIR} python3 -m unittest backend.worker.cats.data_test
 python3 -m unittest backend.worker.cats.initialize_test
 python3 -m unittest backend.worker.cats.propagate_test
 DATASETS_DIR=${DATASETS_DIR} CATS_PARAM_PATH=${CATS_PARAM_PATH} python3 -m unittest backend.worker.cats.model_test
+DATASETS_DIR=${DATASETS_DIR} CATS_PARAM_PATH=${CATS_PARAM_PATH} python3 -m unittest backend.worker.cats_test
 
-ETCD_EXEC=${ETCD_EXEC} python3 -m unittest backend.etcd-python.etcd_test
+echo "Running backend.worker.worker_test"
+go install -v ./cmd/backend-web-server
 SERVER_EXEC=${SERVER_EXEC} python3 -m unittest backend.worker.worker_test
 
 <<COMMENT
@@ -49,6 +52,10 @@ DATASETS_DIR=./datasets python3 -m unittest backend.worker.cats.data_test
 DATASETS_DIR=./datasets \
   CATS_PARAM_PATH=./datasets/parameters-cats.npy \
   python3 -m unittest backend.worker.cats.model_test
+
+DATASETS_DIR=./datasets \
+  CATS_PARAM_PATH=./datasets/parameters-cats.npy \
+  python3 -m unittest backend.worker.cats_test
 
 DATASETS_DIR=./datasets \
   CATS_PARAM_PATH=./datasets/parameters-cats.npy \

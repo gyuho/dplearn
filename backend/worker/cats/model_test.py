@@ -49,6 +49,9 @@ class TestModel(unittest.TestCase):
         self.assertEqual(train_x.shape, (12288, 209))
         self.assertEqual(test_x.shape, (12288, 50))
 
+        log.info("train_y: {0}".format(train_y))
+        log.info("test_y: {0}".format(test_y))
+
         # 1. Initialize parameters / Define hyperparameters
         # 2. Loop for num_iterations:
         #     a. Forward propagation
@@ -68,9 +71,9 @@ class TestModel(unittest.TestCase):
         log.info("parameters: {0}".format(parameters))
         log.info("parameters type: {0}".format(type(parameters)))
 
-        pred_train = predict(train_x, train_y, parameters)
+        pred_train = predict(train_x, parameters, label_y=train_y)
         pred_train_accuracy = np.sum((pred_train == train_y) / train_x.shape[1])
-        pred_test = predict(test_x, test_y, parameters)
+        pred_test = predict(test_x, parameters, label_y=test_y)
         pred_test_accuracy = np.sum((pred_test == test_y) / test_x.shape[1])
 
         log.info("pred_train: {0}".format(pred_train_accuracy))
@@ -83,11 +86,11 @@ class TestModel(unittest.TestCase):
         log.info('saved: {0}'.format(param_path))
 
         num_px = train_x_orig.shape[1]
-        my_label_y = [1]  # true class (1->cat, 0->non-cat)
         img_path = os.path.join(dpath, 'gray-cat.jpeg')
         img = np.array(ndimage.imread(img_path, flatten=False))
         img_resized = scipy.misc.imresize(img, size=(num_px,num_px)).reshape((num_px*num_px*3,1))
-        img_pred = predict(img_resized, my_label_y, parameters)
+
+        img_pred = predict(img_resized, parameters)
 
         img_accuracy = np.squeeze(img_pred)
         img_class = classes[int(img_accuracy),].decode("utf-8")
@@ -97,7 +100,7 @@ class TestModel(unittest.TestCase):
         self.assertEqual(img_class, 'cat')
 
 
-    def test_persistent_model(self):
+    def test_classify(self):
         dpath = os.environ['DATASETS_DIR']
         if dpath == '':
             log.fatal('Got empty DATASETS_DIR')
@@ -108,26 +111,17 @@ class TestModel(unittest.TestCase):
             log.fatal('Got empty CATS_PARAM_PATH')
             sys.exit(0)
 
-        log.info('running test_test_persistent_model...')
+        log.info('running test_classify...')
         log.info('directory path: {0}'.format(dpath))
         log.info('parameters path: {0}'.format(param_path))
 
+        img_path = os.path.join(dpath, 'gray-cat.jpeg')
         parameters = np.load(param_path).item()
 
-        classes = np.array([b'non-cat', b'cat'])
-        num_px = 64
-        my_label_y = [1]  # true class (1->cat, 0->non-cat)
-        img_path = os.path.join(dpath, 'gray-cat.jpeg')
-        img = np.array(ndimage.imread(img_path, flatten=False))
-        img_resized = scipy.misc.imresize(img, size=(num_px,num_px)).reshape((num_px*num_px*3,1))
-        img_pred = predict(img_resized, my_label_y, parameters)
+        img_result = classify(img_path, parameters)
 
-        img_accuracy = np.squeeze(img_pred)
-        img_class = classes[int(img_accuracy),].decode("utf-8")
-        log.info('img_accuracy: {0}'.format(img_accuracy))
-        log.info('img_class: {0}'.format(img_class))
-        self.assertEqual(img_accuracy, 1.0)
-        self.assertEqual(img_class, 'cat')
+        log.info('img_result: {0}'.format(img_result))
+        self.assertEqual(img_result, 'cat')
 
 
 if __name__ == '__main__':

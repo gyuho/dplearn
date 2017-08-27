@@ -12,7 +12,7 @@ docker run \
   --net=host \
   --ulimit nofile=262144:262144 \
   gcr.io/gcp-dplearn/dplearn:latest-reverse-proxy \
-  /bin/sh -c "./scripts/run/reverse-proxy.sh"
+  /bin/sh -c "./scripts/docker/run/reverse-proxy.sh"
 
 <<COMMENT
 http://localhost:80

@@ -1,5 +1,5 @@
 ##########################
-# Last updated at 2017-08-25 18:59:27.963730649 -0700 PDT
+# Last updated at 2017-08-26 22:24:57.204725171 -0700 PDT
 FROM ubuntu:17.10
 ##########################
 
@@ -68,7 +68,7 @@ ADD ./package.json ${GOPATH}/src/github.com/gyuho/dplearn/package.json
 ADD ./proxy.config.json ${GOPATH}/src/github.com/gyuho/dplearn/proxy.config.json
 ADD ./yarn.lock ${GOPATH}/src/github.com/gyuho/dplearn/yarn.lock
 
-ADD ./scripts/run ${GOPATH}/src/github.com/gyuho/dplearn/scripts/run
+ADD ./scripts/docker/run ${GOPATH}/src/github.com/gyuho/dplearn/scripts/docker/run
 
 WORKDIR ${GOPATH}/src/github.com/gyuho/dplearn
 RUN go install -v ./cmd/backend-web-server \

@@ -22,7 +22,7 @@ docker run \
   --ulimit nofile=262144:262144 \
   --volume=${LOCAL_DIR}:/var/lib/etcd \
   gcr.io/gcp-dplearn/dplearn:latest-app \
-  /bin/sh -c "./scripts/run/app.sh"
+  /bin/sh -c "./scripts/docker/run/app.sh"
 
 <<COMMENT
 http://localhost:4200

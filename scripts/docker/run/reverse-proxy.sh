@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-if ! [[ "$0" =~ "./scripts/run/reverse-proxy.sh" ]]; then
+if ! [[ "$0" =~ "./scripts/docker/run/reverse-proxy.sh" ]]; then
   echo "must be run from repository root"
   exit 255
 fi

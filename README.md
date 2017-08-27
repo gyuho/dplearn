@@ -60,8 +60,12 @@ To run `dplearn` application (backend, web UI) on http://localhost:4200:
 
 ```bash
 ./scripts/docker/run-app.sh
-./scripts/docker/run-worker-python3-cpu.sh
 
+CATS_PARAM_PATH=/root/datasets/parameters-cats.npy \
+  ./scripts/docker/run-worker-python3-cpu.sh
+```
+
+```bash
 # to serve on port :80
 ./scripts/docker/run-reverse-proxy.sh
 ```
