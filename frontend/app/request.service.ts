@@ -78,7 +78,7 @@ export class BackendService implements OnDestroy {
   private errorFromServer = "";
   private mode = "Observable";
   private requestID: string;
-  private intervalSet: boolean;
+  private needInterval: boolean;
   private pollingHandler;
   private url: string;
 
@@ -89,14 +89,14 @@ export class BackendService implements OnDestroy {
   ) {
     this.inputValue = "";
     this.result = "Nothing to show yet...";
-    this.intervalSet = false;
+    this.needInterval = false;
 
     this.url = router.url;
   }
 
   public ngOnDestroy() {
     console.log("user left page; destroying!", this.url);
-    this.intervalSet = false;
+    this.needInterval = false;
     clearInterval(this.pollingHandler);
 
     const body = JSON.stringify(new Request(this.inputValue, false));
@@ -129,8 +129,8 @@ export class BackendService implements OnDestroy {
     this.requestID = resp.request_id;
 
     // set interval only after first response
-    if (!this.intervalSet) {
-      this.intervalSet = true;
+    if (this.needInterval) {
+      this.needInterval = false;
       this.pollingHandler = setInterval(() => this.fetchStatus(), 500);
     }
 
@@ -194,6 +194,8 @@ export class BackendService implements OnDestroy {
     const body = JSON.stringify(new Request(this.inputValue, true));
     const headers = new Headers({"Content-Type" : "application/json"});
     const options = new RequestOptions({headers});
+
+    this.needInterval = true;
 
     // this.http.post().map().catch() returns 'Observable<Item>'
     // which is non-blocking, 'subscribe' is the blocking operation
