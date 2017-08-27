@@ -66,5 +66,6 @@ sleep 5s
 
 ETCDCTL_API=3 /etcdctl --endpoints=localhost:22000 get "" --from-key
 
-python ./backend/worker/worker.py http://localhost:2200/cats-request/queue
+CATS_PARAM_PATH=./datasets/parameters-cats.npy \
+  python3 ./backend/worker/worker.py http://localhost:2200/cats-request/queue
 COMMENT

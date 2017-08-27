@@ -29,6 +29,13 @@ backend-web-server \
   -data-dir /tmp/etcd \
   -logtostderr=true
 
+yarn start-prod
+
+CATS_PARAM_PATH=./datasets/parameters-cats.npy \
+  python3 ./backend/worker/worker.py http://localhost:2200/cats-request/queue
+
+
+
 ETCDCTL_API=3 /opt/bin/etcdctl --endpoints=localhost:22000 get "" --from-key
 
 curl -L http://localhost:2200/cats-request/queue
