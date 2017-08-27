@@ -139,6 +139,9 @@ func (srv *Server) gcCache(period time.Duration) {
 		}
 
 		srv.requestCache.Range(func(k, v interface{}) bool {
+			if k == nil || v == nil {
+				return false
+			}
 			id := k.(string)
 			item := v.(*queue.Item)
 
