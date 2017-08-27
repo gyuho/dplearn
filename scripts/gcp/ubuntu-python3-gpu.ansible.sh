@@ -152,6 +152,7 @@ ExecStartPre=/usr/bin/docker pull gcr.io/gcp-dplearn/dplearn:latest-app
 ExecStart=/usr/bin/nvidia-docker run \
   --rm \
   --name app \
+  --volume=/tmp:/tmp \
   --volume=/var/lib/etcd:/var/lib/etcd \
   -p 4200:4200 \
   --ulimit nofile=262144:262144 \
@@ -188,6 +189,7 @@ ExecStart=/usr/bin/nvidia-docker run \
   --rm \
   --name worker \
   --env CATS_PARAM_PATH=/root/datasets/parameters-cats.npy \
+  --volume=/tmp:/tmp \
   --volume=/var/lib/etcd:/var/lib/etcd \
   --volume=/var/lib/keras/datasets:/root/.keras/datasets \
   --volume=/var/lib/keras/models:/root/.keras/models \
