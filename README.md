@@ -20,7 +20,7 @@ It is a set of small projects on [Deep Learning](https://en.wikipedia.org/wiki/D
 
 ### System Overview
 
-<img src="./architecture.png" alt="architecture" width="620">
+<img src="./dplearn-architecture.png" alt="dplearn-architecture" width="620">
 
 - [`frontend`](https://github.com/gyuho/dplearn/tree/master/frontend) implements user-facing UI, sends user requests to [`backend/*`](https://github.com/gyuho/dplearn/tree/master/backend).
 - [`backend/web`](https://github.com/gyuho/dplearn/tree/master/backend/web) schedules user requests on [`pkg/etcd-queue`](https://github.com/gyuho/dplearn/tree/master/pkg/etcd-queue).
@@ -36,7 +36,6 @@ Notes:
 - **Why etcd?** For [etcd Watch API](https://godoc.org/github.com/coreos/etcd/clientv3#Watcher). `pkg/etcd-queue` uses Watch to stream updates to `backend/worker` and `frontend`. This minimizes TCP socket creation and slow TCP starts (e.g. streaming vs. polling).
 
 This is a *proof-of-concept*. In production, I would use: [Tensorflow/serving](https://tensorflow.github.io/serving/) to serve the pre-trained models, distributed [`etcd`](https://github.com/coreos/etcd) for higher availability.
-
 
 [↑ top](#dplearn)
 <br><br>
@@ -54,14 +53,13 @@ DATASETS_DIR=./datasets \
 
 This persists trained model parameters on disk that can be loaded by workers later.
 
-TODO: demo...
+<img src="./dplearn-cats.gif" alt="dplearn-cats" width="620">
 
 Try other cat photos:
 
 - https://static.pexels.com/photos/54632/cat-animal-eyes-grey-54632.jpeg
 - https://static.pexels.com/photos/127028/pexels-photo-127028.jpeg
 - https://static.pexels.com/photos/126407/pexels-photo-126407.jpeg
-
 
 [↑ top](#dplearn)
 <br><br>
@@ -75,8 +73,10 @@ To run application (backend, web UI) locally, on http://localhost:4200:
 ./scripts/docker/run-app.sh
 ./scripts/docker/run-worker-python3-cpu.sh
 
-# Optionally, to serve on port :80
-# ./scripts/docker/run-reverse-proxy.sh
+<<COMMENT
+# to serve on port :80
+./scripts/docker/run-reverse-proxy.sh
+COMMENT
 ```
 
 To run tests:
@@ -84,6 +84,8 @@ To run tests:
 ```bash
 ./scripts/tests/frontend.sh
 ./scripts/tests/go.sh
+
+go install -v ./cmd/backend-web-server
 
 DATASETS_DIR=./datasets \
   CATS_PARAM_PATH=./datasets/parameters-cats.npy \
@@ -110,7 +112,6 @@ GCP_KEY_PATH=/etc/gcp-key-dplearn.json ./scripts/gcp/ubuntu-python3-gpu.gcp.sh
 # to provision GPU, init system, reverse proxy, and others
 # (see ./scripts/gcp/ubuntu-python3-gpu.ansible.sh for more detail)
 ```
-
 
 [↑ top](#dplearn)
 <br><br>
