@@ -223,6 +223,8 @@ func queueHandler(ctx context.Context, w http.ResponseWriter, req *http.Request)
 			return json.NewEncoder(w).Encode(&queue.Item{Bucket: bucket, Progress: 0, Error: fmt.Sprintf("unknown request ID %q", item.RequestID)})
 		}
 		srv.requestCache.Store(item.RequestID, item)
+
+		glog.Infof("queue received POST on %q", item.RequestID)
 		return json.NewEncoder(w).Encode(&item)
 
 	default:

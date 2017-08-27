@@ -15,11 +15,11 @@ func generateUserID(req *http.Request) string {
 	}
 	ip = strings.TrimSpace(strings.Replace(ip, ".", "", -1))
 	ua := req.UserAgent()
-	return fmt.Sprintf("%s_%s_%s", ip, classifyUA(ua), hashSha512(ip + ua)[:30])
+	return fmt.Sprintf("%s%s%s", ip, classifyUA(ua), hashSha512(ip + ua)[:30])
 }
 
 func generateRequestID(urlPath, userID, data string) string {
-	return fmt.Sprintf("%s-%s-%s", urlPath, userID, hashSha512(data))
+	return fmt.Sprintf("%s-%s-%s", urlPath, userID[:5], hashSha512(data)[:7])
 }
 
 func getRealIP(req *http.Request) string {
