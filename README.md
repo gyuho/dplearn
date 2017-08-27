@@ -38,6 +38,10 @@ Notes:
 In production, I would use: [Tensorflow/serving](https://tensorflow.github.io/serving/) to serve the pre-trained models, distributed [`etcd`](https://github.com/coreos/etcd) for higher availability.
 
 
+[↑ top](#dplearn)
+<br><br>
+
+
 ### Cats vs. Non-Cat
 
 To train `cats` model:
@@ -53,6 +57,10 @@ Try other cat photos:
 - https://static.pexels.com/photos/54632/cat-animal-eyes-grey-54632.jpeg
 - https://static.pexels.com/photos/127028/pexels-photo-127028.jpeg
 - https://static.pexels.com/photos/126407/pexels-photo-126407.jpeg
+
+
+[↑ top](#dplearn)
+<br><br>
 
 
 ### Workflow
@@ -100,6 +108,10 @@ GCP_KEY_PATH=/etc/gcp-key-dplearn.json ./scripts/gcp/ubuntu-python3-gpu.gcp.sh
 ```
 
 
+[↑ top](#dplearn)
+<br><br>
+
+
 ### Other
 
 To update dependencies:
@@ -125,3 +137,6 @@ To build Docker container images:
 ./scripts/docker/build-r.sh
 ./scripts/docker/build-reverse-proxy.sh
 ```
+
+[↑ top](#dplearn)
+<br><br>
