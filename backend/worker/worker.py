@@ -4,7 +4,6 @@
 
 from __future__ import print_function
 
-import copy
 import json
 import os
 import os.path
@@ -108,23 +107,12 @@ if __name__ == "__main__":
 
     log.info("starting worker on {0}".format(EP))
 
-    PREV_ITEM = None
     while True:
         ITEM = fetch_item(EP)
         if ITEM['error'] not in ['', u'']:
             log.warning(ITEM['error'])
             time.sleep(5)
             continue
-
-        # in case previous post request is
-        # not processed yet in backend
-        if ITEM == PREV_ITEM:
-            log.warning('duplicate: {0} == prev {1}?'.format(ITEM, PREV_ITEM))
-            time.sleep(5)
-            continue
-
-        # for future comparison
-        PREV_ITEM = copy.deepcopy(ITEM)
 
         if ITEM['bucket'] == '/cats-request':
             IMAGE_PATH = ITEM['value']
