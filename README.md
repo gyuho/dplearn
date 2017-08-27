@@ -31,11 +31,11 @@ It is a set of small projects on [Deep Learning](https://en.wikipedia.org/wiki/D
 
 Notes:
 
-- **Why is the queue service needed?** To process concurrent users requests. Worker has limited resources. Requests can be serialized into the queue, so that worker performance is maximized for each task.
+- **Why is the queue service needed?** To process concurrent users requests. Since worker has limited resources, requests has to be serialized into the queue.
 - **Why Go?** To natively use [`embedded etcd`](https://github.com/coreos/etcd/tree/master/embed).
-- **Why etcd?** It has *really great* [Watch API implementation](https://godoc.org/github.com/coreos/etcd/clientv3#Watcher). `pkg/etcd-queue` uses Watch API to stream updates to `backend/worker` and `frontend`. This minimizes TCP socket creation and slow TCP starts (e.g. streaming vs. polling).
+- **Why etcd?** For [etcd Watch API](https://godoc.org/github.com/coreos/etcd/clientv3#Watcher). `pkg/etcd-queue` uses Watch to stream updates to `backend/worker` and `frontend`. This minimizes TCP socket creation and slow TCP starts (e.g. streaming vs. polling).
 
-In production, I would use: [Tensorflow/serving](https://tensorflow.github.io/serving/) to serve the pre-trained models, distributed [`etcd`](https://github.com/coreos/etcd) for higher availability.
+This is a *proof-of-concept*. In production, I would use: [Tensorflow/serving](https://tensorflow.github.io/serving/) to serve the pre-trained models, distributed [`etcd`](https://github.com/coreos/etcd) for higher availability.
 
 
 [↑ top](#dplearn)
@@ -44,13 +44,17 @@ In production, I would use: [Tensorflow/serving](https://tensorflow.github.io/se
 
 ### Cats vs. Non-Cat
 
-To train `cats` model:
+To train `cats` 5-layer Deep Neural Network model:
 
 ```bash
 DATASETS_DIR=./datasets \
   CATS_PARAM_PATH=./datasets/parameters-cats.npy \
   python3 -m unittest backend.worker.cats.model_test
 ```
+
+This persists trained model parameters on disk that can be loaded by workers later.
+
+TODO: demo...
 
 Try other cat photos:
 
