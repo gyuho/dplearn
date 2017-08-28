@@ -26,7 +26,6 @@ docker run \
   --net=host \
   --volume=${IMAGE_DIR}:/tmp \
   --volume=`pwd`/datasets:/root/datasets \
-  --volume=`pwd`/datasets:/root/datasets \
   --volume=${KERAS_DIR}/datasets:/root/.keras/datasets \
   --volume=${KERAS_DIR}/models:/root/.keras/models \
   gcr.io/gcp-dplearn/dplearn:latest-python3-cpu \

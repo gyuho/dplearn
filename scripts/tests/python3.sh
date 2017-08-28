@@ -6,11 +6,6 @@ if ! [[ "$0" =~ "./scripts/tests/python3.sh" ]]; then
   exit 255
 fi
 
-if [[ -z "${ETCD_EXEC}" ]]; then
-  echo ETCD_EXEC is not defined!
-  exit 255
-fi
-
 if [[ "${DATASETS_DIR}" ]]; then
   echo DATASETS_DIR is defined: \""${DATASETS_DIR}"\"
 else
@@ -25,16 +20,6 @@ else
   exit 255
 fi
 
-if [[ "${SERVER_EXEC}" ]]; then
-  echo SERVER_EXEC is defined: \""${SERVER_EXEC}"\"
-else
-  echo SERVER_EXEC is not defined!
-  exit 255
-fi
-
-echo "Running backend.etcd-python.etcd_test"
-ETCD_EXEC=${ETCD_EXEC} python3 -m unittest backend.etcd-python.etcd_test
-
 echo "Running backend.worker.cats"
 DATASETS_DIR=${DATASETS_DIR} python3 -m unittest backend.worker.cats.data_test
 python3 -m unittest backend.worker.cats.initialize_test
@@ -42,9 +27,22 @@ python3 -m unittest backend.worker.cats.propagate_test
 DATASETS_DIR=${DATASETS_DIR} CATS_PARAM_PATH=${CATS_PARAM_PATH} python3 -m unittest backend.worker.cats.model_test
 DATASETS_DIR=${DATASETS_DIR} CATS_PARAM_PATH=${CATS_PARAM_PATH} python3 -m unittest backend.worker.cats_test
 
-echo "Running backend.worker.worker_test"
-go install -v ./cmd/backend-web-server
-SERVER_EXEC=${SERVER_EXEC} python3 -m unittest backend.worker.worker_test
+if [[ "${SERVER_EXEC}" ]]; then
+  echo SERVER_EXEC is defined: \""${SERVER_EXEC}"\"
+  echo "Running backend.worker.worker_test"
+  go install -v ./cmd/backend-web-server
+  SERVER_EXEC=${SERVER_EXEC} python3 -m unittest backend.worker.worker_test
+else
+  echo SERVER_EXEC is not defined!
+fi
+
+if [[ "${ETCD_EXEC}" ]]; then
+  echo ETCD_EXEC is defined: \""${ETCD_EXEC}"\"
+  echo "Running backend.etcd-python.etcd_test"
+  ETCD_EXEC=${ETCD_EXEC} python3 -m unittest backend.etcd-python.etcd_test
+else
+  echo ETCD_EXEC is not defined!
+fi
 
 <<COMMENT
 DATASETS_DIR=./datasets python3 -m unittest backend.worker.cats.data_test

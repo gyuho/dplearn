@@ -1,5 +1,5 @@
 ##########################
-# Last updated at 2017-08-27 02:44:54.7271248 -0700 PDT
+# Last updated at 2017-08-27 22:09:32.391465352 -0700 PDT
 FROM ubuntu:17.10
 ##########################
 
@@ -53,7 +53,9 @@ RUN rm -rf ${GOROOT} \
 
 ##########################
 # Clone source code, static assets
+# start at repository root
 RUN mkdir -p ${GOPATH}/src/github.com/gyuho/dplearn
+WORKDIR ${GOPATH}/src/github.com/gyuho/dplearn
 
 ADD ./cmd ${GOPATH}/src/github.com/gyuho/dplearn/cmd
 ADD ./backend ${GOPATH}/src/github.com/gyuho/dplearn/backend
@@ -69,8 +71,8 @@ ADD ./proxy.config.json ${GOPATH}/src/github.com/gyuho/dplearn/proxy.config.json
 ADD ./yarn.lock ${GOPATH}/src/github.com/gyuho/dplearn/yarn.lock
 
 ADD ./scripts/docker/run ${GOPATH}/src/github.com/gyuho/dplearn/scripts/docker/run
+ADD ./scripts/tests ${GOPATH}/src/github.com/gyuho/dplearn/scripts/tests
 
-WORKDIR ${GOPATH}/src/github.com/gyuho/dplearn
 RUN go install -v ./cmd/backend-web-server \
   && go install -v ./cmd/gen-package-json
 ##########################

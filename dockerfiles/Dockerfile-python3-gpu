@@ -101,6 +101,7 @@ root = /usr/local/cuda\n'\
 ADD ./datasets/parameters-cats.npy /root/datasets/parameters-cats.npy
 ADD ./backend ${ROOT_DIR}/backend
 ADD ./scripts/docker/run ${ROOT_DIR}/scripts/docker/run
+ADD ./scripts/tests ${ROOT_DIR}/scripts/tests
 ##########################
 
 ##########################

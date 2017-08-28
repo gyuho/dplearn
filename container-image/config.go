@@ -207,7 +207,9 @@ RUN rm -rf ${GOROOT} \
 
 ##########################
 # Clone source code, static assets
+# start at repository root
 RUN mkdir -p ${GOPATH}/src/github.com/gyuho/dplearn
+WORKDIR ${GOPATH}/src/github.com/gyuho/dplearn
 
 ADD ./cmd ${GOPATH}/src/github.com/gyuho/dplearn/cmd
 ADD ./backend ${GOPATH}/src/github.com/gyuho/dplearn/backend
@@ -223,8 +225,8 @@ ADD ./proxy.config.json ${GOPATH}/src/github.com/gyuho/dplearn/proxy.config.json
 ADD ./yarn.lock ${GOPATH}/src/github.com/gyuho/dplearn/yarn.lock
 
 ADD ./scripts/docker/run ${GOPATH}/src/github.com/gyuho/dplearn/scripts/docker/run
+ADD ./scripts/tests ${GOPATH}/src/github.com/gyuho/dplearn/scripts/tests
 
-WORKDIR ${GOPATH}/src/github.com/gyuho/dplearn
 RUN go install -v ./cmd/backend-web-server \
   && go install -v ./cmd/gen-package-json
 ##########################
@@ -545,6 +547,7 @@ root = /usr/local/cuda\n'\
 ADD ./datasets/parameters-cats.npy /root/datasets/parameters-cats.npy
 ADD ./backend ${ROOT_DIR}/backend
 ADD ./scripts/docker/run ${ROOT_DIR}/scripts/docker/run
+ADD ./scripts/tests ${ROOT_DIR}/scripts/tests
 ##########################
 
 ##########################
