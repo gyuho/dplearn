@@ -57,6 +57,10 @@ DATASETS_DIR=./datasets \
 
 DATASETS_DIR=./datasets \
   CATS_PARAM_PATH=./datasets/parameters-cats.npy \
+  ./scripts/tests/python3.sh
+
+DATASETS_DIR=./datasets \
+  CATS_PARAM_PATH=./datasets/parameters-cats.npy \
   ETCD_EXEC=/opt/bin/etcd \
   SERVER_EXEC=${GOPATH}/bin/backend-web-server \
   ./scripts/tests/python3.sh

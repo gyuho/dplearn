@@ -1,5 +1,5 @@
 ##########################
-# Last updated at 2017-08-27 22:18:04.658076409 -0700 PDT
+# Last updated at 2017-08-27 22:23:32.138225197 -0700 PDT
 # https://hub.docker.com/_/nginx/
 FROM nginx:alpine
 ##########################

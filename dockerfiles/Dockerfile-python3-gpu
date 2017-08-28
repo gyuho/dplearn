@@ -43,6 +43,8 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
   python-dev \
   python3-pip \
   libhdf5-dev \
+  python-tk \
+  python3-tk \
   && echo "root ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers \
   && apt-get -y clean \
   && rm -rf /var/lib/apt/lists/* \
