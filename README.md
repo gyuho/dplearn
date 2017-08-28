@@ -13,7 +13,6 @@ It is a set of small projects on [Deep Learning](https://en.wikipedia.org/wiki/D
 - [System Overview](#system-overview)
 - [Cats vs. Non-Cat](#cats-vs-non-cat)
 - [Workflow](#workflow)
-- [Other](#other)
 
 <br><br>
 
@@ -78,6 +77,30 @@ Open http://localhost:4200/cats and try other cat photos:
 - https://static.pexels.com/photos/126407/pexels-photo-126407.jpeg
 - https://static.pexels.com/photos/54632/cat-animal-eyes-grey-54632.jpeg
 
+To update dependencies:
+
+```bash
+./scripts/dep/go.sh
+./scripts/dep/frontend.sh
+```
+
+To update [`Dockerfile`](./dockerfiles):
+
+```bash
+# update 'container.yaml' and then
+./scripts/docker/gen.sh
+```
+
+To build Docker container images:
+
+```bash
+./scripts/docker/build-app.sh
+./scripts/docker/build-python3-cpu.sh
+./scripts/docker/build-python3-gpu.sh
+./scripts/docker/build-r.sh
+./scripts/docker/build-reverse-proxy.sh
+```
+
 To run tests:
 
 ```bash
@@ -117,36 +140,6 @@ GCP_KEY_PATH=/etc/gcp-key-dplearn.json ./scripts/gcp/ubuntu-python3-gpu.gcp.sh
 # create a Google Cloud Platform Compute Engine VM with a start-up script
 # to provision GPU, init system, reverse proxy, and others
 # (see ./scripts/gcp/ubuntu-python3-gpu.ansible.sh for more detail)
-```
-
-[↑ top](#dplearn)
-<br><br>
-
-
-### Other
-
-To update dependencies:
-
-```bash
-./scripts/dep/go.sh
-./scripts/dep/frontend.sh
-```
-
-To update [`Dockerfile`](./dockerfiles):
-
-```bash
-# update 'container.yaml' and then
-./scripts/docker/gen.sh
-```
-
-To build Docker container images:
-
-```bash
-./scripts/docker/build-app.sh
-./scripts/docker/build-python3-cpu.sh
-./scripts/docker/build-python3-gpu.sh
-./scripts/docker/build-r.sh
-./scripts/docker/build-reverse-proxy.sh
 ```
 
 [↑ top](#dplearn)
