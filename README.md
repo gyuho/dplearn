@@ -93,6 +93,13 @@ DATASETS_DIR=./datasets \
   ./scripts/tests/python3.sh
 ```
 
+To run tests in container:
+
+```bash
+./scripts/docker/test-app.sh
+./scripts/docker/test-python3-cpu.sh
+```
+
 To run [IPython Notebook](https://ipython.org) locally, on http://localhost:8888/tree:
 
 ```bash
