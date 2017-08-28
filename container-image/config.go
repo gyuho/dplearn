@@ -304,14 +304,13 @@ RUN rm -rf ${GOROOT} \
 ##########################
 # Clone source code, static assets
 RUN mkdir -p ${GOPATH}/src/github.com/gyuho/dplearn
+WORKDIR ${GOPATH}/src/github.com/gyuho/dplearn
 
 ADD ./cmd ${GOPATH}/src/github.com/gyuho/dplearn/cmd
 ADD ./backend ${GOPATH}/src/github.com/gyuho/dplearn/backend
 ADD ./pkg ${GOPATH}/src/github.com/gyuho/dplearn/pkg
 ADD ./vendor ${GOPATH}/src/github.com/gyuho/dplearn/vendor
 ADD ./scripts/docker/run ${GOPATH}/src/github.com/gyuho/dplearn/scripts/docker/run
-
-WORKDIR ${GOPATH}/src/github.com/gyuho/dplearn
 
 RUN go install -v ./cmd/gen-nginx-conf
 ##########################
