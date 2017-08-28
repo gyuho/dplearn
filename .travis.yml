@@ -5,9 +5,10 @@ sudo: required
 services:
 - docker
 
-# set DOCKER_BASE in travis
 before_install:
-- docker pull ${DOCKER_BASE}
+- docker pull gcr.io/gcp-dplearn/dplearn:latest-app
+- docker pull gcr.io/gcp-dplearn/dplearn:latest-python3-cpu
 
 script:
-- ./scripts/tests/docker-cpu.sh
+- ./scripts/docker/test-app.sh
+- ./scripts/docker/test-python3-cpu.sh
