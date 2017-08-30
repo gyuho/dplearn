@@ -2,9 +2,9 @@
 # yarn lockfile v1
 
 
-"@angular-devkit/build-optimizer@0.0.13":
-  version "0.0.13"
-  resolved "https://registry.yarnpkg.com/@angular-devkit/build-optimizer/-/build-optimizer-0.0.13.tgz#cf397af76abe899aa909d4a735106694ca1f08cf"
+"@angular-devkit/build-optimizer@~0.0.15":
+  version "0.0.16"
+  resolved "https://registry.yarnpkg.com/@angular-devkit/build-optimizer/-/build-optimizer-0.0.16.tgz#d7eb151e42dd8b22ba8972334e8d22659c60fc58"
   dependencies:
     loader-utils "^1.1.0"
     source-map "^0.5.6"
@@ -29,20 +29,20 @@
   dependencies:
     tslib "^1.7.1"
 
-"@angular/cdk@2.0.0-beta.8":
-  version "2.0.0-beta.8"
-  resolved "https://registry.yarnpkg.com/@angular/cdk/-/cdk-2.0.0-beta.8.tgz#71961c851dfbeb19e085e898bf5e4461408f8b57"
+"@angular/cdk@2.0.0-beta.10":
+  version "2.0.0-beta.10"
+  resolved "https://registry.yarnpkg.com/@angular/cdk/-/cdk-2.0.0-beta.10.tgz#7ffcc430d6f67dfde1df25e1fa693c188e4da08a"
   dependencies:
     tslib "^1.7.1"
 
-"@angular/cli@1.4.0-rc.1":
-  version "1.4.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@angular/cli/-/cli-1.4.0-rc.1.tgz#a4b701433dbcb8512d595abab79d7ceaf367303c"
+"@angular/cli@1.4.0-rc.2":
+  version "1.4.0-rc.2"
+  resolved "https://registry.yarnpkg.com/@angular/cli/-/cli-1.4.0-rc.2.tgz#0859aa8a622dfb529484a356f18ff27e7f18a8b8"
   dependencies:
-    "@angular-devkit/build-optimizer" "0.0.13"
+    "@angular-devkit/build-optimizer" "~0.0.15"
     "@angular-devkit/schematics" "~0.0.18"
     "@ngtools/json-schema" "1.1.0"
-    "@ngtools/webpack" "1.7.0-rc.1"
+    "@ngtools/webpack" "1.7.0-rc.2"
     "@schematics/angular" "~0.0.30"
     autoprefixer "^6.5.3"
     chalk "^2.0.1"
@@ -136,9 +136,9 @@
   dependencies:
     tslib "^1.7.1"
 
-"@angular/material@2.0.0-beta.8":
-  version "2.0.0-beta.8"
-  resolved "https://registry.yarnpkg.com/@angular/material/-/material-2.0.0-beta.8.tgz#a92852abc9261aea26c2401f576645470be2cf38"
+"@angular/material@2.0.0-beta.10":
+  version "2.0.0-beta.10"
+  resolved "https://registry.yarnpkg.com/@angular/material/-/material-2.0.0-beta.10.tgz#23f5887d5e34da89dd6da1fe4da0b3f779da4807"
   dependencies:
     tslib "^1.7.1"
 
@@ -176,9 +176,9 @@
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@ngtools/json-schema/-/json-schema-1.1.0.tgz#c3a0c544d62392acc2813a42c8a0dc6f58f86922"
 
-"@ngtools/webpack@1.7.0-rc.1":
-  version "1.7.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@ngtools/webpack/-/webpack-1.7.0-rc.1.tgz#bb060510b90c9cad129f92abf94d57776a77ecde"
+"@ngtools/webpack@1.7.0-rc.2":
+  version "1.7.0-rc.2"
+  resolved "https://registry.yarnpkg.com/@ngtools/webpack/-/webpack-1.7.0-rc.2.tgz#39e207d5e33a275d5c310ea8fb8b58c5be98270b"
   dependencies:
     enhanced-resolve "^3.1.0"
     loader-utils "^1.0.2"
