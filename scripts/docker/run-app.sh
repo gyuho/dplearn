@@ -35,7 +35,7 @@ docker run \
 http://localhost:4200
 
 
-curl -L http://localhost:2200/health
+curl -L http://localhost:2200/healthz
 
 docker run \
   --rm \
@@ -43,6 +43,6 @@ docker run \
   --net=host \
   gcr.io/gcp-dplearn/dplearn:latest-app \
   /bin/sh -c "
-curl -L http://localhost:2200/health
+curl -L http://localhost:2200/healthz
 "
 COMMENT

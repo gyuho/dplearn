@@ -38,7 +38,7 @@ docker run \
   --net=host \
   gcr.io/gcp-dplearn/dplearn:latest-python3-cpu \
   /bin/sh -c "
-curl -L http://localhost:2200/health
+curl -L http://localhost:2200/healthz
 "
 
 rm -rf /tmp/etcd

@@ -82,9 +82,13 @@ func StartServer(scheme, hostPort string, qu queue.Queue) (*Server, error) {
 	cache := lru.NewInMemory(imageCacheSize)
 	cache.CreateNamespace(imageCacheBucket)
 
-	mux.Handle("/health", &ContextAdapter{
-		ctx:     rootCtx,
-		handler: ContextHandlerFunc(healthHandler),
+	mux.Handle("/healthz", &ContextAdapter{
+		ctx: rootCtx,
+		handler: ContextHandlerFunc(func(ctx context.Context, w http.ResponseWriter, req *http.Request) error {
+			w.WriteHeader(200)
+			w.Write([]byte("ok"))
+			return nil
+		}),
 	})
 	mux.Handle("/cats-request", &ContextAdapter{
 		ctx:     rootCtx,
@@ -186,11 +190,6 @@ func (srv *Server) Stop() error {
 // StopNotify returns receive-only stop channel to notify the server has stopped.
 func (srv *Server) StopNotify() <-chan struct{} {
 	return srv.donec
-}
-
-func healthHandler(ctx context.Context, w http.ResponseWriter, req *http.Request) error {
-	w.Write([]byte("1"))
-	return nil
 }
 
 func queueHandler(ctx context.Context, w http.ResponseWriter, req *http.Request) error {
