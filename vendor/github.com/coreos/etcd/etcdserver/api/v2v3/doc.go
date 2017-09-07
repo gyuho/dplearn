@@ -1,4 +1,4 @@
-// Copyright 2016 The etcd Authors
+// Copyright 2017 The etcd Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,5 +12,5 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package lease provides an interface and implementation for time-limited leases over arbitrary resources.
-package lease
+// Package v2v3 provides a ServerV2 implementation backed by clientv3.Client.
+package v2v3
