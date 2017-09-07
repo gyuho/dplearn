@@ -1,5 +1,5 @@
 ##########################
-# Last updated at 2017-09-07 10:44:44.231531611 -0700 PDT
+# Last updated at 2017-09-07 11:10:00.884481307 -0700 PDT
 FROM ubuntu:17.10
 ##########################
 
@@ -82,7 +82,7 @@ RUN go install -v ./cmd/backend-web-server \
 # 'node' needs to be in $PATH for 'yarn start' command
 ENV NVM_DIR /usr/local/nvm
 RUN pushd ${GOPATH}/src/github.com/gyuho/dplearn \
-  && curl https://raw.githubusercontent.com/creationix/nvm/v0.33.2/install.sh | /bin/bash \
+  && curl https://raw.githubusercontent.com/creationix/nvm/v0.33.4/install.sh | /bin/bash \
   && echo "Running nvm scripts..." \
   && source $NVM_DIR/nvm.sh \
   && nvm ls-remote \
