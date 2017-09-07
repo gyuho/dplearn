@@ -2,7 +2,7 @@
 /.vscode
 /node_modules
 /backend-web-server
-/gen-package-json
+/gen-frontend-dep
 /vendor.orig
 
 /backend/etcd-python/*.pyc

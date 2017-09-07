@@ -13,8 +13,11 @@ COMMENT
 source ${NVM_DIR}/nvm.sh
 nvm install v8.4.0
 
-go install -v ./cmd/gen-package-json
-gen-package-json --output package.json --logtostderr
+go install -v ./cmd/gen-frontend-dep
+gen-frontend-dep \
+  -output-package-json package.json \
+  -output-angular-cli-json angular-cli.json \
+  -logtostderr
 
 echo "Updating frontend dependencies with 'yarn' and 'npm'..."
 rm -f ./package-lock.json

@@ -1,5 +1,5 @@
 ##########################
-# Last updated at 2017-08-27 22:23:32.138225197 -0700 PDT
+# Last updated at 2017-09-07 10:44:44.231531611 -0700 PDT
 FROM ubuntu:17.10
 ##########################
 
@@ -74,7 +74,7 @@ ADD ./scripts/docker/run ${GOPATH}/src/github.com/gyuho/dplearn/scripts/docker/r
 ADD ./scripts/tests ${GOPATH}/src/github.com/gyuho/dplearn/scripts/tests
 
 RUN go install -v ./cmd/backend-web-server \
-  && go install -v ./cmd/gen-package-json
+  && go install -v ./cmd/gen-frontend-dep
 ##########################
 
 ##########################

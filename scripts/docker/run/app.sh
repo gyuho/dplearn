@@ -13,7 +13,10 @@ backend-web-server \
   -data-dir /var/lib/etcd \
   -logtostderr=true  &
 
-gen-package-json -output package.json -logtostderr=true \
+gen-frontend-dep \
+  -output-package-json package.json \
+  -output-angular-cli-json angular-cli.json \
+  -logtostderr \
   && cat package.json \
   && yarn start-prod &
 

@@ -14,7 +14,8 @@ import (
 )
 
 func main() {
-	outputPath := flag.String("output", "package.json", "Specify package.json output file path.")
+	outputPathPackageJSON := flag.String("output-package-json", "package.json", "Specify package.json output file path.")
+	outputPathAngularCLIJSON := flag.String("output-angular-cli-json", "package.json", "Specify angular-cli.json output file path.")
 	flag.Parse()
 
 	cfg := configuration{
@@ -49,12 +50,23 @@ func main() {
 	if err := tp.Execute(buf, &cfg); err != nil {
 		glog.Fatal(err)
 	}
-	d := buf.Bytes()
-
-	if err := fileutil.WriteToFile(*outputPath, d); err != nil {
+	txt := buf.Bytes()
+	if err := fileutil.WriteToFile(*outputPathPackageJSON, txt); err != nil {
 		glog.Fatal(err)
 	}
-	glog.Infof("wrote %q", *outputPath)
+	glog.Infof("wrote %q", *outputPathPackageJSON)
+
+	buf.Reset()
+
+	tp = template.Must(template.New("tmplAngularCLIJSON").Parse(tmplAngularCLIJSON))
+	if err := tp.Execute(buf, &cfg); err != nil {
+		glog.Fatal(err)
+	}
+	txt = buf.Bytes()
+	if err := fileutil.WriteToFile(*outputPathAngularCLIJSON, txt); err != nil {
+		glog.Fatal(err)
+	}
+	glog.Infof("wrote %q", *outputPathAngularCLIJSON)
 }
 
 type configuration struct {
@@ -96,7 +108,7 @@ const tmplPackageJSON = `{
         "@angular/router": "5.0.0-beta.6",
         "@angular/tsc-wrapped": "5.0.0-beta.6",
         "@angular/upgrade": "5.0.0-beta.6",
-        "@angular/cli": "1.4.0-rc.2",
+        "@angular/cli": "1.4.0",
         "@angular/cdk": "2.0.0-beta.10",
         "@angular/material": "2.0.0-beta.10",
         "@types/angular": "1.6.32",
@@ -106,7 +118,7 @@ const tmplPackageJSON = `{
         "@types/angular-resource": "1.5.14",
         "@types/angular-route": "1.3.4",
         "@types/angular-sanitize": "1.3.6",
-        "@types/node": "8.0.26",
+        "@types/node": "8.0.27",
         "@types/hammerjs": "2.0.35",
         "@types/jasmine": "2.5.54",
         "core-js": "2.5.1",
@@ -135,5 +147,57 @@ const tmplPackageJSON = `{
         "type": "git"
     },
     "author": "Gyu-Ho Lee <gyuhox@gmail.com>"
+}
+`
+
+const tmplAngularCLIJSON = `{
+    "project": {
+        "version": "1.4.0",
+        "name": "app-dplearn"
+    },
+    "apps": [{
+        "root": "frontend",
+        "outDir": "dist",
+        "assets": [
+            "assets",
+            "favicon.ico"
+        ],
+        "index": "index.html",
+        "main": "main.ts",
+        "test": "test.ts",
+        "tsconfig": "tsconfig.json",
+        "prefix": "app",
+        "mobile": false,
+        "styles": [
+            "styles.css",
+            "app-dplearn-theme.scss"
+        ],
+        "scripts": [],
+        "environmentSource": "environments/environment.ts",
+        "environments": {
+            "prod": "environments/environment.prod.ts",
+            "dev": "environments/environment.dev.ts"
+        }
+    }],
+    "addons": [],
+    "packages": [],
+    "e2e": {
+        "protractor": {
+            "config": "./protractor.conf.js"
+        }
+    },
+    "test": {
+        "karma": {
+            "config": "./karma.conf.js"
+        }
+    },
+    "defaults": {
+        "styleExt": "css",
+        "prefixInterfaces": false,
+        "lazyRoutePrefix": "+",
+        "serve": {
+            "proxyConfig": "proxy.config.json"
+        }
+    }
 }
 `

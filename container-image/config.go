@@ -228,7 +228,7 @@ ADD ./scripts/docker/run ${GOPATH}/src/github.com/gyuho/dplearn/scripts/docker/r
 ADD ./scripts/tests ${GOPATH}/src/github.com/gyuho/dplearn/scripts/tests
 
 RUN go install -v ./cmd/backend-web-server \
-  && go install -v ./cmd/gen-package-json
+  && go install -v ./cmd/gen-frontend-dep
 ##########################
 
 ##########################
