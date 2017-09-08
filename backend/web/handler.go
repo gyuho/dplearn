@@ -86,7 +86,7 @@ func StartServer(scheme, hostPort string, qu queue.Queue) (*Server, error) {
 		ctx: rootCtx,
 		handler: ContextHandlerFunc(func(ctx context.Context, w http.ResponseWriter, req *http.Request) error {
 			w.WriteHeader(200)
-			w.Write([]byte("ok"))
+			w.Write([]byte("OK"))
 			return nil
 		}),
 	})
