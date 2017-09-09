@@ -35,9 +35,9 @@
   dependencies:
     tslib "^1.7.1"
 
-"@angular/cli@1.4.0":
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/@angular/cli/-/cli-1.4.0.tgz#c7b6f87c793e8147a4a4f5b472245b942be10556"
+"@angular/cli@1.4.1":
+  version "1.4.1"
+  resolved "https://registry.yarnpkg.com/@angular/cli/-/cli-1.4.1.tgz#3999b93385c87b7c8d1511131c21280ba0e2cf12"
   dependencies:
     "@angular-devkit/build-optimizer" "~0.0.18"
     "@angular-devkit/schematics" "~0.0.21"
@@ -243,9 +243,9 @@
   version "2.5.54"
   resolved "https://registry.yarnpkg.com/@types/jasmine/-/jasmine-2.5.54.tgz#a6b5f2ae2afb6e0307774e8c7c608e037d491c63"
 
-"@types/node@8.0.27":
-  version "8.0.27"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-8.0.27.tgz#13fbe7e92afeecebb843d7cea6c15b521e0000e1"
+"@types/node@8.0.28":
+  version "8.0.28"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-8.0.28.tgz#86206716f8d9251cf41692e384264cbd7058ad60"
 
 "@types/node@^6.0.46":
   version "6.0.46"
