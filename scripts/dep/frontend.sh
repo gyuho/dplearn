@@ -11,7 +11,7 @@ SKIP_REBUILD=1 ./scripts/dep/frontend.sh
 COMMENT
 
 source ${NVM_DIR}/nvm.sh
-nvm install v8.4.0
+nvm install v8.5.0
 
 go install -v ./cmd/gen-frontend-dep
 gen-frontend-dep \
@@ -31,8 +31,8 @@ else
 fi
 npm install
 
-nvm install v8.4.0
-nvm alias default 8.4.0
+nvm install v8.5.0
+nvm alias default 8.5.0
 nvm alias default node
 which node
 node -v
