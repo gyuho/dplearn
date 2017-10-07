@@ -108,7 +108,7 @@ const tmplPackageJSON = `{
         "@angular/router": "5.0.0-beta.7",
         "@angular/tsc-wrapped": "5.0.0-beta.7",
         "@angular/upgrade": "5.0.0-beta.7",
-        "@angular/cli": "1.4.3",
+        "@angular/cli": "1.5.0-beta.4",
         "@angular/cdk": "2.0.0-beta.10",
         "@angular/material": "2.0.0-beta.10",
         "@types/angular": "1.6.32",
@@ -118,15 +118,15 @@ const tmplPackageJSON = `{
         "@types/angular-resource": "1.5.14",
         "@types/angular-route": "1.3.4",
         "@types/angular-sanitize": "1.3.6",
-        "@types/node": "8.0.30",
+        "@types/node": "8.0.33",
         "@types/hammerjs": "2.0.35",
         "@types/jasmine": "2.6.0",
         "core-js": "2.5.1",
         "rxjs": "5.4.3",
-        "typescript": "2.5.2",
+        "typescript": "2.5.3",
         "ts-node": "3.3.0",
         "ts-helpers": "1.1.2",
-        "zone.js": "0.8.17"
+        "zone.js": "0.8.18"
     },
     "devDependencies": {
         "codelyzer": "3.2.0",
@@ -152,7 +152,7 @@ const tmplPackageJSON = `{
 
 const tmplAngularCLIJSON = `{
     "project": {
-        "version": "1.4.3",
+        "version": "1.5.0-beta.4",
         "name": "app-dplearn"
     },
     "apps": [{
