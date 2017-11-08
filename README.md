@@ -2,7 +2,7 @@
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/gyuho/dplearn?style=flat-square)](https://goreportcard.com/report/github.com/gyuho/dplearn)
 [![Build Status](https://img.shields.io/travis/gyuho/dplearn.svg?style=flat-square)](https://travis-ci.org/gyuho/dplearn)
-[![Godoc](https://img.shields.io/badge/go-documentation-blue.svg?style=flat-square)](https://godoc.org/github.com/gyuho/etcdlabs)
+[![Godoc](https://img.shields.io/badge/go-documentation-blue.svg?style=flat-square)](https://godoc.org/github.com/gyuho/dplearn)
 
 Learn Deep Learning The Hard Way.
 
