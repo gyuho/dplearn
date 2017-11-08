@@ -6,8 +6,8 @@ services:
 - docker
 
 before_install:
-- docker pull gcr.io/gcp-dplearn/dplearn:latest-app
-- docker pull gcr.io/gcp-dplearn/dplearn:latest-python3-cpu
+- ./scripts/docker/build-app.sh
+- ./scripts/docker/build-python3-cpu.sh
 
 script:
 - ./scripts/docker/test-app.sh
