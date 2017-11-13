@@ -15,9 +15,8 @@
 package grpcproxy
 
 import (
+	"context"
 	"io"
-
-	"golang.org/x/net/context"
 
 	"github.com/coreos/etcd/clientv3"
 	pb "github.com/coreos/etcd/etcdserver/etcdserverpb"
@@ -42,6 +41,8 @@ func (mp *maintenanceProxy) Snapshot(sr *pb.SnapshotRequest, stream pb.Maintenan
 	conn := mp.client.ActiveConnection()
 	ctx, cancel := context.WithCancel(stream.Context())
 	defer cancel()
+
+	ctx = withClientAuthToken(ctx, stream.Context())
 
 	sc, err := pb.NewMaintenanceClient(conn).Snapshot(ctx, sr)
 	if err != nil {
