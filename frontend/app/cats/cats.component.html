@@ -1,8 +1,8 @@
 <!-- TODO: add word predict -->
-<!-- <md-form-field class="input-full-width">
-    <textarea mdInput type="text" #inputText maxlength="200" mdAutosizeMinRows="5" placeholder="Type texts..." [(ngModel)]="backendService.inputValue"></textarea>
-    <md-hint align="end">{{inputText.value.length}} / 200</md-hint>
-</md-form-field> -->
+<!-- <mat-form-field class="input-full-width">
+    <textarea matInput type="text" #inputText maxlength="200" matAutosizeMinRows="5" placeholder="Type texts..." [(ngModel)]="backendService.inputValue"></textarea>
+    <mat-hint align="end">{{inputText.value.length}} / 200</mat-hint>
+</mat-form-field> -->
 
 <div class="cats-group">
     <section class="more-about">
@@ -13,22 +13,22 @@
                     Cats vs. Non-cat classifier using 5-layer neural networks. Input any cat photo URL and hit "Run" button. Backend server downloads image, scheduling on the queue. Worker preprocesses/classifies image, and returns result to the user.
                 </p>
                 <br>
-                <md-form-field class="input-full-width">
-                    <input mdInput type="text" #inputText maxlength="300" placeholder="Type URL" [(ngModel)]="backendService.inputValue">
-                    <md-hint align="end">{{inputText.value.length}} / 300</md-hint>
-                </md-form-field>
+                <mat-form-field class="input-full-width">
+                    <input matInput type="text" #inputText maxlength="300" placeholder="Type URL" [(ngModel)]="backendService.inputValue">
+                    <mat-hint align="end">{{inputText.value.length}} / 300</mat-hint>
+                </mat-form-field>
                 <br>
-                <button md-button color="primary" class="cats-button" (click)="backendService.clickPOST();">Run</button>
+                <button mat-button color="primary" class="cats-button" (click)="backendService.clickPOST();">Run</button>
             </div>
             <div class="block block-copy half">
                 <p>
                     <img src="{{backendService.inputValue}}" alt="user input image" height="100" width="100">
                 </p>
                 <p>
-                    <md-progress-spinner *ngIf="backendService.progress === 0" [color]="backendService.spinnerColor" [mode]="backendService.spinnerMode"></md-progress-spinner>
-                    <md-chip-list *ngIf="backendService.progress === 100">
-                        <md-chip color="primary" selected="true">Done!</md-chip>
-                    </md-chip-list>
+                    <mat-progress-spinner *ngIf="backendService.progress === 0" [color]="backendService.spinnerColor" [mode]="backendService.spinnerMode"></mat-progress-spinner>
+                    <mat-chip-list *ngIf="backendService.progress === 100">
+                        <mat-chip color="primary" selected="true">Done!</mat-chip>
+                    </mat-chip-list>
                     <br>
                     {{backendService.result}}
                 </p>

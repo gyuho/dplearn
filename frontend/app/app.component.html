@@ -1,10 +1,10 @@
-<md-toolbar color="primary">
-    <a routerLink="/home"><button md-button>Home</button></a>
-    <a routerLink="/cats"><button md-button>Cats</button></a>
-    <button md-button [mdMenuTriggerFor]="menu">More</button>
-    <md-menu #menu="mdMenu">
-        <a href="https://github.com/gyuho/dplearn/tree/master/notebooks" target="_blank"><button md-menu-item>Practice Notebooks</button></a>
-    </md-menu>
-    <a href="https://github.com/gyuho/dplearn" target="_blank"><button md-button>Code</button></a>
-</md-toolbar>
+<mat-toolbar color="primary">
+    <a routerLink="/home"><button mat-button>Home</button></a>
+    <a routerLink="/cats"><button mat-button>Cats</button></a>
+    <button mat-button [matMenuTriggerFor]="menu">More</button>
+    <mat-menu #menu="matMenu">
+        <a href="https://github.com/gyuho/dplearn/tree/master/notebooks" target="_blank"><button mat-menu-item>Practice Notebooks</button></a>
+    </mat-menu>
+    <a href="https://github.com/gyuho/dplearn" target="_blank"><button mat-button>Code</button></a>
+</mat-toolbar>
 <router-outlet></router-outlet>
