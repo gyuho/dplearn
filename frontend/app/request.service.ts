@@ -14,9 +14,8 @@ import {
   Router,
 } from "@angular/router";
 
-import {
-  Observable,
-} from "rxjs/Rx";
+import { Observable } from "rxjs";
+import "rxjs/Rx";
 
 import {
   MatSnackBar,
