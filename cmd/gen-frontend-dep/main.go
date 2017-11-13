@@ -152,7 +152,7 @@ const tmplPackageJSON = `{
 
 const tmplAngularCLIJSON = `{
     "project": {
-        "version": "1.5.0-beta.4",
+        "version": "1.5.0",
         "name": "app-dplearn"
     },
     "apps": [{
