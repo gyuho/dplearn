@@ -5,9 +5,9 @@
 # https://nodejs.org/download/release/
 # https://github.com/fchollet/keras/releases
 
-go-version: 1.9.1
-nvm-version: 0.33.5
-node-version: 8.7.0
+go-version: 1.9.2
+nvm-version: 0.33.6
+node-version: 8.9.1
 tensorflow-base-image: gcr.io/tensorflow/tensorflow:1.3.0
 dockerfiles-base-dir: ./dockerfiles
 keras-version: 2.0.8
