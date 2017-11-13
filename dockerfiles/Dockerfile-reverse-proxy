@@ -1,5 +1,5 @@
 ##########################
-# Last updated at 2017-10-05 03:02:38.704532 -0700 PDT
+# Last updated at 2017-11-12 22:39:17.797744 -0800 PST
 # https://hub.docker.com/_/nginx/
 FROM nginx:alpine
 ##########################
@@ -31,7 +31,7 @@ RUN set -ex \
 ENV GOROOT /usr/local/go
 ENV GOPATH /gopath
 ENV PATH ${GOPATH}/bin:${GOROOT}/bin:${PATH}
-ENV GO_VERSION 1.9.1
+ENV GO_VERSION 1.9.2
 ENV GO_DOWNLOAD_URL https://storage.googleapis.com/golang
 RUN rm -rf ${GOROOT} \
   && mkdir /lib64 && ln -s /lib/libc.musl-x86_64.so.1 /lib64/ld-linux-x86-64.so.2 \
