@@ -19,7 +19,7 @@ import {
 } from "rxjs/Rx";
 
 import {
-  MdSnackBar,
+  MatSnackBar,
 } from "@angular/material";
 
 // Request represents TypeScript version of Request in https://github.com/gyuho/dplearn/blob/master/backend/web/web.go.
@@ -85,7 +85,7 @@ export class BackendService implements OnDestroy {
   constructor(
     private router: Router,
     private http: Http,
-    private snackBar: MdSnackBar,
+    private snackBar: MatSnackBar,
   ) {
     this.inputValue = "";
     this.result = "Nothing to show yet...";
