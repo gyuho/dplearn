@@ -6,14 +6,14 @@ import { BrowserModule } from "@angular/platform-browser";
 import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 
 import {
-  MdButtonModule,
-  MdCardModule,
-  MdChipsModule,
-  MdInputModule,
-  MdMenuModule,
-  MdProgressSpinnerModule,
-  MdSnackBarModule,
-  MdToolbarModule,
+  MatButtonModule,
+  MatCardModule,
+  MatChipsModule,
+  MatInputModule,
+  MatMenuModule,
+  MatProgressSpinnerModule,
+  MatSnackBarModule,
+  MatToolbarModule,
 } from "@angular/material";
 
 import { AppComponent } from "./app.component";
@@ -34,14 +34,14 @@ import { routedComponents, routing } from "./app.routing";
 
     BrowserAnimationsModule,
 
-    MdButtonModule,
-    MdToolbarModule,
-    MdCardModule,
-    MdMenuModule,
-    MdInputModule,
-    MdSnackBarModule,
-    MdProgressSpinnerModule,
-    MdChipsModule,
+    MatButtonModule,
+    MatToolbarModule,
+    MatCardModule,
+    MatMenuModule,
+    MatInputModule,
+    MatSnackBarModule,
+    MatProgressSpinnerModule,
+    MatChipsModule,
 
     routing,
   ],
