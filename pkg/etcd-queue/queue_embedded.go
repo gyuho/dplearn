@@ -36,8 +36,8 @@ func NewEmbeddedQueue(ctx context.Context, cport, pport int, dataDir string) (Qu
 	cfg.InitialCluster = fmt.Sprintf("%s=%s", cfg.Name, cfg.APUrls[0].String())
 
 	cfg.AutoCompactionMode = compactor.ModePeriodic
-	cfg.AutoCompactionRetention = 1 // every hour
-	cfg.SnapCount = 1000            // single-node, keep minimum snapshot
+	cfg.AutoCompactionRetention = "1h" // every hour
+	cfg.SnapCount = 1000               // single-node, keep minimum snapshot
 
 	glog.Infof("starting %q with endpoint %q", cfg.Name, curl.String())
 	srv, err := embed.StartEtcd(cfg)
