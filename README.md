@@ -29,7 +29,7 @@ It is a set of small projects on [Deep Learning](https://en.wikipedia.org/wiki/D
 
 Notes:
 
-- **Why is the queue service needed?** To process concurrent users requests. Since worker has limited resources, requests has to be serialized into the queue.
+- **Why is the queue service needed?** To process concurrent users requests. Worker has limited resources, serializing requests into the queue.
 - **Why Go?** To natively use [`embedded etcd`](https://github.com/coreos/etcd/tree/master/embed).
 - **Why etcd?** To use [etcd Watch API](https://godoc.org/github.com/coreos/etcd/clientv3#Watcher). `pkg/etcd-queue` uses Watch to stream updates to `backend/worker` and `frontend`. This minimizes TCP socket creation and slow TCP starts (e.g. streaming vs. polling).
 
