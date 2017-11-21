@@ -1,12 +1,12 @@
 # https://github.com/coreos/etcd
 [[constraint]]
   name = "github.com/coreos/etcd"
-  revision = "02ae7a30059ddc2edecd4b43634787ab20b7ca5e"
+  revision = "15bfc1b36162805e8a90ae747d955667870c2f95"
 
 # https://github.com/coreos/bbolt
 [[override]]
   name = "github.com/coreos/bbolt"
-  version = "v1.3.1-coreos.3"
+  version = "v1.3.1-coreos.5"
 
 # https://github.com/dustin/go-humanize
 [[constraint]]
@@ -65,9 +65,9 @@
 
 [[constraint]]
   name = "google.golang.org/grpc"
-  version = "1.7.2"
+  version = "1.7.3"
 
 # github.com/grpc-ecosystem/grpc-gateway
 [[constraint]]
   name = "github.com/grpc-ecosystem/grpc-gateway"
-  version = "v1.3"
+  version = "v1.3.0"
