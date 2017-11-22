@@ -19,8 +19,8 @@ func main() {
 	flag.Parse()
 
 	cfg := configuration{
-		NgCommandServeStart:     "ng serve",
-		NgCommandServeStartProd: "ng serve --prod",
+		NgCommandServeStart:     "ng serve --aot",
+		NgCommandServeStartProd: "ng serve --aot --prod",
 
 		// 0.0.0.0 means "all IPv4 addresses on the local machine".
 		// If a host has two IP addresses, 192.168.1.1 and 10.1.2.1,

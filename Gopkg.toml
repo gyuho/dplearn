@@ -63,11 +63,12 @@
   name = "cloud.google.com/go"
   revision = "b42e7d1aac8a4c07a3109dd54bbca4abc3f005ea"
 
+# https://github.com/grpc/grpc-go
 [[constraint]]
   name = "google.golang.org/grpc"
   version = "1.7.3"
 
-# github.com/grpc-ecosystem/grpc-gateway
+# https://github.com/grpc-ecosystem/grpc-gateway
 [[constraint]]
   name = "github.com/grpc-ecosystem/grpc-gateway"
   version = "v1.3.0"
