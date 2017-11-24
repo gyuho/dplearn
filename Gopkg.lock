@@ -4,7 +4,7 @@
 [[projects]]
   name = "cloud.google.com/go"
   packages = ["compute/metadata","iam","internal","internal/optional","internal/version","storage"]
-  revision = "b42e7d1aac8a4c07a3109dd54bbca4abc3f005ea"
+  revision = "290422ce3a4bcdb0c7998c2a994e23bc950b0bdb"
 
 [[projects]]
   branch = "master"
@@ -20,8 +20,8 @@
 
 [[projects]]
   name = "github.com/coreos/etcd"
-  packages = ["alarm","auth","auth/authpb","client","clientv3","clientv3/concurrency","compactor","discovery","embed","error","etcdserver","etcdserver/api","etcdserver/api/etcdhttp","etcdserver/api/v2http","etcdserver/api/v2http/httptypes","etcdserver/api/v2v3","etcdserver/api/v3client","etcdserver/api/v3election","etcdserver/api/v3election/v3electionpb","etcdserver/api/v3election/v3electionpb/gw","etcdserver/api/v3lock","etcdserver/api/v3lock/v3lockpb","etcdserver/api/v3lock/v3lockpb/gw","etcdserver/api/v3rpc","etcdserver/api/v3rpc/rpctypes","etcdserver/auth","etcdserver/etcdserverpb","etcdserver/etcdserverpb/gw","etcdserver/membership","etcdserver/stats","lease","lease/leasehttp","lease/leasepb","mvcc","mvcc/backend","mvcc/mvccpb","pkg/adt","pkg/contention","pkg/cors","pkg/cpuutil","pkg/crc","pkg/debugutil","pkg/fileutil","pkg/httputil","pkg/idutil","pkg/ioutil","pkg/logutil","pkg/netutil","pkg/pathutil","pkg/pbutil","pkg/runtime","pkg/schedule","pkg/srv","pkg/tlsutil","pkg/transport","pkg/types","pkg/wait","proxy/grpcproxy/adapter","raft","raft/raftpb","rafthttp","snap","snap/snappb","store","version","wal","wal/walpb"]
-  revision = "15bfc1b36162805e8a90ae747d955667870c2f95"
+  packages = [".","alarm","auth","auth/authpb","client","clientv3","clientv3/concurrency","clientv3/leasing","clientv3/namespace","clientv3/naming","clientv3/ordering","compactor","discovery","embed","error","etcdmain","etcdserver","etcdserver/api","etcdserver/api/etcdhttp","etcdserver/api/v2http","etcdserver/api/v2http/httptypes","etcdserver/api/v2v3","etcdserver/api/v3client","etcdserver/api/v3election","etcdserver/api/v3election/v3electionpb","etcdserver/api/v3election/v3electionpb/gw","etcdserver/api/v3lock","etcdserver/api/v3lock/v3lockpb","etcdserver/api/v3lock/v3lockpb/gw","etcdserver/api/v3rpc","etcdserver/api/v3rpc/rpctypes","etcdserver/auth","etcdserver/etcdserverpb","etcdserver/etcdserverpb/gw","etcdserver/membership","etcdserver/stats","lease","lease/leasehttp","lease/leasepb","mvcc","mvcc/backend","mvcc/mvccpb","pkg/adt","pkg/contention","pkg/cors","pkg/cpuutil","pkg/crc","pkg/debugutil","pkg/fileutil","pkg/flags","pkg/httputil","pkg/idutil","pkg/ioutil","pkg/logutil","pkg/netutil","pkg/osutil","pkg/pathutil","pkg/pbutil","pkg/runtime","pkg/schedule","pkg/srv","pkg/tlsutil","pkg/transport","pkg/types","pkg/wait","proxy/grpcproxy","proxy/grpcproxy/adapter","proxy/grpcproxy/cache","proxy/httpproxy","proxy/tcpproxy","raft","raft/raftpb","rafthttp","snap","snap/snappb","store","version","wal","wal/walpb"]
+  revision = "d84d3f2f779061952cbda75f5e357f8815c229c7"
 
 [[projects]]
   name = "github.com/coreos/go-semver"
@@ -31,13 +31,13 @@
 
 [[projects]]
   name = "github.com/coreos/go-systemd"
-  packages = ["journal"]
+  packages = ["daemon","journal","util"]
   revision = "d2196463941895ee908e13531a23a39feb9e1243"
   version = "v15"
 
 [[projects]]
   name = "github.com/coreos/pkg"
-  packages = ["capnslog"]
+  packages = ["capnslog","dlopen"]
   revision = "3ac0863d7acf3bc44daf49afef8919af12f704ef"
   version = "v3"
 
@@ -77,9 +77,15 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/golang/groupcache"
+  packages = ["lru"]
+  revision = "84a468cf14b4376def5d68c722b139b881c450a4"
+
+[[projects]]
+  branch = "master"
   name = "github.com/golang/protobuf"
   packages = ["jsonpb","proto","protoc-gen-go/descriptor","ptypes","ptypes/any","ptypes/duration","ptypes/struct","ptypes/timestamp"]
-  revision = "1643683e1b54a9e88ad26d98f81400c8c9d9f4f9"
+  revision = "1e59b77b52bf8e4b449a57e6f79f21226d571845"
 
 [[projects]]
   branch = "master"
@@ -121,6 +127,12 @@
   name = "github.com/gyuho/archiver"
   packages = ["."]
   revision = "6348b67ad5721f102e9645f5051121af225aba8c"
+
+[[projects]]
+  name = "github.com/inconshreveable/mousetrap"
+  packages = ["."]
+  revision = "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75"
+  version = "v1.0"
 
 [[projects]]
   name = "github.com/jonboulle/clockwork"
@@ -168,13 +180,13 @@
   branch = "master"
   name = "github.com/prometheus/client_model"
   packages = ["go"]
-  revision = "6f3806018612930941127f2a7c6c453ba2c527d2"
+  revision = "99fa1f4be8e564e8a6b613da7fa6f46c9edafc6c"
 
 [[projects]]
   branch = "master"
   name = "github.com/prometheus/common"
   packages = ["expfmt","internal/bitbucket.org/ww/goautoneg","model"]
-  revision = "e3fb1a1acd7605367a2b378bc2e2f893c05174b7"
+  revision = "2e54d0b93cba2fd133edc32211dcc32c06ef72ca"
 
 [[projects]]
   branch = "master"
@@ -195,6 +207,18 @@
   version = "v0.1.3"
 
 [[projects]]
+  name = "github.com/spf13/cobra"
+  packages = ["."]
+  revision = "7b2c5ac9fc04fc5efafb60700713d4fa609b777b"
+  version = "v0.0.1"
+
+[[projects]]
+  name = "github.com/spf13/pflag"
+  packages = ["."]
+  revision = "e57e3eeb33f795204c1ca35f56c44f83227c6e66"
+  version = "v1.0.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/tmc/grpc-websocket-proxy"
   packages = ["wsproxy"]
@@ -204,7 +228,7 @@
   branch = "master"
   name = "github.com/ugorji/go"
   packages = ["codec"]
-  revision = "dd3aa7221b0c7a61c3ea1a0a252d06efa5161e3f"
+  revision = "84cb69a8af8316eed8cf4a3c9368a56977850062"
 
 [[projects]]
   name = "github.com/ulikunitz/xz"
@@ -222,13 +246,13 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["bcrypt","blowfish","ssh/terminal"]
-  revision = "6a293f2d4b14b8e6d3f0539e383f6d0d30fce3fd"
+  revision = "b080dc9a8c480b08e698fb1219160d598526310f"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/net"
   packages = ["context","context/ctxhttp","http2","http2/hpack","idna","internal/timeseries","lex/httplex","trace"]
-  revision = "a337091b0525af65de94df2eb7e98bd9962dcbe2"
+  revision = "c7086645de248775cbf2373cf5ca4d2fa664b8c1"
 
 [[projects]]
   name = "golang.org/x/oauth2"
@@ -239,7 +263,7 @@
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix","windows"]
-  revision = "1e2299c37cc91a509f1b12369872d27be0ce98a6"
+  revision = "4ff8c001ce4cc464e644b922325097228fce14d8"
 
 [[projects]]
   branch = "master"
@@ -256,7 +280,7 @@
 [[projects]]
   name = "google.golang.org/api"
   packages = ["compute/v1","gensupport","googleapi","googleapi/internal/uritemplates","googleapi/transport","internal","iterator","option","storage/v1","transport/http"]
-  revision = "a0c31fb0028e0111b942a29b9fc2e9235202c48b"
+  revision = "92db9b55d2aa90e54a33cfaa8caf354afae68157"
 
 [[projects]]
   name = "google.golang.org/appengine"
@@ -268,22 +292,22 @@
   branch = "master"
   name = "google.golang.org/genproto"
   packages = ["googleapis/api/annotations","googleapis/iam/v1","googleapis/rpc/status"]
-  revision = "11c7f9e547da6db876260ce49ea7536985904c9b"
+  revision = "7f0da29060c682909f650ad8ed4e515bd74fa12a"
 
 [[projects]]
   name = "google.golang.org/grpc"
   packages = [".","balancer","codes","connectivity","credentials","grpclb/grpc_lb_v1/messages","grpclog","health","health/grpc_health_v1","internal","keepalive","metadata","naming","peer","resolver","stats","status","tap","transport"]
-  revision = "5ffe3083946d5603a0578721101dc8165b1d5b5f"
-  version = "v1.7.2"
+  revision = "401e0e00e4bb830a10496d64cd95e068c5bf50de"
+  source = "https://github.com/grpc/grpc-go.git"
 
 [[projects]]
   name = "gopkg.in/yaml.v2"
   packages = ["."]
-  revision = "cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b"
+  revision = "287cf08546ab5e7e37d55a84f7ed3fd1db036de5"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a8c37185f280e3d812eea11dfd32e301052cf221a2d1fefe7c0ebd90c4fbb6c7"
+  inputs-digest = "e3f9527bc6180c1034be604a1d82d3b897ead984453c274eb01dc8dd25bc2144"
   solver-name = "gps-cdcl"
   solver-version = 1

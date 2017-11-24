@@ -69,12 +69,24 @@ func definitelyNil(v interface{}) bool {
 	// For true references (map, ptr, func, chan), you can just look
 	// at the word of the interface. However, for slices, you have to dereference
 	// the word, and get a pointer to the 3-word interface value.
+	//
+	// However, the following are cheap calls
+	// - TypeOf(interface): cheap 2-line call.
+	// - ValueOf(interface{}): expensive
+	// - type.Kind: cheap call through an interface
+	// - Value.Type(): cheap call
+	//                 except it's a method value (e.g. r.Read, which implies that it is a Func)
+
+	return ((*unsafeIntf)(unsafe.Pointer(&v))).word == nil
 
 	// var ui *unsafeIntf = (*unsafeIntf)(unsafe.Pointer(&v))
-	// var word unsafe.Pointer = ui.word
-	// // fmt.Printf(">>>> definitely nil: isnil: %v, TYPE: \t%T, word: %v, *word: %v, type: %v, nil: %v\n", v == nil, v, word, *((*unsafe.Pointer)(word)), ui.typ, nil)
-	// return word == nil // || *((*unsafe.Pointer)(word)) == nil
-	return ((*unsafeIntf)(unsafe.Pointer(&v))).word == nil
+	// if ui.word == nil {
+	// 	return true
+	// }
+	// var tk = reflect.TypeOf(v).Kind()
+	// return (tk == reflect.Interface || tk == reflect.Slice) && *(*unsafe.Pointer)(ui.word) == nil
+	// fmt.Printf(">>>> definitely nil: isnil: %v, TYPE: \t%T, word: %v, *word: %v, type: %v, nil: %v\n",
+	// v == nil, v, word, *((*unsafe.Pointer)(word)), ui.typ, nil)
 }
 
 // func keepAlive4BytesView(v string) {
@@ -88,8 +100,7 @@ func definitelyNil(v interface{}) bool {
 // TODO: consider a more generally-known optimization for reflect.Value ==> Interface
 //
 // Currently, we use this fragile method that taps into implememtation details from
-// the source go stdlib reflect/value.go,
-// and trims the implementation.
+// the source go stdlib reflect/value.go, and trims the implementation.
 func rv2i(rv reflect.Value) interface{} {
 	urv := (*unsafeReflectValue)(unsafe.Pointer(&rv))
 	// true references (map, func, chan, ptr - NOT slice) may be double-referenced as flagIndir
@@ -112,6 +123,10 @@ func rt2id(rt reflect.Type) uintptr {
 
 func rv2rtid(rv reflect.Value) uintptr {
 	return uintptr((*unsafeReflectValue)(unsafe.Pointer(&rv)).typ)
+}
+
+func i2rtid(i interface{}) uintptr {
+	return uintptr(((*unsafeIntf)(unsafe.Pointer(&i))).typ)
 }
 
 // func rv0t(rt reflect.Type) reflect.Value {

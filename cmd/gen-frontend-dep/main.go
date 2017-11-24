@@ -108,7 +108,7 @@ const tmplPackageJSON = `{
         "@angular/router": "5.0.2",
         "@angular/tsc-wrapped": "4.4.6",
         "@angular/upgrade": "5.0.2",
-        "@angular/cli": "1.5.3",
+        "@angular/cli": "1.6.0-rc.0",
         "@angular/cdk": "5.0.0-rc.1",
         "@angular/material": "5.0.0-rc.1",
         "@types/angular": "1.6.39",
@@ -117,7 +117,7 @@ const tmplPackageJSON = `{
         "@types/angular-mocks": "1.5.11",
         "@types/angular-resource": "1.5.14",
         "@types/angular-route": "1.3.4",
-        "@types/angular-sanitize": "1.3.6",
+        "@types/angular-sanitize": "1.3.7",
         "@types/node": "8.0.53",
         "@types/hammerjs": "2.0.35",
         "@types/jasmine": "2.8.2",
@@ -143,7 +143,7 @@ const tmplPackageJSON = `{
     "description": "website",
     "main": "index.js",
     "repository": {
-        "url": "git@github.com:gyuho/dplearn.git",
+        "url": "https://github.com/gyuho/dplearn",
         "type": "git"
     },
     "author": "Gyu-Ho Lee <gyuhox@gmail.com>"

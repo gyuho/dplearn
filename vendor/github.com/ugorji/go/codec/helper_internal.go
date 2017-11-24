@@ -10,14 +10,12 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"time"
 )
 
 func panicValToErr(panicVal interface{}, err *error) {
-	if panicVal == nil {
-		return
-	}
-	// case nil
 	switch xerr := panicVal.(type) {
+	case nil:
 	case error:
 		*err = xerr
 	case string:
@@ -51,6 +49,10 @@ func hIsEmptyValue(v reflect.Value, deref, checkStruct bool) bool {
 		}
 		return v.IsNil()
 	case reflect.Struct:
+		// check for time.Time, and return true if IsZero
+		if rv2rtid(v) == timeTypId {
+			return rv2i(v).(time.Time).IsZero()
+		}
 		if !checkStruct {
 			return false
 		}

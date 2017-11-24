@@ -1,12 +1,20 @@
+required = ["github.com/coreos/bbolt", "google.golang.org/grpc", "github.com/coreos/etcd"]
+
 # https://github.com/coreos/etcd
 [[constraint]]
   name = "github.com/coreos/etcd"
-  revision = "15bfc1b36162805e8a90ae747d955667870c2f95"
+  revision = "d84d3f2f779061952cbda75f5e357f8815c229c7"
 
 # https://github.com/coreos/bbolt
 [[override]]
   name = "github.com/coreos/bbolt"
   version = "v1.3.1-coreos.5"
+
+# https://github.com/grpc/grpc-go
+[[override]]
+  name = "google.golang.org/grpc"
+  source = "https://github.com/grpc/grpc-go.git"
+  revision = "401e0e00e4bb830a10496d64cd95e068c5bf50de"
 
 # https://github.com/dustin/go-humanize
 [[constraint]]
@@ -26,7 +34,7 @@
 # https://github.com/go-yaml/yaml
 [[constraint]]
   name = "gopkg.in/yaml.v2"
-  revision = "cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b"
+  revision = "287cf08546ab5e7e37d55a84f7ed3fd1db036de5"
 
 # https://github.com/gyuho/archiver
 [[constraint]]
@@ -51,7 +59,7 @@
 # https://github.com/google/google-api-go-client
 [[constraint]]
   name = "google.golang.org/api"
-  revision = "a0c31fb0028e0111b942a29b9fc2e9235202c48b"
+  revision = "92db9b55d2aa90e54a33cfaa8caf354afae68157"
 
 # https://github.com/golang/appengine
 [[constraint]]
@@ -61,12 +69,7 @@
 # https://github.com/GoogleCloudPlatform/google-cloud-go
 [[constraint]]
   name = "cloud.google.com/go"
-  revision = "b42e7d1aac8a4c07a3109dd54bbca4abc3f005ea"
-
-# https://github.com/grpc/grpc-go
-[[constraint]]
-  name = "google.golang.org/grpc"
-  version = "1.7.3"
+  revision = "290422ce3a4bcdb0c7998c2a994e23bc950b0bdb"
 
 # https://github.com/grpc-ecosystem/grpc-gateway
 [[constraint]]

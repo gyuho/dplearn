@@ -297,6 +297,7 @@ var (
 	timeTyp       = reflect.TypeOf(time.Time{})
 	rawExtTyp     = reflect.TypeOf(RawExt{})
 	rawTyp        = reflect.TypeOf(Raw{})
+	uint8Typ      = reflect.TypeOf(uint8(0))
 	uint8SliceTyp = reflect.TypeOf([]uint8(nil))
 
 	mapBySliceTyp = reflect.TypeOf((*MapBySlice)(nil)).Elem()
@@ -312,6 +313,7 @@ var (
 
 	selferTyp = reflect.TypeOf((*Selfer)(nil)).Elem()
 
+	uint8TypId      = rt2id(uint8Typ)
 	uint8SliceTypId = rt2id(uint8SliceTyp)
 	rawExtTypId     = rt2id(rawExtTyp)
 	rawTypId        = rt2id(rawTyp)
@@ -429,7 +431,7 @@ type Handle interface {
 }
 
 // Raw represents raw formatted bytes.
-// We "blindly" store it during encode and store the raw bytes during decode.
+// We "blindly" store it during encode and retrieve the raw bytes during decode.
 // Note: it is dangerous during encode, so we may gate the behaviour behind an Encode flag which must be explicitly set.
 type Raw []byte
 
@@ -512,34 +514,28 @@ type setExtWrapper struct {
 	i InterfaceExt
 }
 
-func (x *setExtWrapper) WriteExt(v interface{}) []byte {
-	if x.b == nil {
-		panic("BytesExt.WriteExt is not supported")
+func (x *setExtWrapper) check(v bool, s string) {
+	if v {
+		panic(fmt.Errorf("%s is not supported", s))
 	}
+}
+func (x *setExtWrapper) WriteExt(v interface{}) []byte {
+	x.check(x.b == nil, "BytesExt.WriteExt")
 	return x.b.WriteExt(v)
 }
 
 func (x *setExtWrapper) ReadExt(v interface{}, bs []byte) {
-	if x.b == nil {
-		panic("BytesExt.WriteExt is not supported")
-
-	}
+	x.check(x.b == nil, "BytesExt.ReadExt")
 	x.b.ReadExt(v, bs)
 }
 
 func (x *setExtWrapper) ConvertExt(v interface{}) interface{} {
-	if x.i == nil {
-		panic("InterfaceExt.ConvertExt is not supported")
-
-	}
+	x.check(x.i == nil, "InterfaceExt.ConvertExt")
 	return x.i.ConvertExt(v)
 }
 
 func (x *setExtWrapper) UpdateExt(dest interface{}, v interface{}) {
-	if x.i == nil {
-		panic("InterfaceExxt.UpdateExt is not supported")
-
-	}
+	x.check(x.i == nil, "InterfaceExt.UpdateExt")
 	x.i.UpdateExt(dest, v)
 }
 
@@ -594,10 +590,11 @@ func (z bigenHelper) writeUint64(v uint64) {
 }
 
 type extTypeTagFn struct {
-	rtid uintptr
-	rt   reflect.Type
-	tag  uint64
-	ext  Ext
+	rtid    uintptr
+	rtidptr uintptr
+	rt      reflect.Type
+	tag     uint64
+	ext     Ext
 }
 
 type extHandle []extTypeTagFn
@@ -624,24 +621,37 @@ func (o *extHandle) AddExt(
 // Deprecated: Use SetBytesExt or SetInterfaceExt on the Handle instead.
 func (o *extHandle) SetExt(rt reflect.Type, tag uint64, ext Ext) (err error) {
 	// o is a pointer, because we may need to initialize it
-	if rt.PkgPath() == "" || rt.Kind() == reflect.Interface {
-		err = fmt.Errorf("codec.Handle.AddExt: Takes named type, not a pointer or interface: %T",
-			reflect.Zero(rt).Interface())
-		return
+	rk := rt.Kind()
+	for rk == reflect.Ptr {
+		rt = rt.Elem()
+		rk = rt.Kind()
+	}
+
+	if rt.PkgPath() == "" || rk == reflect.Interface { // || rk == reflect.Ptr {
+		return fmt.Errorf("codec.Handle.SetExt: Takes named type, not a pointer or interface: %v", rt)
 	}
 
 	rtid := rt2id(rt)
-	for _, v := range *o {
-		if v.rtid == rtid {
-			v.tag, v.ext = tag, ext
-			return
+	switch rtid {
+	case timeTypId, rawTypId, rawExtTypId:
+		// all natively supported type, so cannot have an extension
+		return // TODO: should we silently ignore, or return an error???
+	}
+	o2 := *o
+	if o2 == nil {
+		o2 = make([]extTypeTagFn, 0, 4)
+		*o = o2
+	} else {
+		for i := range o2 {
+			v := &o2[i]
+			if v.rtid == rtid {
+				v.tag, v.ext = tag, ext
+				return
+			}
 		}
 	}
-
-	if *o == nil {
-		*o = make([]extTypeTagFn, 0, 4)
-	}
-	*o = append(*o, extTypeTagFn{rtid, rt, tag, ext})
+	rtidptr := rt2id(reflect.PtrTo(rt))
+	*o = append(o2, extTypeTagFn{rtid, rtidptr, rt, tag, ext})
 	return
 }
 
@@ -649,7 +659,7 @@ func (o extHandle) getExt(rtid uintptr) *extTypeTagFn {
 	var v *extTypeTagFn
 	for i := range o {
 		v = &o[i]
-		if v.rtid == rtid {
+		if v.rtid == rtid || v.rtidptr == rtid {
 			return v
 		}
 	}
@@ -1067,9 +1077,8 @@ LOOP:
 			continue LOOP
 		}
 
-		// if r1, _ := utf8.DecodeRuneInString(f.Name);
-		// r1 == utf8.RuneError || !unicode.IsUpper(r1) {
-		if f.PkgPath != "" && !f.Anonymous { // unexported, not embedded
+		isUnexported := f.PkgPath != ""
+		if isUnexported && !f.Anonymous {
 			continue
 		}
 		stag := x.structTag(f.Tag)
@@ -1080,50 +1089,59 @@ LOOP:
 		// if anonymous and no struct tag (or it's blank),
 		// and a struct (or pointer to struct), inline it.
 		if f.Anonymous && fkind != reflect.Interface {
+			// ^^ redundant but ok: per go spec, an embedded pointer type cannot be to an interface
+			ft := f.Type
+			isPtr := ft.Kind() == reflect.Ptr
+			for ft.Kind() == reflect.Ptr {
+				ft = ft.Elem()
+			}
+			isStruct := ft.Kind() == reflect.Struct
+
+			// Ignore embedded fields of unexported non-struct types.
+			// Also, from go1.10, ignore pointers to unexported struct types
+			// because unmarshal cannot assign a new struct to an unexported field.
+			// See https://golang.org/issue/21357
+			if (isUnexported && !isStruct) || (!allowSetUnexportedEmbeddedPtr && isUnexported && isPtr) {
+				continue
+			}
 			doInline := stag == ""
 			if !doInline {
 				si = parseStructFieldInfo("", stag)
 				doInline = si.encName == ""
 				// doInline = si.isZero()
 			}
-			if doInline {
-				ft := f.Type
-				for ft.Kind() == reflect.Ptr {
-					ft = ft.Elem()
-				}
-				if ft.Kind() == reflect.Struct {
-					// if etypes contains this, don't call rget again (as fields are already seen here)
-					ftid := rt2id(ft)
-					// We cannot recurse forever, but we need to track other field depths.
-					// So - we break if we see a type twice (not the first time).
-					// This should be sufficient to handle an embedded type that refers to its
-					// owning type, which then refers to its embedded type.
-					processIt := true
-					numk := 0
-					for _, k := range pv.etypes {
-						if k == ftid {
-							numk++
-							if numk == rgetMaxRecursion {
-								processIt = false
-								break
-							}
+			if doInline && isStruct {
+				// if etypes contains this, don't call rget again (as fields are already seen here)
+				ftid := rt2id(ft)
+				// We cannot recurse forever, but we need to track other field depths.
+				// So - we break if we see a type twice (not the first time).
+				// This should be sufficient to handle an embedded type that refers to its
+				// owning type, which then refers to its embedded type.
+				processIt := true
+				numk := 0
+				for _, k := range pv.etypes {
+					if k == ftid {
+						numk++
+						if numk == rgetMaxRecursion {
+							processIt = false
+							break
 						}
 					}
-					if processIt {
-						pv.etypes = append(pv.etypes, ftid)
-						indexstack2 := make([]uint16, len(indexstack)+1)
-						copy(indexstack2, indexstack)
-						indexstack2[len(indexstack)] = j
-						// indexstack2 := append(append(make([]int, 0, len(indexstack)+4), indexstack...), j)
-						x.rget(ft, ftid, omitEmpty, indexstack2, pv)
-					}
-					continue
 				}
+				if processIt {
+					pv.etypes = append(pv.etypes, ftid)
+					indexstack2 := make([]uint16, len(indexstack)+1)
+					copy(indexstack2, indexstack)
+					indexstack2[len(indexstack)] = j
+					// indexstack2 := append(append(make([]int, 0, len(indexstack)+4), indexstack...), j)
+					x.rget(ft, ftid, omitEmpty, indexstack2, pv)
+				}
+				continue
 			}
 		}
 
 		// after the anonymous dance: if an unexported field, skip
-		if f.PkgPath != "" { // unexported
+		if isUnexported {
 			continue
 		}
 

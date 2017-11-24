@@ -276,10 +276,14 @@ func (e *jsonEncDriver) EncodeNil() {
 func (e *jsonEncDriver) EncodeTime(t time.Time) {
 	// Do NOT use MarshalJSON, as it allocates internally.
 	// instead, we call AppendFormat directly, using our scratch buffer (e.b)
-	e.b[0] = '"'
-	b := t.AppendFormat(e.b[1:1], time.RFC3339Nano)
-	e.b[len(b)+1] = '"'
-	e.w.writeb(e.b[:len(b)+2])
+	if t.IsZero() {
+		e.EncodeNil()
+	} else {
+		e.b[0] = '"'
+		b := t.AppendFormat(e.b[1:1], time.RFC3339Nano)
+		e.b[len(b)+1] = '"'
+		e.w.writeb(e.b[:len(b)+2])
+	}
 	// fmt.Printf(">>>> time as a string: '%s'\n", e.b[:len(b)+2])
 	// v, err := t.MarshalJSON(); if err != nil { e.e.error(err) } e.w.writeb(v)
 }
@@ -387,6 +391,10 @@ func (e *jsonEncDriver) EncodeSymbol(v string) {
 
 func (e *jsonEncDriver) EncodeStringBytes(c charEncoding, v []byte) {
 	// if encoding raw bytes and RawBytesExt is configured, use it to encode
+	if v == nil {
+		e.EncodeNil()
+		return
+	}
 	if c == cRAW {
 		if e.se.i != nil {
 			e.EncodeExt(v, 0, &e.se, e.e)
@@ -683,6 +691,9 @@ func (d *jsonDecDriver) DecodeBool() (v bool) {
 func (d *jsonDecDriver) DecodeTime() (t time.Time) {
 	// read string, and pass the string into json.unmarshal
 	d.appendStringAsBytes()
+	if d.fnull {
+		return
+	}
 	t, err := time.Parse(time.RFC3339, stringView(d.bs))
 	if err != nil {
 		d.d.error(err)
@@ -777,6 +788,14 @@ func (d *jsonDecDriver) DecodeBytes(bs []byte, zerocopy bool) (bsOut []byte) {
 	if d.se.i != nil {
 		bsOut = bs
 		d.DecodeExt(&bsOut, 0, &d.se)
+		return
+	}
+	if d.tok == 0 {
+		d.tok = d.r.skip(&jsonCharWhitespaceSet)
+	}
+	// check if an "array" of uint8's (see ContainerType for how to infer if an array)
+	if d.tok == '[' {
+		bsOut, _ = fastpathTV.DecSliceUint8V(bs, true, d.d)
 		return
 	}
 	d.appendStringAsBytes()

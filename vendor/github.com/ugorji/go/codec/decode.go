@@ -127,11 +127,12 @@ func (x decDriverNoopContainerReader) CheckBreak() (v bool)    { return }
 // DecodeOptions captures configuration options during decode.
 type DecodeOptions struct {
 	// MapType specifies type to use during schema-less decoding of a map in the stream.
-	// If nil, we use map[interface{}]interface{}
+	// If nil (unset), we default to map[string]interface{} for json and
+	// map[interface{}]interface{} for all other formats.
 	MapType reflect.Type
 
 	// SliceType specifies type to use during schema-less decoding of an array in the stream.
-	// If nil, we use []interface{}
+	// If nil (unset), we default to []interface{} for all formats.
 	SliceType reflect.Type
 
 	// MaxInitLen defines the maxinum initial length that we "make" a collection (string, slice, map, chan).
@@ -950,7 +951,16 @@ func (d *Decoder) kInterfaceNaked(f *codecFnInfo) (rvn reflect.Value) {
 	// var useRvn bool
 	switch n.v {
 	case valueTypeMap:
-		if d.mtid == 0 || d.mtid == mapIntfIntfTypId {
+		// if json, default to a map type with string keys
+		mtid := d.mtid
+		if mtid == 0 {
+			if d.js {
+				mtid = mapStrIntfTypId
+			} else {
+				mtid = mapIntfIntfTypId
+			}
+		}
+		if mtid == mapIntfIntfTypId {
 			if n.lm < arrayCacheLen {
 				n.ma[n.lm] = nil
 				rvn = n.rr[decNakedMapIntfIntfIdx*arrayCacheLen+n.lm]
@@ -962,7 +972,7 @@ func (d *Decoder) kInterfaceNaked(f *codecFnInfo) (rvn reflect.Value) {
 				d.decode(&v2)
 				rvn = reflect.ValueOf(&v2).Elem()
 			}
-		} else if d.mtid == mapStrIntfTypId { // for json performance
+		} else if mtid == mapStrIntfTypId { // for json performance
 			if n.ln < arrayCacheLen {
 				n.na[n.ln] = nil
 				rvn = n.rr[decNakedMapStrIntfIdx*arrayCacheLen+n.ln]
@@ -1196,6 +1206,9 @@ func (d *Decoder) kSlice(f *codecFnInfo, rv reflect.Value) {
 	// A slice can be set from a map or array in stream.
 	// This way, the order can be kept (as order is lost with map).
 	ti := f.ti
+	if f.seq == seqTypeChan && ti.rt.ChanDir()&reflect.SendDir == 0 {
+		d.errorf("receive-only channel cannot be used for sending byte(s)")
+	}
 	dd := d.d
 	rtelem0 := ti.rt.Elem()
 	ctyp := dd.ContainerType()
@@ -1206,17 +1219,22 @@ func (d *Decoder) kSlice(f *codecFnInfo, rv reflect.Value) {
 		}
 		if f.seq == seqTypeChan {
 			bs2 := dd.DecodeBytes(nil, true)
-			ch := rv2i(rv).(chan<- byte)
+			irv := rv2i(rv)
+			ch, ok := irv.(chan<- byte)
+			if !ok {
+				ch = irv.(chan byte)
+			}
 			for _, b := range bs2 {
 				ch <- b
 			}
 		} else {
 			rvbs := rv.Bytes()
 			bs2 := dd.DecodeBytes(rvbs, false)
-			if rvbs == nil && bs2 != nil || rvbs != nil && bs2 == nil || len(bs2) != len(rvbs) {
+			// if rvbs == nil && bs2 != nil || rvbs != nil && bs2 == nil || len(bs2) != len(rvbs) {
+			if !(len(bs2) > 0 && len(bs2) == len(rvbs) && &bs2[0] == &rvbs[0]) {
 				if rv.CanSet() {
 					rv.SetBytes(bs2)
-				} else {
+				} else if len(rvbs) > 0 && len(bs2) > 0 {
 					copy(rvbs, bs2)
 				}
 			}
@@ -1989,6 +2007,8 @@ func setZero(iv interface{}) {
 		*v = nil
 	case *Raw:
 		*v = nil
+	case *time.Time:
+		*v = time.Time{}
 	case reflect.Value:
 		if v, canDecode = isDecodeable(v); canDecode && v.CanSet() {
 			v.Set(reflect.Zero(v.Type()))
@@ -2021,7 +2041,7 @@ func (d *Decoder) decode(iv interface{}) {
 
 	case reflect.Value:
 		v = d.ensureDecodeable(v)
-		d.decodeValue(v, nil, true) // TODO: maybe ask to recognize ...
+		d.decodeValue(v, nil, true)
 
 	case *string:
 		*v = d.d.DecodeString()
@@ -2053,14 +2073,18 @@ func (d *Decoder) decode(iv interface{}) {
 		*v = d.d.DecodeFloat(false)
 	case *[]uint8:
 		*v = d.d.DecodeBytes(*v, false)
-
+	case []uint8:
+		b := d.d.DecodeBytes(v, false)
+		if !(len(b) > 0 && len(b) == len(v) && &b[0] == &v[0]) {
+			copy(v, b)
+		}
 	case *time.Time:
 		*v = d.d.DecodeTime()
 	case *Raw:
 		*v = d.rawBytes()
 
 	case *interface{}:
-		d.decodeValue(reflect.ValueOf(iv).Elem(), nil, true) // TODO: consider recognize here
+		d.decodeValue(reflect.ValueOf(iv).Elem(), nil, true)
 		// d.decodeValueNotNil(reflect.ValueOf(iv).Elem())
 
 	default:
@@ -2168,7 +2192,8 @@ func (d *Decoder) ensureDecodeable(rv reflect.Value) (rv2 reflect.Value) {
 		return
 	}
 	rvi := rv2i(rv)
-	d.errorf("cannot decode into value of kind: %v, type: %T, %v", rv.Kind(), rvi, rvi)
+	rvk := rv.Kind()
+	d.errorf("cannot decode into value of kind: %v, type: %T, %v", rvk, rvi, rvi)
 	return
 }
 

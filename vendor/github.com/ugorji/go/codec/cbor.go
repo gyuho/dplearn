@@ -128,25 +128,19 @@ func (e *cborEncDriver) encLen(bd byte, length int) {
 }
 
 func (e *cborEncDriver) EncodeTime(t time.Time) {
-	if e.h.TimeRFC3339 {
+	if t.IsZero() {
+		e.EncodeNil()
+	} else if e.h.TimeRFC3339 {
 		e.encUint(0, cborBaseTag)
 		e.EncodeString(cUTF8, t.Format(time.RFC3339Nano))
 	} else {
 		e.encUint(1, cborBaseTag)
-		// fmt.Printf(">>>> - encoding time: %v\n", t)
-		t = t.UTC().Round(0).Round(time.Microsecond)
-		// fmt.Printf(">>>> - encoding time: %v\n", t)
+		t = t.UTC().Round(time.Microsecond)
 		sec, nsec := t.Unix(), uint64(t.Nanosecond())
 		if nsec == 0 {
 			e.EncodeInt(sec)
-			// fmt.Printf(">>>> i encoding time using: %v\n", sec)
 		} else {
 			e.EncodeFloat64(float64(sec) + float64(nsec)/1e9)
-			// round nsec to microseconds, so it fits into float64 without losing resolution
-			// e.EncodeFloat64(float64(sec) + round(float64(nsec)/1e3)/1e6)
-			// e.EncodeFloat64(float64(sec) + float64(nsec/1e3)/1e6)
-			// fmt.Printf(">>>> f encoding time using: %v + %v = %v, nsec: %v, \n",
-			// 	float64(sec), round(float64(nsec)/1e3)/1e6, float64(sec)+round(float64(nsec)/1e3)/1e6, nsec)
 		}
 	}
 }
@@ -208,7 +202,9 @@ func (e *cborEncDriver) EncodeString(c charEncoding, v string) {
 }
 
 func (e *cborEncDriver) EncodeStringBytes(c charEncoding, v []byte) {
-	if c == cRAW {
+	if v == nil {
+		e.EncodeNil()
+	} else if c == cRAW {
 		e.encStringBytesS(cborBaseBytes, stringView(v))
 	} else {
 		e.encStringBytesS(cborBaseString, stringView(v))
@@ -502,6 +498,11 @@ func (d *cborDecDriver) DecodeBytes(bs []byte, zerocopy bool) (bsOut []byte) {
 		}
 		return d.decAppendIndefiniteBytes(bs[:0])
 	}
+	// check if an "array" of uint8's (see ContainerType for how to infer if an array)
+	if d.bd == cborBdIndefiniteArray || (d.bd >= cborBaseArray && d.bd < cborBaseMap) {
+		bsOut, _ = fastpathTV.DecSliceUint8V(bs, true, d.d)
+		return
+	}
 	clen := d.decLen()
 	d.bdRead = false
 	if zerocopy {
@@ -526,6 +527,10 @@ func (d *cborDecDriver) DecodeTime() (t time.Time) {
 	if !d.bdRead {
 		d.readNextBd()
 	}
+	if d.bd == cborBdNil || d.bd == cborBdUndefined {
+		d.bdRead = false
+		return
+	}
 	xtag := d.decUint()
 	d.bdRead = false
 	return d.decodeTime(xtag)
@@ -547,26 +552,19 @@ func (d *cborDecDriver) decodeTime(xtag uint64) (t time.Time) {
 		switch {
 		case d.bd == cborBdFloat16, d.bd == cborBdFloat32:
 			f1, f2 := math.Modf(d.DecodeFloat(true))
-			// t = time.Unix(int64(f1), int64(round(f2*1e6))*1e3).Round(time.Microsecond).UTC()
 			t = time.Unix(int64(f1), int64(f2*1e9))
 		case d.bd == cborBdFloat64:
 			f1, f2 := math.Modf(d.DecodeFloat(false))
-			// fmt.Printf(">>>> f decoding time using: %v + %v --> %v %v\n",
-			//   f1, f2, int64(f2*1e9), int64(round(f2*1e6))*1e3)
-			// t = time.Unix(int64(f1), (int64(f2*1e9)/1e3)*1e3).UTC()
-			// t = time.Unix(int64(f1), int64(round(f2*1e6))*1e3).Round(time.Microsecond).UTC()
 			t = time.Unix(int64(f1), int64(f2*1e9))
-			// fmt.Printf(">>>> f decoding time using: %v + %v = %v\n", t.Unix(), t.Nanosecond(), t)
 		case d.bd >= cborBaseUint && d.bd < cborBaseNegInt, d.bd >= cborBaseNegInt && d.bd < cborBaseBytes:
 			t = time.Unix(d.DecodeInt(64), 0)
-			// fmt.Printf(">>>> i decoding time using: %v + %v = %v\n", t.Unix(), t.Nanosecond(), t)
 		default:
 			d.d.errorf("cbor: time.Time can only be decoded from a number (or RFC3339 string)")
 		}
 	default:
 		d.d.errorf("cbor: invalid tag for time.Time - expecting 0 or 1, got 0x%x", xtag)
 	}
-	t = t.Round(time.Microsecond).UTC()
+	t = t.UTC().Round(time.Microsecond)
 	return
 }
 
