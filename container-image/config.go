@@ -168,9 +168,6 @@ ENV HOME /root
 # Update OS
 # Configure 'bash' for 'source' commands
 RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections \
-  && rm /bin/sh \
-  && ln -s /bin/bash /bin/sh \
-  && ls -l $(which bash) \
   && apt-get -y update \
   && apt-get -y install \
   build-essential \
@@ -180,6 +177,9 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
   curl \
   python \
   git \
+  && rm /bin/sh \
+  && ln -s /bin/bash /bin/sh \
+  && ls -l $(which bash) \
   && echo "root ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers \
   && apt-get -y clean \
   && rm -rf /var/lib/apt/lists/* \

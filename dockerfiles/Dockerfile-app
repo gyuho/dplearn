@@ -1,5 +1,5 @@
 ##########################
-# Last updated at 2017-11-12 22:39:17.797744 -0800 PST
+# Last updated at 2017-11-23 20:30:15.338891 -0800 PST
 FROM ubuntu:17.10
 ##########################
 
@@ -14,9 +14,6 @@ ENV HOME /root
 # Update OS
 # Configure 'bash' for 'source' commands
 RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections \
-  && rm /bin/sh \
-  && ln -s /bin/bash /bin/sh \
-  && ls -l $(which bash) \
   && apt-get -y update \
   && apt-get -y install \
   build-essential \
@@ -26,6 +23,9 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
   curl \
   python \
   git \
+  && rm /bin/sh \
+  && ln -s /bin/bash /bin/sh \
+  && ls -l $(which bash) \
   && echo "root ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers \
   && apt-get -y clean \
   && rm -rf /var/lib/apt/lists/* \
