@@ -15,13 +15,13 @@
 [[projects]]
   name = "github.com/coreos/bbolt"
   packages = ["."]
-  revision = "32c383e75ce054674c53b5a07e55de85332aee14"
-  version = "v1.3.1-coreos.5"
+  revision = "48ea1b39c25fc1bab3506fbc712ecbaa842c4d2d"
+  version = "v1.3.1-coreos.6"
 
 [[projects]]
   name = "github.com/coreos/etcd"
   packages = [".","alarm","auth","auth/authpb","client","clientv3","clientv3/concurrency","clientv3/leasing","clientv3/namespace","clientv3/naming","clientv3/ordering","compactor","discovery","embed","error","etcdmain","etcdserver","etcdserver/api","etcdserver/api/etcdhttp","etcdserver/api/v2http","etcdserver/api/v2http/httptypes","etcdserver/api/v2v3","etcdserver/api/v3client","etcdserver/api/v3election","etcdserver/api/v3election/v3electionpb","etcdserver/api/v3election/v3electionpb/gw","etcdserver/api/v3lock","etcdserver/api/v3lock/v3lockpb","etcdserver/api/v3lock/v3lockpb/gw","etcdserver/api/v3rpc","etcdserver/api/v3rpc/rpctypes","etcdserver/auth","etcdserver/etcdserverpb","etcdserver/etcdserverpb/gw","etcdserver/membership","etcdserver/stats","lease","lease/leasehttp","lease/leasepb","mvcc","mvcc/backend","mvcc/mvccpb","pkg/adt","pkg/contention","pkg/cors","pkg/cpuutil","pkg/crc","pkg/debugutil","pkg/fileutil","pkg/flags","pkg/httputil","pkg/idutil","pkg/ioutil","pkg/logutil","pkg/netutil","pkg/osutil","pkg/pathutil","pkg/pbutil","pkg/runtime","pkg/schedule","pkg/srv","pkg/tlsutil","pkg/transport","pkg/types","pkg/wait","proxy/grpcproxy","proxy/grpcproxy/adapter","proxy/grpcproxy/cache","proxy/httpproxy","proxy/tcpproxy","raft","raft/raftpb","rafthttp","snap","snap/snappb","store","version","wal","wal/walpb"]
-  revision = "84e51cabc754e0fc81d839e83fc9c7945a0cd766"
+  revision = "b48cf77abb78755c8654eb8da61bc90a32802e7d"
 
 [[projects]]
   name = "github.com/coreos/go-semver"
@@ -51,7 +51,7 @@
   branch = "master"
   name = "github.com/dsnet/compress"
   packages = [".","bzip2","bzip2/internal/sais","internal","internal/errors","internal/prefix"]
-  revision = "c4dbed65594871659ea7347a85e1b8dcd97b9990"
+  revision = "cc9eb1d7ad760af14e8f918698f745e80377af4f"
 
 [[projects]]
   name = "github.com/dustin/go-humanize"
@@ -66,7 +66,7 @@
 
 [[projects]]
   name = "github.com/gogo/protobuf"
-  packages = ["proto"]
+  packages = ["gogoproto","proto","protoc-gen-gogo/descriptor"]
   revision = "342cbe0a04158f6dcb03ca0079991a51a4248c02"
   version = "v0.5"
 
@@ -296,7 +296,7 @@
 
 [[projects]]
   name = "google.golang.org/grpc"
-  packages = [".","balancer","balancer/roundrobin","codes","connectivity","credentials","encoding","grpclb/grpc_lb_v1/messages","grpclog","health","health/grpc_health_v1","internal","keepalive","metadata","naming","peer","resolver","resolver/dns","resolver/manual","resolver/passthrough","stats","status","tap","transport"]
+  packages = [".","balancer","codes","connectivity","credentials","grpclb/grpc_lb_v1/messages","grpclog","health","health/grpc_health_v1","internal","keepalive","metadata","naming","peer","resolver","stats","status","tap","transport"]
   revision = "9a2334748bab9638f1480ad4f0ac6ac0c6c3a486"
   source = "https://github.com/grpc/grpc-go.git"
   version = "v1.7.4"
@@ -309,6 +309,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "ab54bf8400b56aea87111832b3c0ce93aa08644739e40d8cd358541a20a1e6f8"
+  inputs-digest = "7dae5a9e4371674e691aeb91c4565119e63860e2e54d3dfc79043e858e21d400"
   solver-name = "gps-cdcl"
   solver-version = 1
