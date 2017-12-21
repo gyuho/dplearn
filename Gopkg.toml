@@ -3,7 +3,7 @@ required = ["github.com/coreos/bbolt", "google.golang.org/grpc", "github.com/cor
 # https://github.com/coreos/etcd
 [[constraint]]
   name = "github.com/coreos/etcd"
-  revision = "b48cf77abb78755c8654eb8da61bc90a32802e7d"
+  revision = "c8dc19bf4bc40545016a8a110c9a999c9391ddb8"
 
 # https://github.com/coreos/bbolt
 [[override]]
@@ -14,7 +14,7 @@ required = ["github.com/coreos/bbolt", "google.golang.org/grpc", "github.com/cor
 [[override]]
   name = "google.golang.org/grpc"
   source = "https://github.com/grpc/grpc-go.git"
-  version = "v1.7.4"
+  version = "v1.7.5"
 
 # https://github.com/dustin/go-humanize
 [[constraint]]
