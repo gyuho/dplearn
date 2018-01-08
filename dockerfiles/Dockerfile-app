@@ -82,7 +82,7 @@ RUN go install -v ./cmd/backend-web-server \
 # 'node' needs to be in $PATH for 'yarn start' command
 ENV NVM_DIR /usr/local/nvm
 RUN pushd ${GOPATH}/src/github.com/gyuho/dplearn \
-  && curl https://raw.githubusercontent.com/creationix/nvm/v0.33.6/install.sh | /bin/bash \
+  && curl https://raw.githubusercontent.com/creationix/nvm/v0.33.8/install.sh | /bin/bash \
   && echo "Running nvm scripts..." \
   && source $NVM_DIR/nvm.sh \
   && nvm ls-remote \

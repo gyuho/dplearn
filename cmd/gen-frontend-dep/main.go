@@ -96,21 +96,21 @@ const tmplPackageJSON = `{
     },
     "private": true,
     "dependencies": {
-        "@angular/common": "5.2.0-beta.1",
-        "@angular/compiler": "5.2.0-beta.1",
-        "@angular/compiler-cli": "5.2.0-beta.1",
-        "@angular/core": "5.2.0-beta.1",
-        "@angular/forms": "5.2.0-beta.1",
-        "@angular/http": "5.2.0-beta.1",
-        "@angular/platform-browser": "5.2.0-beta.1",
-        "@angular/platform-browser-dynamic": "5.2.0-beta.1",
-        "@angular/animations": "5.2.0-beta.1",
-        "@angular/router": "5.2.0-beta.1",
+        "@angular/common": "5.2.0-rc.0",
+        "@angular/compiler": "5.2.0-rc.0",
+        "@angular/compiler-cli": "5.2.0-rc.0",
+        "@angular/core": "5.2.0-rc.0",
+        "@angular/forms": "5.2.0-rc.0",
+        "@angular/http": "5.2.0-rc.0",
+        "@angular/platform-browser": "5.2.0-rc.0",
+        "@angular/platform-browser-dynamic": "5.2.0-rc.0",
+        "@angular/animations": "5.2.0-rc.0",
+        "@angular/router": "5.2.0-rc.0",
         "@angular/tsc-wrapped": "4.4.6",
-        "@angular/upgrade": "5.2.0-beta.1",
-        "@angular/cli": "1.6.2",
-        "@angular/cdk": "5.0.2",
-        "@angular/material": "5.0.2",
+        "@angular/upgrade": "5.2.0-rc.0",
+        "@angular/cli": "1.6.3",
+        "@angular/cdk": "5.0.3",
+        "@angular/material": "5.0.3",
         "@types/angular": "1.6.39",
         "@types/angular-animate": "1.5.9",
         "@types/angular-cookies": "1.4.5",
@@ -126,7 +126,15 @@ const tmplPackageJSON = `{
         "typescript": "2.6.2",
         "ts-node": "4.0.2",
         "ts-helpers": "1.1.2",
-        "zone.js": "0.8.18"
+        "zone.js": "0.8.19",
+        "@types/hammerjs": "2.0.35",
+        "@types/jasmine": "2.8.3",
+        "core-js": "2.5.3",
+        "rxjs": "5.5.6",
+        "typescript": "2.6.2",
+        "ts-node": "4.1.0",
+        "ts-helpers": "1.1.2",
+        "zone.js": "0.8.19"
     },
     "devDependencies": {
         "codelyzer": "4.0.2",
@@ -152,7 +160,7 @@ const tmplPackageJSON = `{
 
 const tmplAngularCLIJSON = `{
     "project": {
-        "version": "1.6.2",
+        "version": "1.6.3",
         "name": "app-dplearn"
     },
     "apps": [{

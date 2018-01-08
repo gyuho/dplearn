@@ -6,7 +6,7 @@
 # https://github.com/fchollet/keras/releases
 
 go-version: 1.9.2
-nvm-version: 0.33.6
+nvm-version: 0.33.8
 node-version: 9.3.0
 tensorflow-base-image: gcr.io/tensorflow/tensorflow:1.3.0
 dockerfiles-base-dir: ./dockerfiles
