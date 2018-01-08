@@ -13,10 +13,14 @@ import (
 type Archiver interface {
 	// Match checks supported files
 	Match(filename string) bool
-	// Make makes an archive.
+	// Make makes an archive file on disk.
 	Make(destination string, sources []string, opts ...OpOption) error
-	// Open extracts an archive.
+	// Open extracts an archive file on disk.
 	Open(source, destination string, opts ...OpOption) error
+	// Write writes an archive to a Writer.
+	Write(output io.Writer, sources []string, op Op) error
+	// Read reads an archive from a Reader.
+	Read(input io.Reader, destination string, op Op) error
 }
 
 // SupportedFormats contains all supported archive formats
@@ -29,6 +33,17 @@ func RegisterFormat(name string, format Archiver) {
 		return
 	}
 	SupportedFormats[name] = format
+}
+
+// MatchingFormat returns the first archive format that matches
+// the given file, or nil if there is no match
+func MatchingFormat(fpath string) Archiver {
+	for _, fmt := range SupportedFormats {
+		if fmt.Match(fpath) {
+			return fmt
+		}
+	}
+	return nil
 }
 
 func writeNewFile(fpath string, in io.Reader, fm os.FileMode) error {

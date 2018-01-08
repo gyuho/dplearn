@@ -1,20 +1,10 @@
-required = ["github.com/coreos/bbolt", "google.golang.org/grpc", "github.com/coreos/etcd"]
+################################
+# Direct dependencies
 
 # https://github.com/coreos/etcd
 [[constraint]]
   name = "github.com/coreos/etcd"
-  revision = "c8dc19bf4bc40545016a8a110c9a999c9391ddb8"
-
-# https://github.com/coreos/bbolt
-[[override]]
-  name = "github.com/coreos/bbolt"
-  version = "v1.3.1-coreos.6"
-
-# https://github.com/grpc/grpc-go
-[[override]]
-  name = "google.golang.org/grpc"
-  source = "https://github.com/grpc/grpc-go.git"
-  version = "v1.7.5"
+  revision = "44e1f6f019a98dbea4c8c8def5f077fb0dd83e8a"
 
 # https://github.com/dustin/go-humanize
 [[constraint]]
@@ -26,11 +16,6 @@ required = ["github.com/coreos/bbolt", "google.golang.org/grpc", "github.com/cor
   name = "github.com/golang/glog"
   revision = "23def4e6c14b4da8ac2ed8007337bc5eb5007998"
 
-# https://github.com/petar/GoLLRB
-[[constraint]]
-  name = "github.com/petar/GoLLRB"
-  revision = "53be0d36a84c2a886ca057d34b6aa4468df9ccb4"
-
 # https://github.com/go-yaml/yaml
 [[constraint]]
   name = "gopkg.in/yaml.v2"
@@ -39,17 +24,7 @@ required = ["github.com/coreos/bbolt", "google.golang.org/grpc", "github.com/cor
 # https://github.com/gyuho/archiver
 [[constraint]]
   name = "github.com/gyuho/archiver"
-  revision = "6348b67ad5721f102e9645f5051121af225aba8c"
-
-# https://github.com/golang/sys
-[[constraint]]
-  name = "golang.org/x/sys"
-  revision = "1e2299c37cc91a509f1b12369872d27be0ce98a6"
-
-# https://github.com/golang/net
-[[constraint]]
-  name = "golang.org/x/net"
-  revision = "a337091b0525af65de94df2eb7e98bd9962dcbe2"
+  revision = "0c5460b3c28c626130e2efec2c651226384234e9"
 
 # https://github.com/golang/oauth2
 [[constraint]]
@@ -70,8 +45,24 @@ required = ["github.com/coreos/bbolt", "google.golang.org/grpc", "github.com/cor
 [[constraint]]
   name = "cloud.google.com/go"
   revision = "290422ce3a4bcdb0c7998c2a994e23bc950b0bdb"
+################################
+
+################################
+# Transitive dependencies, but to override
+
+# https://github.com/coreos/bbolt
+[[override]]
+  name = "github.com/coreos/bbolt"
+  version = "v1.3.1-coreos.6"
+
+# https://github.com/grpc/grpc-go
+[[override]]
+  name = "google.golang.org/grpc"
+  source = "https://github.com/grpc/grpc-go.git"
+  version = "v1.7.5"
 
 # https://github.com/grpc-ecosystem/grpc-gateway
-[[constraint]]
+[[override]]
   name = "github.com/grpc-ecosystem/grpc-gateway"
   version = "v1.3.0"
+################################

@@ -1,8 +1,8 @@
 package archiver
 
 import (
-	"archive/tar"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 
@@ -41,6 +41,15 @@ func isTarLz4(tarlz4Path string) bool {
 	return hasTarHeader(buf)
 }
 
+// Write outputs a .tar.lz4 file to a Writer containing
+// the contents of files listed in filePaths. File paths
+// can be those of regular files or directories. Regular
+// files are stored at the 'root' of the archive, and
+// directories are recursively added.
+func (tarLz4Format) Write(output io.Writer, filePaths []string, op Op) error {
+	return writeTarLz4(filePaths, output, "", op)
+}
+
 // Make creates a .tar.lz4 file at tarlz4Path containing
 // the contents of files listed in filePaths. File paths
 // can be those of regular files or directories. Regular
@@ -56,13 +65,22 @@ func (tarLz4Format) Make(tarlz4Path string, filePaths []string, opts ...OpOption
 	}
 	defer out.Close()
 
-	lz4Writer := lz4.NewWriter(out)
-	defer lz4Writer.Close()
+	return writeTarLz4(filePaths, out, tarlz4Path, ret)
+}
 
-	tarWriter := tar.NewWriter(lz4Writer)
-	defer tarWriter.Close()
+func writeTarLz4(filePaths []string, output io.Writer, dest string, op Op) error {
+	lz4w := lz4.NewWriter(output)
+	defer lz4w.Close()
 
-	return tarball(filePaths, tarWriter, tarlz4Path, ret.verbose)
+	return writeTar(filePaths, lz4w, dest, op)
+}
+
+// Read untars a .tar.xz file read from a Reader and decompresses
+// the contents into destination.
+func (tarLz4Format) Read(input io.Reader, destination string, op Op) error {
+	lz4r := lz4.NewReader(input)
+
+	return Tar.Read(lz4r, destination, op)
 }
 
 // Open untars source and decompresses the contents into destination.
@@ -76,6 +94,5 @@ func (tarLz4Format) Open(source, destination string, opts ...OpOption) error {
 	}
 	defer f.Close()
 
-	lz4r := lz4.NewReader(f)
-	return untar(tar.NewReader(lz4r), destination, ret.verbose)
+	return TarLz4.Read(f, destination, ret)
 }

@@ -81,6 +81,15 @@ func hasTarHeader(buf []byte) bool {
 	return true
 }
 
+// Write outputs a .tar file to a Writer containing the
+// contents of files listed in filePaths. File paths can
+// be those of regular files or directories. Regular
+// files are stored at the 'root' of the archive, and
+// directories are recursively added.
+func (tarFormat) Write(output io.Writer, filePaths []string, op Op) error {
+	return writeTar(filePaths, output, "", op)
+}
+
 // Make creates a .tar file at tarPath containing the
 // contents of files listed in filePaths. File paths can
 // be those of regular files or directories. Regular
@@ -96,17 +105,21 @@ func (tarFormat) Make(tarPath string, filePaths []string, opts ...OpOption) erro
 	}
 	defer out.Close()
 
-	tarWriter := tar.NewWriter(out)
+	return writeTar(filePaths, out, tarPath, ret)
+}
+
+func writeTar(filePaths []string, output io.Writer, dest string, op Op) error {
+	tarWriter := tar.NewWriter(output)
 	defer tarWriter.Close()
 
-	return tarball(filePaths, tarWriter, tarPath, ret.verbose)
+	return tarball(filePaths, tarWriter, dest, op)
 }
 
 // tarball writes all files listed in filePaths into tarWriter, which is
 // writing into a file located at dest.
-func tarball(filePaths []string, tarWriter *tar.Writer, dest string, verbose bool) error {
+func tarball(filePaths []string, tarWriter *tar.Writer, dest string, op Op) error {
 	for _, fpath := range filePaths {
-		if verbose {
+		if op.verbose {
 			glog.Infof("tar %q", fpath)
 		}
 		err := tarFile(tarWriter, fpath, dest)
@@ -178,6 +191,12 @@ func tarFile(tarWriter *tar.Writer, source, dest string) error {
 	})
 }
 
+// Read untars a .tar file read from a Reader and puts
+// the contents into destination.
+func (tarFormat) Read(input io.Reader, destination string, op Op) error {
+	return untar(tar.NewReader(input), destination, op)
+}
+
 // Open untars source and puts the contents into destination.
 func (tarFormat) Open(source, destination string, opts ...OpOption) error {
 	ret := Op{verbose: false}
@@ -189,11 +208,11 @@ func (tarFormat) Open(source, destination string, opts ...OpOption) error {
 	}
 	defer f.Close()
 
-	return untar(tar.NewReader(f), destination, ret.verbose)
+	return Tar.Read(f, destination, ret)
 }
 
 // untar un-tarballs the contents of tr into destination.
-func untar(tr *tar.Reader, destination string, verbose bool) error {
+func untar(tr *tar.Reader, destination string, op Op) error {
 	for {
 		header, err := tr.Next()
 		if err == io.EOF {
@@ -202,7 +221,7 @@ func untar(tr *tar.Reader, destination string, verbose bool) error {
 			return err
 		}
 
-		if verbose {
+		if op.verbose {
 			glog.Infof("untar %q", header.Name)
 		}
 		if err := untarFile(tr, header, destination); err != nil {
