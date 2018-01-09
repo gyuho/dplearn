@@ -12,6 +12,7 @@
     "storage"
   ]
   revision = "2a6493c7a9214bf56c1003bd97443d505cc7e952"
+  source = "https://github.com/GoogleCloudPlatform/google-cloud-go"
 
 [[projects]]
   branch = "master"
@@ -23,7 +24,7 @@
   name = "github.com/coreos/bbolt"
   packages = ["."]
   revision = "48ea1b39c25fc1bab3506fbc712ecbaa842c4d2d"
-  version = "v1.3.1-coreos.6"
+  source = "https://github.com/coreos/bbolt"
 
 [[projects]]
   name = "github.com/coreos/etcd"
@@ -96,7 +97,8 @@
     "wal",
     "wal/walpb"
   ]
-  revision = "44e1f6f019a98dbea4c8c8def5f077fb0dd83e8a"
+  revision = "eaf6ae02e47edbea90aa7f0fe6c4d558611e00ab"
+  source = "https://github.com/coreos/etcd"
 
 [[projects]]
   name = "github.com/coreos/go-semver"
@@ -139,6 +141,7 @@
   name = "github.com/dustin/go-humanize"
   packages = ["."]
   revision = "bb3d318650d48840a39aa21a027c6630e198e626"
+  source = "https://github.com/dustin/go-humanize"
 
 [[projects]]
   name = "github.com/ghodss/yaml"
@@ -160,6 +163,7 @@
   name = "github.com/golang/glog"
   packages = ["."]
   revision = "23def4e6c14b4da8ac2ed8007337bc5eb5007998"
+  source = "https://github.com/golang/glog"
 
 [[projects]]
   branch = "master"
@@ -214,12 +218,13 @@
     "utilities"
   ]
   revision = "8cc3a55af3bcf171a1c23a90c4df9cf591706104"
-  version = "v1.3.0"
+  source = "https://github.com/grpc-ecosystem/grpc-gateway"
 
 [[projects]]
   name = "github.com/gyuho/archiver"
   packages = ["."]
   revision = "0c5460b3c28c626130e2efec2c651226384234e9"
+  source = "https://github.com/gyuho/archiver"
 
 [[projects]]
   name = "github.com/jonboulle/clockwork"
@@ -367,6 +372,7 @@
     "jwt"
   ]
   revision = "30785a2c434e431ef7c507b54617d6a951d5f2b4"
+  source = "https://github.com/golang/oauth2"
 
 [[projects]]
   branch = "master"
@@ -419,6 +425,7 @@
     "transport/http"
   ]
   revision = "e5c227fa33ebccc5a430d863efae400431fc0e85"
+  source = "https://github.com/google/google-api-go-client"
 
 [[projects]]
   name = "google.golang.org/appengine"
@@ -452,11 +459,9 @@
   packages = [
     ".",
     "balancer",
-    "balancer/roundrobin",
     "codes",
     "connectivity",
     "credentials",
-    "encoding",
     "grpclb/grpc_lb_v1/messages",
     "grpclog",
     "health",
@@ -467,25 +472,23 @@
     "naming",
     "peer",
     "resolver",
-    "resolver/dns",
-    "resolver/passthrough",
     "stats",
     "status",
     "tap",
     "transport"
   ]
-  revision = "e687fa4e6424368ece6e4fe727cea2c806a0fcb4"
-  source = "https://github.com/grpc/grpc-go.git"
-  version = "v1.8.2"
+  revision = "5b3c4e850e90a4cf6a20ebd46c8b32a0a3afcb9e"
+  source = "https://github.com/grpc/grpc-go"
 
 [[projects]]
   name = "gopkg.in/yaml.v2"
   packages = ["."]
-  revision = "287cf08546ab5e7e37d55a84f7ed3fd1db036de5"
+  revision = "d670f9405373e636a5a2765eea47fac0c9bc91a4"
+  source = "https://github.com/go-yaml/yaml"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "44e80482c57a0880298c3cca72ba070163c7ed10d2ce45868d45b84f5593ab7b"
+  inputs-digest = "70ab7327ea73bde9818f65fb4a80f9ac519022632cf6c935f50a298c280ee83d"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -1,68 +1,81 @@
 ################################
 # Direct dependencies
 
-# https://github.com/coreos/etcd
+
+# v3.3.0 RC
 [[constraint]]
   name = "github.com/coreos/etcd"
-  revision = "44e1f6f019a98dbea4c8c8def5f077fb0dd83e8a"
+  source = "https://github.com/coreos/etcd"
+  revision = "eaf6ae02e47edbea90aa7f0fe6c4d558611e00ab"
 
-# https://github.com/dustin/go-humanize
-[[constraint]]
-  name = "github.com/dustin/go-humanize"
-  revision = "bb3d318650d48840a39aa21a027c6630e198e626"
 
-# https://github.com/golang/glog
 [[constraint]]
   name = "github.com/golang/glog"
+  source = "https://github.com/golang/glog"
   revision = "23def4e6c14b4da8ac2ed8007337bc5eb5007998"
 
-# https://github.com/go-yaml/yaml
+
 [[constraint]]
   name = "gopkg.in/yaml.v2"
-  revision = "287cf08546ab5e7e37d55a84f7ed3fd1db036de5"
+  source = "https://github.com/go-yaml/yaml"
+  revision = "d670f9405373e636a5a2765eea47fac0c9bc91a4"
 
-# https://github.com/gyuho/archiver
+[[constraint]]
+  name = "github.com/dustin/go-humanize"
+  source = "https://github.com/dustin/go-humanize"
+  revision = "bb3d318650d48840a39aa21a027c6630e198e626"
+
+
 [[constraint]]
   name = "github.com/gyuho/archiver"
+  source = "https://github.com/gyuho/archiver"
   revision = "0c5460b3c28c626130e2efec2c651226384234e9"
 
-# https://github.com/golang/oauth2
+
 [[constraint]]
   name = "golang.org/x/oauth2"
+  source = "https://github.com/golang/oauth2"
   revision = "30785a2c434e431ef7c507b54617d6a951d5f2b4"
 
-# https://github.com/google/google-api-go-client
 [[constraint]]
   name = "google.golang.org/api"
+  source = "https://github.com/google/google-api-go-client"
   revision = "e5c227fa33ebccc5a430d863efae400431fc0e85"
 
-# https://github.com/golang/appengine
 [[constraint]]
   name = "google.golang.org/appengine"
+  source = "https://github.com/golang/appengine"
   revision = "5bee14b453b4c71be47ec1781b0fa61c2ea182db"
 
-# https://github.com/GoogleCloudPlatform/google-cloud-go
 [[constraint]]
   name = "cloud.google.com/go"
+  source = "https://github.com/GoogleCloudPlatform/google-cloud-go"
   revision = "2a6493c7a9214bf56c1003bd97443d505cc7e952"
+
+
 ################################
 
 ################################
 # Transitive dependencies, but to override
 
-# https://github.com/coreos/bbolt
+
+# v1.3.1-coreos.6
 [[override]]
   name = "github.com/coreos/bbolt"
-  version = "v1.3.1-coreos.6"
+  source = "https://github.com/coreos/bbolt"
+  revision = "48ea1b39c25fc1bab3506fbc712ecbaa842c4d2d"
 
-# https://github.com/grpc/grpc-go
+# v1.7.5
 [[override]]
   name = "google.golang.org/grpc"
-  source = "https://github.com/grpc/grpc-go.git"
-  version = "v1.7.5"
+  source = "https://github.com/grpc/grpc-go"
+  revision = "5b3c4e850e90a4cf6a20ebd46c8b32a0a3afcb9e"
 
-# https://github.com/grpc-ecosystem/grpc-gateway
+# v1.3.0
 [[override]]
   name = "github.com/grpc-ecosystem/grpc-gateway"
-  version = "v1.3.0"
+  source = "https://github.com/grpc-ecosystem/grpc-gateway"
+  revision = "8cc3a55af3bcf171a1c23a90c4df9cf591706104"
+
+
 ################################
