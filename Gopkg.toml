@@ -29,22 +29,22 @@
 # https://github.com/golang/oauth2
 [[constraint]]
   name = "golang.org/x/oauth2"
-  revision = "9ff8ebcc8e241d46f52ecc5bff0e5a2f2dbef402"
+  revision = "30785a2c434e431ef7c507b54617d6a951d5f2b4"
 
 # https://github.com/google/google-api-go-client
 [[constraint]]
   name = "google.golang.org/api"
-  revision = "92db9b55d2aa90e54a33cfaa8caf354afae68157"
+  revision = "e5c227fa33ebccc5a430d863efae400431fc0e85"
 
 # https://github.com/golang/appengine
 [[constraint]]
   name = "google.golang.org/appengine"
-  revision = "9d8544a6b2c7df9cff240fcf92d7b2f59bc13416"
+  revision = "5bee14b453b4c71be47ec1781b0fa61c2ea182db"
 
 # https://github.com/GoogleCloudPlatform/google-cloud-go
 [[constraint]]
   name = "cloud.google.com/go"
-  revision = "290422ce3a4bcdb0c7998c2a994e23bc950b0bdb"
+  revision = "2a6493c7a9214bf56c1003bd97443d505cc7e952"
 ################################
 
 ################################
