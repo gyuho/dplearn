@@ -11,7 +11,7 @@
     "internal/version",
     "storage"
   ]
-  revision = "290422ce3a4bcdb0c7998c2a994e23bc950b0bdb"
+  revision = "2a6493c7a9214bf56c1003bd97443d505cc7e952"
 
 [[projects]]
   branch = "master"
@@ -366,7 +366,7 @@
     "jws",
     "jwt"
   ]
-  revision = "9ff8ebcc8e241d46f52ecc5bff0e5a2f2dbef402"
+  revision = "30785a2c434e431ef7c507b54617d6a951d5f2b4"
 
 [[projects]]
   branch = "master"
@@ -418,7 +418,7 @@
     "storage/v1",
     "transport/http"
   ]
-  revision = "92db9b55d2aa90e54a33cfaa8caf354afae68157"
+  revision = "e5c227fa33ebccc5a430d863efae400431fc0e85"
 
 [[projects]]
   name = "google.golang.org/appengine"
@@ -486,6 +486,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f8d3a351e6fa48d04fe5d2d23494816c8bf4d8770c87afc2f67648b80ab6c76b"
+  inputs-digest = "44e80482c57a0880298c3cca72ba070163c7ed10d2ce45868d45b84f5593ab7b"
   solver-name = "gps-cdcl"
   solver-version = 1
